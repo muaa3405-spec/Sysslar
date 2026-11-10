@@ -553,9 +553,11 @@
                                HorizontalAlignment="Center" Opacity="0.6"/>
                 </StackPanel>
 
+                <!-- Vertical space is a margin inside the scrolled content, not ScrollViewer padding:
+                     padding sits outside the clip, so a card lifted on hover would lose its top edge -->
                 <ScrollViewer Grid.Row="2"
-                              VerticalScrollBarVisibility="Auto" Padding="14,10">
-                    <ItemsControl x:Name="TaskListControl"
+                              VerticalScrollBarVisibility="Auto" Padding="14,0">
+                    <ItemsControl x:Name="TaskListControl" Margin="0,10"
                                   ItemsSource="{Binding VisibleTasks}"
                                   beh:DragDropBehavior.IsEnabled="True">
                         <ItemsControl.ItemTemplate>
@@ -589,11 +591,11 @@
                                                       VerticalAlignment="Top" Margin="0,3,8,0"
                                                       ToolTip.Tip="Mark as done"
                                                       Click="Checkbox_Click"/>
-                                            <ToggleButton Grid.Column="1" Theme="{StaticResource ActiveToggleSwitch}"
+                                            <ToggleButton Grid.Column="1" Theme="{StaticResource TimerPlayButton}"
                                                           IsChecked="{Binding IsActive, Mode=OneWay}"
                                                           Click="ActiveToggle_Click"
-                                                          ToolTip.Tip="Start or stop the timer"
-                                                          VerticalAlignment="Top" Margin="0,3,10,0"/>
+                                                          ToolTip.Tip="{Binding IsActive, Converter={x:Static helpers:TimerTips.Converter}}"
+                                                          VerticalAlignment="Top" Margin="0,1,10,0"/>
                                             <StackPanel Grid.Column="2">
                                                 <WrapPanel Margin="0,0,0,3">
                                                     <Border Background="{DynamicResource TagBackground}"
@@ -665,7 +667,7 @@
                                                         Click="Attachment_Click" Margin="0,0,1,0">
                                                     <TextBlock Text="&#x1F4CE;" FontSize="13" Foreground="#60A5FA"/>
                                                 </Button>
-                                                <Button Theme="{StaticResource IconButton}" ToolTip.Tip="Postpone (tomorrow or next week)"
+                                                <Button Theme="{StaticResource IconButton}" ToolTip.Tip="Postpone"
                                                         Click="Postpone_Click" Margin="0,0,1,0">
                                                     <TextBlock Text="&#x23ED;" FontSize="13" Foreground="#34D399"/>
                                                 </Button>
@@ -1721,62 +1723,36 @@
 
                     <!-- Export / import for spreadsheets and other apps -->
                     <Border Theme="{StaticResource TaskCard}" Padding="14,11" Margin="0,8,0,0">
-                        <StackPanel>
-                            <Grid ColumnDefinitions="Auto,*">
-                                <TextBlock Grid.Column="0" Text="&#x1F4E4;" FontSize="16"
-                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                    <TextBlock Text="Export and import" FontSize="13" FontWeight="SemiBold"
-                                               Foreground="{DynamicResource TextPrimary}"/>
-                                    <TextBlock Theme="{StaticResource SubText}" TextWrapping="Wrap" Margin="0,1,0,0"
-                                               Text="CSV opens in Excel, Numbers or Google Sheets. Import a CSV from a spreadsheet, Todoist or another app: it needs a Title column."/>
-                                </StackPanel>
-                            </Grid>
-                            <WrapPanel Margin="0,10,0,0">
-                                <Button Theme="{StaticResource SecondaryButton}" Padding="12,6" Margin="0,0,8,6"
-                                        Click="ExportCsv_Click">
-                                    <TextBlock Text="Export tasks (CSV)" FontSize="12"/>
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                            <TextBlock Grid.Column="0" Text="&#x1F4E4;" FontSize="16"
+                                       VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                                <TextBlock Text="Export, import and print" FontSize="13" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextPrimary}"/>
+                                <TextBlock Theme="{StaticResource SubText}" TextWrapping="Wrap" Margin="0,1,0,0"
+                                           Text="CSV for Excel, Numbers or Google Sheets, Markdown, or a printable list (print or save as PDF). Importing a CSV needs a Title column."/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button Theme="{StaticResource SecondaryButton}" Padding="12,6" Margin="0,0,8,0">
+                                    <TextBlock Text="Export ▾" FontSize="12"/>
+                                    <Button.Flyout>
+                                        <MenuFlyout Placement="BottomEdgeAlignedRight">
+                                            <MenuItem Header="Tasks as CSV…" Click="ExportCsv_Click"/>
+                                            <MenuItem Header="Tasks and notes as Markdown…" Click="ExportMarkdown_Click"/>
+                                            <Separator/>
+                                            <MenuItem Header="Print or save as PDF">
+                                                <MenuItem Header="Today" Click="Print_Click" Tag="{x:Static vm:TaskFilter.Today}"/>
+                                                <MenuItem Header="This week" Click="Print_Click" Tag="{x:Static vm:TaskFilter.ThisWeek}"/>
+                                                <MenuItem Header="All open tasks" Click="Print_Click" Tag="{x:Static vm:TaskFilter.All}"/>
+                                            </MenuItem>
+                                        </MenuFlyout>
+                                    </Button.Flyout>
                                 </Button>
-                                <Button Theme="{StaticResource SecondaryButton}" Padding="12,6" Margin="0,0,8,6"
-                                        Click="ExportMarkdown_Click">
-                                    <TextBlock Text="Export tasks and notes (Markdown)" FontSize="12"/>
-                                </Button>
-                                <Button Theme="{StaticResource PrimaryButton}" Padding="12,6" Margin="0,0,8,6"
-                                        Click="ImportCsv_Click">
-                                    <TextBlock Text="Import tasks (CSV)…" FontSize="12"/>
-                                </Button>
-                            </WrapPanel>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Print or save as PDF -->
-                    <Border Theme="{StaticResource TaskCard}" Padding="14,11" Margin="0,8,0,0">
-                        <StackPanel>
-                            <Grid ColumnDefinitions="Auto,*">
-                                <TextBlock Grid.Column="0" Text="&#x1F5A8;" FontSize="16"
-                                           VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                    <TextBlock Text="Print or save as PDF" FontSize="13" FontWeight="SemiBold"
-                                               Foreground="{DynamicResource TextPrimary}"/>
-                                    <TextBlock Theme="{StaticResource SubText}" TextWrapping="Wrap" Margin="0,1,0,0"
-                                               Text="Opens a printable list in your browser. Choose a printer, or &quot;Save as PDF&quot;."/>
-                                </StackPanel>
-                            </Grid>
-                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                                <Button Theme="{StaticResource SecondaryButton}" Padding="12,6" Margin="0,0,8,0"
-                                        Click="Print_Click" Tag="{x:Static vm:TaskFilter.Today}">
-                                    <TextBlock Text="Today" FontSize="12"/>
-                                </Button>
-                                <Button Theme="{StaticResource SecondaryButton}" Padding="12,6" Margin="0,0,8,0"
-                                        Click="Print_Click" Tag="{x:Static vm:TaskFilter.ThisWeek}">
-                                    <TextBlock Text="This week" FontSize="12"/>
-                                </Button>
-                                <Button Theme="{StaticResource SecondaryButton}" Padding="12,6"
-                                        Click="Print_Click" Tag="{x:Static vm:TaskFilter.All}">
-                                    <TextBlock Text="All open tasks" FontSize="12"/>
+                                <Button Theme="{StaticResource SecondaryButton}" Padding="12,6" Click="ImportCsv_Click">
+                                    <TextBlock Text="Import CSV…" FontSize="12"/>
                                 </Button>
                             </StackPanel>
-                        </StackPanel>
+                        </Grid>
                     </Border>
 
                     <!-- ROW 6: Updates (off unless the user turns it on) -->

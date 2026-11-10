@@ -935,16 +935,41 @@ public partial class MainWindow : Window
         if (sender is Control anchor && GetTaskVm(sender) is { } vm) ShowPostponeMenu(anchor, vm);
     }
 
-    /// <summary>The "Tomorrow / Next week" menu, built per task so each item knows its task.</summary>
+    /// <summary>
+    /// Tomorrow, the rest of this week, any day of next week, or two weeks out.
+    /// Built per task so each item knows its task.
+    /// </summary>
     private void ShowPostponeMenu(Control anchor, TaskItemViewModel vm)
     {
-        var menu = new MenuFlyout();
-        foreach (var option in PostponeOptions.All)
+        var today = DateTime.Today;
+        var menu  = new MenuFlyout();
+
+        MenuItem DayItem(string label, DateTime day)
         {
-            var item = new MenuItem { Header = option.Label };
-            item.Click += (_, _) => Vm.Postpone(vm, option.NewDueDate(DateTime.Today));
-            menu.Items.Add(item);
+            var item = new MenuItem { Header = label };
+            item.Click += (_, _) => Vm.Postpone(vm, day);
+            return item;
         }
+
+        menu.Items.Add(DayItem($"Tomorrow · {today.AddDays(1):ddd d MMM}", today.AddDays(1)));
+
+        var thisWeek = PostponeOptions.RestOfThisWeek(today).ToList();
+        if (thisWeek.Count > 0)
+        {
+            var later = new MenuItem { Header = "Later this week" };
+            foreach (var day in thisWeek) later.Items.Add(DayItem(PostponeOptions.DayLabel(day), day));
+            menu.Items.Add(later);
+        }
+
+        var nextWeek = PostponeOptions.DaysOfNextWeek(today).ToList();
+        var next = new MenuItem { Header = "Next week" };
+        foreach (var day in nextWeek) next.Items.Add(DayItem(PostponeOptions.DayLabel(day), day));
+        menu.Items.Add(next);
+
+        menu.Items.Add(new Separator());
+        menu.Items.Add(DayItem($"Next Monday · {nextWeek[0]:d MMM}", nextWeek[0]));
+        menu.Items.Add(DayItem($"In 2 weeks · {nextWeek[0].AddDays(7):ddd d MMM}", nextWeek[0].AddDays(7)));
+
         menu.ShowAt(anchor);
     }
 

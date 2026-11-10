@@ -187,7 +187,7 @@ public partial class MainWindow
 
     private void Print_Click(object? sender, RoutedEventArgs e)
     {
-        if ((sender as Button)?.Tag is not TaskFilter filter) return;
+        if ((sender as Control)?.Tag is not TaskFilter filter) return;
         var listName = TaskDateFilters.Label(filter);
         try
         {
