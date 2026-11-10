@@ -20,6 +20,11 @@
     <RuntimeIdentifiers>win-x64;osx-x64;osx-arm64</RuntimeIdentifiers>
     <PublishSingleFile>false</PublishSingleFile>
     <Version>1.3.0</Version>
+    <!-- The app is called Sysslar (it was Tasky). The program file, namespaces and data folders keep
+         the old name so updates install over an existing Tasky and keep all its data. -->
+    <Product>Sysslar</Product>
+    <AssemblyTitle>Sysslar</AssemblyTitle>
+    <Company>Muhammad Aadil</Company>
   </PropertyGroup>
 
   <ItemGroup>
@@ -36,7 +41,7 @@
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\icon.ico" />
-    <AvaloniaResource Include="Assets\tasky-logo.png" />
+    <AvaloniaResource Include="Assets\sysslar-logo.png" />
     <!-- macOS emoji icons: single-colour Noto Emoji (SIL Open Font License, see OFL-NotoEmoji.txt) -->
     <AvaloniaResource Include="Assets\Fonts\NotoEmoji-Variable.ttf" />
     <None Include="Assets\Fonts\OFL-NotoEmoji.txt" CopyToOutputDirectory="PreserveNewest" />

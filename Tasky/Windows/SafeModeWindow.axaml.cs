@@ -30,7 +30,7 @@ public partial class SafeModeWindow : Window
             ? $"Restore the backup from {backup.Label} and restart"
             : "No automatic backup yet";
         BackupHint.Text = _latestBackup is null
-            ? "If this keeps happening, install the latest version of Tasky. Your data stays where it is."
+            ? "If this keeps happening, install the latest version of Sysslar. Your data stays where it is."
             : "Restoring puts back your tasks and settings as they were at that time. Today's data is kept as a safety copy.";
     }
 

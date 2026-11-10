@@ -36,7 +36,7 @@ public static class PlatformServices
         }
         else
         {
-            throw new PlatformNotSupportedException("Tasky runs on Windows and macOS.");
+            throw new PlatformNotSupportedException("Sysslar runs on Windows and macOS.");
         }
     }
 

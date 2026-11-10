@@ -18,7 +18,7 @@ namespace Tasky.Dialogs;
 /// </summary>
 public partial class MigrateDialog : Window
 {
-    private static readonly FilePickerFileType MigrationFileType = new("Tasky migration file")
+    private static readonly FilePickerFileType MigrationFileType = new("Sysslar migration file")
     {
         Patterns = ["*" + MigrationService.FileExtension]
     };
@@ -71,7 +71,7 @@ public partial class MigrateDialog : Window
     private void ChooseExport_Click(object? sender, RoutedEventArgs e)
     {
         try { ExportSummary.Text = _migration.CurrentCounts().Summary; }
-        catch (Exception ex) { CrashLog.Write("Could not count records for export", ex); ExportSummary.Text = "All your Tasky data"; }
+        catch (Exception ex) { CrashLog.Write("Could not count records for export", ex); ExportSummary.Text = "All your Sysslar data"; }
         ExportPassword.Clear();
         ExportPasswordConfirm.Clear();
         HideError(ExportError);
@@ -120,7 +120,7 @@ public partial class MigrateDialog : Window
     private async void Export_Click(object? sender, RoutedEventArgs e)
     {
         var fileName = await FileDialogs.SaveFileAsync(this, "Save migration file",
-            $"Tasky-migration-{DateTime.Now:yyyy-MM-dd}{MigrationService.FileExtension}",
+            $"Sysslar-migration-{DateTime.Now:yyyy-MM-dd}{MigrationService.FileExtension}",
             MigrationFileType, MigrationService.FileExtension);
         if (fileName is null) return;
 
@@ -214,11 +214,11 @@ public partial class MigrateDialog : Window
         // With several workspaces, say which one receives the data; the others are not touched.
         var where = Workspaces.HasSeveral ? $"the \"{Workspaces.Active.Name}\" workspace" : "this computer";
         ReplaceWarning.Text = hasData
-            ? $"⚠  This replaces the Tasky data in {where} ({current!.Summary}). " +
+            ? $"⚠  This replaces the Sysslar data in {where} ({current!.Summary}). " +
               $"A safety copy of it is kept in {AppPaths.ImportBackupsFolder}."
             : Workspaces.HasSeveral
-                ? $"Tasky will restart and open \"{Workspaces.Active.Name}\" with this data. Your other workspaces are not changed."
-                : "Tasky will restart and open with this data.";
+                ? $"Sysslar will restart and open \"{Workspaces.Active.Name}\" with this data. Your other workspaces are not changed."
+                : "Sysslar will restart and open with this data.";
         ShowStep(ConfirmImportStep);
     }
 
@@ -228,14 +228,14 @@ public partial class MigrateDialog : Window
         {
             _migration.ConfirmStagedImport();
             _importConfirmed = true;
-            ShowWorking("Restarting Tasky…");
+            ShowWorking("Restarting Sysslar…");
             MigrationService.RestartTasky();
         }
         catch (Exception ex)
         {
             CrashLog.Write("Could not restart after import", ex);
             ShowStep(ConfirmImportStep);
-            InAppNotificationService.Warning("Close and reopen Tasky to finish the import.");
+            InAppNotificationService.Warning("Close and reopen Sysslar to finish the import.");
         }
     }
 
@@ -267,7 +267,7 @@ public partial class MigrateDialog : Window
             CrashLog.Write("Migration failed", ex);
             onError(ex is IOException or UnauthorizedAccessException
                 ? $"Couldn't read or write the file: {ex.Message}"
-                : "Something went wrong. Details were written to the Tasky log.");
+                : "Something went wrong. Details were written to the Sysslar log.");
         }
         finally
         {

@@ -34,7 +34,7 @@ public static class PrintableTaskList
             </style></head>
             <body onload="window.print()">
             <h1>{{Encode(listName)}}</h1>
-            <div class="meta">Printed from Tasky on {{printedAt:dddd d MMMM yyyy, HH:mm}} · {{tasks.Count}} task(s)</div>
+            <div class="meta">Printed from Sysslar on {{printedAt:dddd d MMMM yyyy, HH:mm}} · {{tasks.Count}} task(s)</div>
             """);
 
         if (tasks.Count == 0) html.Append("<p class=\"empty\">Nothing to do here.</p>");

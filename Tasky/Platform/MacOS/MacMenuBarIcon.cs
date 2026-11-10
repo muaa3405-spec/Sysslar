@@ -12,7 +12,7 @@ namespace Tasky.Platform.MacOS;
 [SupportedOSPlatform("macos")]
 internal sealed class MacMenuBarIcon : ISystemTray
 {
-    private static readonly Uri IconUri = new("avares://Tasky/Assets/tasky-logo.png");
+    private static readonly Uri IconUri = new("avares://Tasky/Assets/sysslar-logo.png");
 
     private TrayIcon? _icon;
 

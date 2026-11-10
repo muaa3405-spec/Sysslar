@@ -33,11 +33,11 @@
                         <!-- Logo + App name -->
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"
                                     Margin="0,0,0,16">
-                            <Image Source="/Assets/tasky-logo.png"
+                            <Image Source="/Assets/sysslar-logo.png"
                                    Width="24" Height="24"
                                    RenderOptions.BitmapInterpolationMode="HighQuality"
                                    VerticalAlignment="Center" Margin="0,0,8,0"/>
-                            <TextBlock Text="Tasky" FontSize="15" FontWeight="SemiBold"
+                            <TextBlock Text="Sysslar" FontSize="15" FontWeight="SemiBold"
                                        Foreground="#94A3B8" VerticalAlignment="Center"/>
                         </StackPanel>
 
@@ -195,10 +195,10 @@
             </StackPanel>
             <!-- Right: branding -->
             <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right">
-                <Image Source="/Assets/tasky-logo.png"
+                <Image Source="/Assets/sysslar-logo.png"
                        Width="28" Height="28" HorizontalAlignment="Center"
                        RenderOptions.BitmapInterpolationMode="HighQuality" Margin="0,0,0,4"/>
-                <TextBlock Text="Tasky" FontSize="12" FontWeight="SemiBold"
+                <TextBlock Text="Sysslar" FontSize="12" FontWeight="SemiBold"
                            Foreground="#475569" HorizontalAlignment="Center"/>
             </StackPanel>
         </Grid>

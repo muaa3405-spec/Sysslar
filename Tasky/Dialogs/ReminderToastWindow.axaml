@@ -27,7 +27,7 @@
                 <Grid Margin="0,0,0,10" ColumnDefinitions="Auto,*,Auto">
                     <TextBlock Grid.Column="0" Text="⏰" FontSize="15"
                                VerticalAlignment="Center" Margin="0,0,8,0"/>
-                    <TextBlock Grid.Column="1" Text="Tasky Reminder"
+                    <TextBlock Grid.Column="1" Text="Sysslar Reminder"
                                FontSize="13" FontWeight="SemiBold" Foreground="#60A5FA"
                                VerticalAlignment="Center"/>
                     <Button Grid.Column="2" Content="✕" Click="Dismiss_Click"

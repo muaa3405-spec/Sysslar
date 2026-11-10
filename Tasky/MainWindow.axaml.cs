@@ -135,7 +135,7 @@ public partial class MainWindow : Window
         InitializeComponent();
         Icon = new WindowIcon(AssetLoader.Open(new Uri(OperatingSystem.IsWindows()
             ? "avares://Tasky/Assets/icon.ico"
-            : "avares://Tasky/Assets/tasky-logo.png")));
+            : "avares://Tasky/Assets/sysslar-logo.png")));
         ApplyPlatformTexts();
         RefreshWorkspaceHeader();
         PopulateSoundPicker();
@@ -343,12 +343,12 @@ public partial class MainWindow : Window
     {
         _trayIcon = PlatformServices.CreateTray();
         _trayIcon.OpenRequested += ShowFromTray;
-        _trayIcon.Show(Workspaces.HasSeveral ? $"Tasky - {Workspaces.Active.Name}" : "Tasky - Task Manager",
+        _trayIcon.Show(Workspaces.HasSeveral ? $"Sysslar - {Workspaces.Active.Name}" : "Sysslar - Task Manager",
         [
-            new TrayMenuItem("Open Tasky", ShowFromTray),
+            new TrayMenuItem("Open Sysslar", ShowFromTray),
             new TrayMenuItem("Quick Add",  OpenQuickAdd),
             TrayMenuItem.Separator,
-            new TrayMenuItem("Exit Tasky", ExitApp)
+            new TrayMenuItem("Exit Sysslar", ExitApp)
         ]);
     }
 
@@ -481,7 +481,7 @@ public partial class MainWindow : Window
         if (_exiting || e.CloseReason != WindowCloseReason.WindowClosing) return;
         e.Cancel = true;
         Hide();
-        _trayIcon?.ShowBalloon("Tasky", "Running in background. Double-click to restore.", TimeSpan.FromSeconds(2));
+        _trayIcon?.ShowBalloon("Sysslar", "Running in background. Double-click to restore.", TimeSpan.FromSeconds(2));
     }
 
     // Header buttons
@@ -945,11 +945,12 @@ public partial class MainWindow : Window
         menu.ShowAt(anchor);
     }
 
-    private void TaskContent_Click(object? sender, PointerReleasedEventArgs e)
+    /// <summary>Clicking a task opens it for editing (Enter on a selected task still shows the read-only detail).</summary>
+    private async void TaskContent_Click(object? sender, PointerReleasedEventArgs e)
     {
         if (!IsLeftClick(e)) return;
         if (GetTaskVm(sender) is not { } vm) return;
-        ShowDimmedDetail(vm);
+        await EditTaskAsync(vm);
     }
 
     private void ShowDimmedDetail(TaskItemViewModel vm)

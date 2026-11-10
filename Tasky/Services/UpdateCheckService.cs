@@ -42,7 +42,7 @@ public sealed class UpdateCheckService
     {
         var client = new HttpClient { Timeout = RequestTimeout };
         // GitHub's API rejects requests without a User-Agent.
-        client.DefaultRequestHeaders.UserAgent.ParseAdd($"Tasky/{AppInfo.VersionText}");
+        client.DefaultRequestHeaders.UserAgent.ParseAdd($"Sysslar/{AppInfo.VersionText}");
         client.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
         return client;
     }

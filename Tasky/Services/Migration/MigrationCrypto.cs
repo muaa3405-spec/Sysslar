@@ -85,9 +85,9 @@ public static class MigrationCrypto
     {
         var header = new byte[HeaderSize];
         if (ReadFull(source, header) != HeaderSize || !header.AsSpan(0, Magic.Length).SequenceEqual(Magic))
-            throw new MigrationFileException("This is not a Tasky migration file.");
+            throw new MigrationFileException("This is not a Sysslar migration file.");
         if (header[Magic.Length] != FormatVersion)
-            throw new MigrationFileException("This migration file was made by a newer version of Tasky. Update Tasky and try again.");
+            throw new MigrationFileException("This migration file was made by a newer version of Sysslar. Update Sysslar and try again.");
 
         int offset = Magic.Length + 1;
         int iterations = BinaryPrimitives.ReadInt32LittleEndian(header.AsSpan(offset, sizeof(int)));

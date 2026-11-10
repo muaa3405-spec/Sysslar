@@ -14,7 +14,7 @@ public static class MarkdownExporter
     public static string ToMarkdown(IReadOnlyList<TaskExportRow> tasks, IReadOnlyList<Note> notes, DateTime exportedAt)
     {
         var md = new StringBuilder();
-        md.AppendLine($"# Tasky export, {exportedAt:d MMMM yyyy}").AppendLine();
+        md.AppendLine($"# Sysslar export, {exportedAt:d MMMM yyyy}").AppendLine();
 
         AppendTaskSection(md, "Open tasks",
             tasks.Where(t => !t.IsCompleted).OrderBy(t => t.DueDate ?? DateTime.MaxValue).ThenBy(t => t.Number));

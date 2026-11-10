@@ -132,7 +132,7 @@ public sealed class MigrationService
     /// <param name="extraArgs">Passed on to the new Tasky (e.g. <see cref="Workspaces.OpenImportArg"/>).</param>
     public static void RestartTasky(params string[] extraArgs)
     {
-        var exe = Environment.ProcessPath ?? throw new InvalidOperationException("Cannot find the Tasky executable");
+        var exe = Environment.ProcessPath ?? throw new InvalidOperationException("Cannot find the Sysslar executable");
         var start = new ProcessStartInfo(exe) { UseShellExecute = false };
         start.ArgumentList.Add(WaitForPidArg);
         start.ArgumentList.Add(Environment.ProcessId.ToString(System.Globalization.CultureInfo.InvariantCulture));

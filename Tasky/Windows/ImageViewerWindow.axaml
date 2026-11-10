@@ -1,7 +1,7 @@
 <Window x:Class="Tasky.Windows.ImageViewerWindow"
         xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Image Viewer — Tasky"
+        Title="Image Viewer — Sysslar"
         SystemDecorations="None" TransparencyLevelHint="Transparent"
         Background="Transparent"
         WindowStartupLocation="CenterScreen"

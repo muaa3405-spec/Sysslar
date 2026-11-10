@@ -24,7 +24,7 @@ public partial class MainWindow
         WorkspaceNameText.Text = active.Name;
         WorkspaceDot.Fill = new SolidColorBrush(Color.Parse(active.Color));
         ToolTip.SetTip(WorkspaceButton, $"Workspace: {active.Name}. Click to switch");
-        Title = Workspaces.HasSeveral ? $"Tasky – {active.Name}" : "Tasky";
+        Title = Workspaces.HasSeveral ? $"Sysslar – {active.Name}" : "Sysslar";
     }
 
     private void WorkspaceButton_Click(object? sender, RoutedEventArgs e)
@@ -125,7 +125,7 @@ public partial class MainWindow
         if (confirm && Vm.Tasks.Any(t => t.IsRunning))
         {
             var ask = new ConfirmDialog("Switch Workspace",
-                $"Your running timer will be paused and saved, then Tasky restarts in \"{target.Name}\".",
+                $"Your running timer will be paused and saved, then Sysslar restarts in \"{target.Name}\".",
                 "Pause and switch", ConfirmType.Info);
             if (await ShowModalDialog(ask) != true) return;
         }
@@ -139,7 +139,7 @@ public partial class MainWindow
         {
             CrashLog.Write("Switching workspace failed", ex);
             try { Workspaces.KeepActiveOnNextStart(); } catch { /* the list file is unwritable; nothing to undo */ }
-            InAppNotificationService.Error("Tasky couldn't switch workspace. Details were written to the Tasky log.");
+            InAppNotificationService.Error("Sysslar couldn't switch workspace. Details were written to the Sysslar log.");
         }
     }
 

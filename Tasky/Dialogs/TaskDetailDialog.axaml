@@ -2,7 +2,7 @@
         Classes="toolWindow"
         xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Task Detail — Tasky"
+        Title="Task Detail — Sysslar"
         Width="560" SizeToContent="Height"
         Background="{DynamicResource AppBackground}"
         ShowInTaskbar="False"

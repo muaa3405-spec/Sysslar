@@ -17,7 +17,7 @@
                    Foreground="{DynamicResource TextPrimary}" Margin="0,0,0,6"/>
 
         <TextBlock Grid.Row="1" Theme="{StaticResource SubText}" TextWrapping="Wrap" Margin="0,0,0,14"
-                   Text="Each workspace has its own tasks, notes, groups, reminders, time history, settings and backups. Nothing is shared between them. Switching restarts Tasky in the other workspace."/>
+                   Text="Each workspace has its own tasks, notes, groups, reminders, time history, settings and backups. Nothing is shared between them. Switching restarts Sysslar in the other workspace."/>
 
         <!-- New workspace / rename form -->
         <Border Grid.Row="2"
@@ -34,7 +34,7 @@
                 <CheckBox x:Name="ImportCheck" Margin="0,0,0,4"
                           Foreground="{DynamicResource TextPrimary}" FontSize="12">
                     <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextPrimary}"
-                               Text="Import a Tasky migration file into it"/>
+                               Text="Import a Sysslar migration file into it"/>
                 </CheckBox>
                 <TextBlock x:Name="FormError" Foreground="#EF4444" FontSize="12" TextWrapping="Wrap"
                            IsVisible="False" Margin="0,2,0,4"/>

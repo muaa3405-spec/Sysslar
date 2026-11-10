@@ -114,7 +114,7 @@ public partial class WorkspacesDialog : Window
         catch (Exception ex)
         {
             CrashLog.Write("Saving a workspace failed", ex);
-            ShowFormError("The workspace couldn't be saved. Details were written to the Tasky log.");
+            ShowFormError("The workspace couldn't be saved. Details were written to the Sysslar log.");
         }
     }
 
@@ -197,7 +197,7 @@ public partial class WorkspacesDialog : Window
                 VerticalAlignment = VerticalAlignment.Center,
                 Theme = UiResources.Theme("SecondaryButton"),
             };
-            ToolTip.SetTip(open, $"Restart Tasky in \"{workspace.Name}\"");
+            ToolTip.SetTip(open, $"Restart Sysslar in \"{workspace.Name}\"");
             open.Click += (_, _) =>
             {
                 OpenWorkspaceId = workspace.Id;

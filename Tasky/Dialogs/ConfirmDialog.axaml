@@ -1,7 +1,7 @@
 <Window x:Class="Tasky.Dialogs.ConfirmDialog"
         xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Tasky"
+        Title="Sysslar"
         Background="{DynamicResource AppBackground}"
         Width="380" SizeToContent="Height"
         SystemDecorations="None" TransparencyLevelHint="Transparent"
