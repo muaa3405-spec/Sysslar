@@ -19,13 +19,54 @@ public static class AppPaths
         ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library", "Application Support")
         : Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
+    // ── Workspaces ────────────────────────────────────────────────────────
+
     /// <summary>
-    /// User data: database, settings, attachments
+    /// Data of the first ("default") workspace: Tasky's original folder
     /// (%AppData%\Tasky on Windows, ~/Library/Application Support/Tasky on macOS).
     /// </summary>
-    public static string DataFolder { get; } = OverrideRoot is not null
+    public static string DefaultDataFolder => OverrideRoot is not null
         ? Path.Combine(OverrideRoot, "Roaming", "Tasky")
         : Path.Combine(UserDataRoot, "Tasky");
+
+    /// <summary>Working files of the default workspace (see <see cref="LocalFolder"/>).</summary>
+    private static string DefaultLocalFolder => OverrideRoot is not null
+        ? Path.Combine(OverrideRoot, "Local", "Tasky")
+        : OperatingSystem.IsMacOS()
+            ? Path.Combine(UserDataRoot, "Tasky Local")
+            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Tasky");
+
+    /// <summary>
+    /// Every other workspace's data, one sub-folder each, plus the workspace list
+    /// (%AppData%\Tasky Workspaces on Windows, ~/Library/Application Support/Tasky Workspaces on macOS).
+    /// Never inside a workspace's <see cref="DataFolder"/>, because an import swaps that whole folder.
+    /// </summary>
+    public static string WorkspacesFolder => OverrideRoot is not null
+        ? Path.Combine(OverrideRoot, "Roaming", "Tasky Workspaces")
+        : Path.Combine(UserDataRoot, "Tasky Workspaces");
+
+    /// <summary>Working files of the other workspaces, one sub-folder each.</summary>
+    private static string WorkspacesLocalFolder => OverrideRoot is not null
+        ? Path.Combine(OverrideRoot, "Local", "Tasky Workspaces")
+        : OperatingSystem.IsMacOS()
+            ? Path.Combine(UserDataRoot, "Tasky Local Workspaces")
+            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Tasky Workspaces");
+
+    /// <summary>The list of workspaces and which one Tasky opens.</summary>
+    public static string WorkspaceRegistryFile => Path.Combine(WorkspacesFolder, "workspaces.json");
+
+    public static string DataFolderFor(string workspaceId) => workspaceId == Workspaces.DefaultId
+        ? DefaultDataFolder
+        : Path.Combine(WorkspacesFolder, workspaceId);
+
+    public static string LocalFolderFor(string workspaceId) => workspaceId == Workspaces.DefaultId
+        ? DefaultLocalFolder
+        : Path.Combine(WorkspacesLocalFolder, workspaceId);
+
+    // ── The open workspace ────────────────────────────────────────────────
+
+    /// <summary>User data of the open workspace: database, settings, attachments.</summary>
+    public static string DataFolder => DataFolderFor(Workspaces.Active.Id);
 
     public static string DatabaseFile      => Path.Combine(DataFolder, DatabaseFileName);
     public static string SettingsFile      => Path.Combine(DataFolder, SettingsFileName);
@@ -36,15 +77,11 @@ public static class AppPaths
     public const string AttachmentsFolderName = "Attachments";
 
     /// <summary>
-    /// Machine-local working files: logs, import staging, safety copies
-    /// (%LocalAppData%\Tasky on Windows, ~/Library/Application Support/Tasky Local on macOS).
+    /// Machine-local working files of the open workspace: logs, import staging, safety copies, backups
+    /// (%LocalAppData%\Tasky on Windows, ~/Library/Application Support/Tasky Local on macOS, for the default one).
     /// Never inside <see cref="DataFolder"/>, because an import swaps that whole folder.
     /// </summary>
-    public static string LocalFolder { get; } = OverrideRoot is not null
-        ? Path.Combine(OverrideRoot, "Local", "Tasky")
-        : OperatingSystem.IsMacOS()
-            ? Path.Combine(UserDataRoot, "Tasky Local")
-            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Tasky");
+    public static string LocalFolder => LocalFolderFor(Workspaces.Active.Id);
 
     public static string LogsFolder          => Path.Combine(LocalFolder, "logs");
     public static string PendingImportFolder => Path.Combine(LocalFolder, "pending-import");

@@ -32,7 +32,7 @@ internal sealed class Win32MessageWindow : IDisposable
             lpszClassName = ClassName
         };
         RegisterClassEx(ref wc);   // fails harmlessly if the class already exists
-        Handle = CreateWindowEx(0, ClassName, "Tasky", 0, 0, 0, 0, 0,
+        Handle = CreateWindowEx(0, ClassName, "Sysslar", 0, 0, 0, 0, 0,
                                 IntPtr.Zero, IntPtr.Zero, wc.hInstance, IntPtr.Zero);
     }
 

@@ -62,19 +62,19 @@ public partial class App : Application
 
         try
         {
-            StartTasky();
+            StartTasky(args);
         }
         catch (Exception ex)
         {
             // Instead of closing silently, explain what happened and offer a way out.
-            CrashLog.Write("Tasky could not start", ex);
+            CrashLog.Write("Sysslar could not start", ex);
             ShowSafeMode(ex);
         }
 
         base.OnFrameworkInitializationCompleted();
     }
 
-    private void StartTasky()
+    private void StartTasky(string[] args)
     {
         // Both must run before anything opens the data files.
         var importResult  = ApplyPendingImport();
@@ -138,7 +138,7 @@ public partial class App : Application
         {
             mainWindow.Opened -= OnFirstOpened;   // Opened repeats each time the window is shown from the tray
             if (ViewModel!.Tasks.Any(t => t.WasInterrupted))
-                InAppNotificationService.Info("⏸  Your timer was paused because Tasky closed while it was running.");
+                InAppNotificationService.Info("⏸  Your timer was paused because Sysslar closed while it was running.");
             importResult?.Notify();
             restoreResult?.Notify();
 
@@ -147,7 +147,9 @@ public partial class App : Application
             SmokeTest.ShowReminderIfRequested();
             SmokeTest.VisitAllPagesIfRequested(mainWindow);
             mainWindow.ShowWelcomeTipsOnFirstStart();
+            if (args.Contains(Workspaces.OpenImportArg)) mainWindow.OpenImportForNewWorkspace();
             _ = mainWindow.CheckForUpdatesIfDueAsync();
+            Task.Run(Platform.MacOS.MacLegacyAppCleanup.MoveOldTaskyAppToTrash);   // renamed app: drop the old Tasky.app
         }
         mainWindow.Opened += OnFirstOpened;
 
@@ -204,7 +206,7 @@ public partial class App : Application
 
     private static StartupSwapOutcome? ApplyPendingImport()
         => ApplyStartupSwap(MigrationService.ApplyPendingImport,
-            "✔  Your Tasky data has been imported. Welcome back!",
+            "✔  Your Sysslar data has been imported. Welcome back!",
             "Import failed, so your existing data was kept.");
 
     private static StartupSwapOutcome? ApplyPendingRestore()

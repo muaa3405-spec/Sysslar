@@ -2,7 +2,7 @@
 # Starts a built Tasky.app against throw-away sample data, lets it open every page, and fails
 # when it crashes, logs an error, or never finishes. Used by CI; you can run it locally too:
 #
-#   ./scripts/smoke-test.sh dist/Tasky.app/Contents/MacOS/Tasky [screenshot.png]
+#   ./scripts/smoke-test.sh dist/Sysslar.app/Contents/MacOS/Tasky [screenshot.png]
 #
 # Your real data is never touched: TASKY_DATA_ROOT points Tasky at a temporary folder.
 set -uo pipefail

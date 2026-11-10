@@ -76,7 +76,7 @@ public partial class MainWindow
         BackupPicker.DisplayMemberBinding = new Avalonia.Data.Binding(nameof(BackupService.BackupInfo.Label));
         BackupPicker.SelectedIndex     = backups.Count > 0 ? 0 : -1;
         BackupStatusText.Text = backups.Count == 0
-            ? $"Tasky saves a copy of your tasks and settings every day and keeps the last {BackupService.KeepCount}."
+            ? $"Sysslar saves a copy of your tasks and settings every day and keeps the last {BackupService.KeepCount}."
             : $"Every day, the last {BackupService.KeepCount} are kept. Newest: {backups[0].Label}. " +
               "Attachment files stay in place and are not copied.";
     }
@@ -104,7 +104,7 @@ public partial class MainWindow
         if (BackupPicker.SelectedItem is not BackupService.BackupInfo backup) return;
         var confirm = new ConfirmDialog("Restore Backup",
             $"Put back your tasks, notes and settings as they were on {backup.Label}?\n\n" +
-            "Tasky restarts to do this. Your current data is kept as a safety copy first.",
+            "Sysslar restarts to do this. Your current data is kept as a safety copy first.",
             "Restore and restart", ConfirmType.Warning);
         if (await ShowModalDialog(confirm) != true) return;
 
@@ -123,11 +123,11 @@ public partial class MainWindow
     // ── Export / import ──────────────────────────────────────────────────
 
     private async void ExportCsv_Click(object? sender, RoutedEventArgs e)
-        => await ExportAsync("Export tasks", $"Tasky-tasks-{DateTime.Today:yyyy-MM-dd}.csv", CsvFiles, ".csv",
+        => await ExportAsync("Export tasks", $"Sysslar-tasks-{DateTime.Today:yyyy-MM-dd}.csv", CsvFiles, ".csv",
                              () => TaskCsvExporter.ToCsv(Vm.ExportAllTasks()));
 
     private async void ExportMarkdown_Click(object? sender, RoutedEventArgs e)
-        => await ExportAsync("Export tasks and notes", $"Tasky-{DateTime.Today:yyyy-MM-dd}.md", MarkdownFiles, ".md",
+        => await ExportAsync("Export tasks and notes", $"Sysslar-{DateTime.Today:yyyy-MM-dd}.md", MarkdownFiles, ".md",
                              () => MarkdownExporter.ToMarkdown(Vm.ExportAllTasks(), [.. Vm.Notes], DateTime.Now));
 
     private async Task ExportAsync(string title, string suggestedName, FilePickerFileType type, string extension, Func<string> build)
@@ -192,7 +192,7 @@ public partial class MainWindow
         try
         {
             Directory.CreateDirectory(AppPaths.TempFolder);
-            var page = Path.Combine(AppPaths.TempFolder, $"Tasky-print-{DateTime.Now:yyyyMMdd-HHmmss}.html");
+            var page = Path.Combine(AppPaths.TempFolder, $"Sysslar-print-{DateTime.Now:yyyyMMdd-HHmmss}.html");
             File.WriteAllText(page, PrintableTaskList.ToHtml(listName, Vm.OpenTasksIn(filter), DateTime.Now));
             FileLauncher.Open(page);
         }
@@ -233,7 +233,7 @@ public partial class MainWindow
             App.Settings.Save();
             ShowUpdateStatus();
             if (_availableUpdate is { } update)
-                InAppNotificationService.Info($"Tasky {update.Version.ToString(3)} is available. Settings → Updates → Download.");
+                InAppNotificationService.Info($"Sysslar {update.Version.ToString(3)} is available. Settings → Updates → Download.");
             else if (userAsked)
                 InAppNotificationService.Success($"You have the latest version ({AppInfo.VersionText}).");
         }
@@ -250,7 +250,7 @@ public partial class MainWindow
         DownloadUpdateBtn.IsVisible = _availableUpdate is not null;
         var lastCheck = App.Settings.Current.LastUpdateCheck;
         UpdateStatusText.Text = _availableUpdate is { } update
-            ? $"Tasky {update.Version.ToString(3)} is available (you have {AppInfo.VersionText})."
+            ? $"Sysslar {update.Version.ToString(3)} is available (you have {AppInfo.VersionText})."
             : lastCheck == DateTime.MinValue
                 ? $"You have version {AppInfo.VersionText}."
                 : $"You have version {AppInfo.VersionText}. Last checked {lastCheck:d MMM, HH:mm}.";

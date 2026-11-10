@@ -11,6 +11,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using Tasky.Behaviors;
 using Tasky.Dialogs;
 using Tasky.Helpers;
@@ -135,8 +136,9 @@ public partial class MainWindow : Window
         InitializeComponent();
         Icon = new WindowIcon(AssetLoader.Open(new Uri(OperatingSystem.IsWindows()
             ? "avares://Tasky/Assets/icon.ico"
-            : "avares://Tasky/Assets/tasky-logo.png")));
+            : "avares://Tasky/Assets/sysslar-logo.png")));
         ApplyPlatformTexts();
+        RefreshWorkspaceHeader();
         PopulateSoundPicker();
         InitTrayIcon();
         RegisterKeyboardShortcuts();
@@ -145,6 +147,8 @@ public partial class MainWindow : Window
         NewTaskAttachments.AcceptAttachmentsAnywhereIn(AddFormPanel);
         NewNoteAttachments.AcceptAttachmentsAnywhereIn(AddNotePanel);
         WeeklyChartScroll.AddHandler(PointerWheelChangedEvent, InnerScroll_PreviewMouseWheel, RoutingStrategies.Tunnel);
+        // A drag-to-reorder swallows the release, so the card would stay pressed in: always let it pop back up.
+        TaskListControl.AddHandler(PointerReleasedEvent, (_, _) => ReleasePressedCard(), RoutingStrategies.Bubble, handledEventsToo: true);
         Closing += Window_Closing;
 
         Opened += (_, _) =>
@@ -342,12 +346,12 @@ public partial class MainWindow : Window
     {
         _trayIcon = PlatformServices.CreateTray();
         _trayIcon.OpenRequested += ShowFromTray;
-        _trayIcon.Show("Tasky - Task Manager",
+        _trayIcon.Show(Workspaces.HasSeveral ? $"Sysslar - {Workspaces.Active.Name}" : "Sysslar - Task Manager",
         [
-            new TrayMenuItem("Open Tasky", ShowFromTray),
+            new TrayMenuItem("Open Sysslar", ShowFromTray),
             new TrayMenuItem("Quick Add",  OpenQuickAdd),
             TrayMenuItem.Separator,
-            new TrayMenuItem("Exit Tasky", ExitApp)
+            new TrayMenuItem("Exit Sysslar", ExitApp)
         ]);
     }
 
@@ -480,7 +484,7 @@ public partial class MainWindow : Window
         if (_exiting || e.CloseReason != WindowCloseReason.WindowClosing) return;
         e.Cancel = true;
         Hide();
-        _trayIcon?.ShowBalloon("Tasky", "Running in background. Double-click to restore.", TimeSpan.FromSeconds(2));
+        _trayIcon?.ShowBalloon("Sysslar", "Running in background. Double-click to restore.", TimeSpan.FromSeconds(2));
     }
 
     // Header buttons
@@ -944,11 +948,51 @@ public partial class MainWindow : Window
         menu.ShowAt(anchor);
     }
 
-    private void TaskContent_Click(object? sender, PointerReleasedEventArgs e)
+    // ── Task card: click anywhere to edit, with a pressed-tile effect ─────
+    // The card's own buttons, checkbox and timer switch handle their clicks themselves, so those
+    // never reach the card. A drag to reorder is handled by DragDropBehavior and isn't a click either.
+
+    private Border? _pressedCard;
+
+    private void TaskCard_PointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (!IsLeftClick(e)) return;
-        if (GetTaskVm(sender) is not { } vm) return;
-        ShowDimmedDetail(vm);
+        if (sender is not Border card || !e.GetCurrentPoint(card).Properties.IsLeftButtonPressed) return;
+        if (IsInsideControl(e.Source as Visual, card)) return;
+        _pressedCard = card;
+        card.Classes.Add("pressed");
+    }
+
+    /// <summary>Clicking a task opens it for editing (Enter on a selected task still shows the read-only detail).</summary>
+    private async void TaskCard_PointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        if (sender is not Border card) return;
+        bool wasPressed = _pressedCard == card;
+        ReleasePressedCard();
+        if (!wasPressed || !IsLeftClick(e) || IsInsideControl(e.Source as Visual, card)) return;
+        // Only when the button is let go over the same card
+        if (!new Rect(card.Bounds.Size).Contains(e.GetPosition(card))) return;
+        if (GetTaskVm(card) is { } vm) await EditTaskAsync(vm);
+    }
+
+    private void TaskCard_PointerCaptureLost(object? sender, PointerCaptureLostEventArgs e) => ReleasePressedCard();
+
+    private void TaskCard_PointerExited(object? sender, PointerEventArgs e)
+    {
+        if (sender == _pressedCard) _pressedCard?.Classes.Remove("pressed");   // pops back up; re-entering doesn't click
+    }
+
+    private void ReleasePressedCard()
+    {
+        _pressedCard?.Classes.Remove("pressed");
+        _pressedCard = null;
+    }
+
+    /// <summary>True when <paramref name="source"/> is in a button, checkbox or text box on the card.</summary>
+    private static bool IsInsideControl(Visual? source, Visual card)
+    {
+        for (var v = source; v is not null && v != card; v = v.GetVisualParent())
+            if (v is Button or Avalonia.Controls.Primitives.ToggleButton or TextBox) return true;
+        return false;
     }
 
     private void ShowDimmedDetail(TaskItemViewModel vm)

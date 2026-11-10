@@ -53,7 +53,7 @@ public static class MigrationPackage
             using (var s = manifestEntry.Open()) manifest = JsonSerializer.Deserialize<MigrationManifest>(s);
             if (manifest is null) throw Invalid();
             if (manifest.Format > MigrationManifest.CurrentFormat)
-                throw new MigrationFileException("This migration file was made by a newer version of Tasky. Update Tasky and try again.");
+                throw new MigrationFileException("This migration file was made by a newer version of Sysslar. Update Sysslar and try again.");
 
             foreach (var entry in zip.Entries)
             {
@@ -74,5 +74,5 @@ public static class MigrationPackage
         return manifest;
     }
 
-    private static MigrationFileException Invalid() => new("The migration file is damaged or not from Tasky.");
+    private static MigrationFileException Invalid() => new("The migration file is damaged or not from Sysslar.");
 }

@@ -83,7 +83,7 @@ public partial class TaskCompletedDialog : Window
             if (App.Settings.Current.SaveScreenshotToDesktop)
             {
                 var desktop  = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
-                var filename = $"Tasky_{_vm.TaskNumberDisplay}_{DateTime.Now:yyyyMMdd_HHmmss}.png";
+                var filename = $"Sysslar_{_vm.TaskNumberDisplay}_{DateTime.Now:yyyyMMdd_HHmmss}.png";
                 File.WriteAllBytes(Path.Combine(desktop, filename), png);
                 message = "Banner saved to Desktop & copied to clipboard.";
             }

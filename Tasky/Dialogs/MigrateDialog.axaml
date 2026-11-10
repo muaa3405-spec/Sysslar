@@ -156,7 +156,7 @@
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
                 <Button Content="Cancel" Theme="{StaticResource SecondaryButton}" Margin="0,0,10,0" Click="CancelImport_Click"/>
-                <Button Content="Import and restart Tasky" Theme="{StaticResource PrimaryButton}" Click="ConfirmImport_Click"/>
+                <Button Content="Import and restart Sysslar" Theme="{StaticResource PrimaryButton}" Click="ConfirmImport_Click"/>
             </StackPanel>
         </StackPanel>
 
@@ -176,7 +176,7 @@
             <TextBlock x:Name="DoneLabel" TextWrapping="Wrap" FontSize="13"
                        Foreground="{DynamicResource TextPrimary}" Margin="0,0,0,10"/>
             <TextBlock Theme="{StaticResource SubText}" TextWrapping="Wrap"
-                       Text="Copy it to the new computer (USB stick, network drive…), install Tasky there and choose Settings → Migrate to another computer → Import."/>
+                       Text="Copy it to the new computer (USB stick, network drive…), install Sysslar there and choose Settings → Migrate to another computer → Import."/>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
                 <Button Content="Show in folder" Theme="{StaticResource SecondaryButton}" Margin="0,0,10,0"
                         Click="ShowInFolder_Click"/>

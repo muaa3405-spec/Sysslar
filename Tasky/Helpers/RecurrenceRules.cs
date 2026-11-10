@@ -7,7 +7,7 @@ public static class RecurrenceRules
 {
     /// <summary>Shown by the ⓘ next to every Repeat picker.</summary>
     public const string Explanation =
-        "Repeat makes a recurring task. When you mark it done, Tasky adds the next one for you: " +
+        "Repeat makes a recurring task. When you mark it done, Sysslar adds the next one for you: " +
         "tomorrow (Daily), a week later (Weekly) or a month later (Monthly), counted from the day you complete it.\n\n" +
         "Ends on (optional): no new copy is added after this date. Leave it empty, or delete the date, to repeat forever.";
 

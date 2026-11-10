@@ -6,13 +6,58 @@
         xmlns:ctrl="using:Tasky.Controls"
         xmlns:helpers="using:Tasky.Helpers"
         x:Class="Tasky.MainWindow"
-        Title="Tasky" Width="604" Height="681"
+        Title="Sysslar" Width="604" Height="681"
         MinWidth="444" MinHeight="421"
         Background="{DynamicResource AppBackground}"
         WindowStartupLocation="CenterScreen">
     <!-- Sizes are the inside (client) area: the original 620×720 window minus the Windows frame -->
 
     <Window.Resources>
+        <!-- Workspace switcher next to the logo, and the rows of its drop-down -->
+        <ControlTheme x:Key="WorkspacePill" TargetType="Button">
+            <Setter Property="Background"      Value="{DynamicResource TagBackground}"/>
+            <Setter Property="BorderBrush"     Value="{DynamicResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding"         Value="9,4"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="Bd" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="12" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover /template/ Border#Bd">
+                <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBlue}"/>
+            </Style>
+            <Style Selector="^:pressed"><Setter Property="Opacity" Value="0.75"/></Style>
+        </ControlTheme>
+        <ControlTheme x:Key="WorkspaceMenuItem" TargetType="Button">
+            <Setter Property="Background"      Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding"         Value="10,7"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="HorizontalAlignment"        Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="Bd" Background="{TemplateBinding Background}" CornerRadius="6"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover /template/ Border#Bd">
+                <Setter Property="Background" Value="{DynamicResource TagBackground}"/>
+            </Style>
+            <Style Selector="^:pressed"><Setter Property="Opacity" Value="0.75"/></Style>
+        </ControlTheme>
         <!-- "Empty Bin" text link in the sub-page header -->
         <ControlTheme x:Key="EmptyBinLink" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
@@ -162,10 +207,43 @@
             <Setter Property="IsVisible" Value="False"/>
         </Style>
 
+        <!-- Task cards: lift slightly on hover, press in like a tile while the mouse button is down -->
+        <Style Selector="Border.taskTile">
+            <Setter Property="RenderTransform" Value="none"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.14" Easing="CubicEaseOut"/>
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.14"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Border.taskTile:pointerover">
+            <Setter Property="RenderTransform" Value="translateY(-2px)"/>
+            <Setter Property="BorderBrush"     Value="{DynamicResource PrimaryBlue}"/>
+            <Setter Property="Effect">
+                <DropShadowDirectionEffect BlurRadius="14" ShadowDepth="3" Opacity="0.16" Color="#000"/>
+            </Setter>
+        </Style>
+        <Style Selector="Border.taskTile.pressed">
+            <Setter Property="RenderTransform" Value="scale(0.975)"/>
+            <Setter Property="Effect">
+                <DropShadowDirectionEffect BlurRadius="3" ShadowDepth="0" Opacity="0.08" Color="#000"/>
+            </Setter>
+        </Style>
+
         <!-- The task picked with the arrow keys (keyboard shortcuts act on it) -->
         <Style Selector="Border.selectedTask">
             <Setter Property="BorderBrush"     Value="{DynamicResource PrimaryBlue}"/>
             <Setter Property="BorderThickness" Value="2"/>
+        </Style>
+
+        <!-- The workspace drop-down draws its own card, so the flyout itself is bare -->
+        <Style Selector="FlyoutPresenter.workspaceMenu">
+            <Setter Property="Background"      Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding"         Value="0"/>
+            <Setter Property="CornerRadius"    Value="10"/>
+            <Setter Property="MinWidth"        Value="0"/>
         </Style>
     </Window.Styles>
 
@@ -189,10 +267,24 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Image Source="/Assets/tasky-logo.png" Width="32" Height="32"
+                    <Image Source="/Assets/sysslar-logo.png" Width="32" Height="32"
                            RenderOptions.BitmapInterpolationMode="HighQuality"
                            Margin="0,0,10,0" VerticalAlignment="Center"/>
-                    <TextBlock Text="Tasky" Theme="{StaticResource HeadingText}" VerticalAlignment="Center"/>
+                    <TextBlock Text="Sysslar" Theme="{StaticResource HeadingText}" VerticalAlignment="Center"/>
+                    <!-- Workspace switcher: each workspace (e.g. Personal, Office) has completely separate data -->
+                    <Button x:Name="WorkspaceButton" Theme="{StaticResource WorkspacePill}"
+                            Margin="10,2,0,0" VerticalAlignment="Center"
+                            ToolTip.Tip="Switch workspace" Click="WorkspaceButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse x:Name="WorkspaceDot" Width="8" Height="8" Fill="#3B82F6"
+                                     VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <TextBlock x:Name="WorkspaceNameText" FontSize="12" FontWeight="SemiBold"
+                                       MaxWidth="140" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center"/>
+                            <TextBlock Text="&#x25BE;" FontSize="11" Margin="5,0,0,0"
+                                       Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                     <!-- 🔔 Reminders — position 1 with missed-count badge -->
@@ -468,10 +560,16 @@
                                   beh:DragDropBehavior.IsEnabled="True">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="vm:TaskItemViewModel">
+                                <!-- Click anywhere on the card (except its buttons) to edit the task -->
                                 <Border Theme="{StaticResource TaskCard}"
+                                        Classes="taskTile"
                                         Background="{Binding IsActive, Converter={StaticResource ActiveBgConv}}"
                                         Classes.selectedTask="{Binding IsSelected}"
-                                        Padding="0">
+                                        Padding="0" Cursor="Hand"
+                                        PointerPressed="TaskCard_PointerPressed"
+                                        PointerReleased="TaskCard_PointerReleased"
+                                        PointerCaptureLost="TaskCard_PointerCaptureLost"
+                                        PointerExited="TaskCard_PointerExited">
                                     <Grid>
                                         <!-- Left colour strip -->
                                         <Border Width="10" HorizontalAlignment="Left"
@@ -496,8 +594,7 @@
                                                           Click="ActiveToggle_Click"
                                                           ToolTip.Tip="Start or stop the timer"
                                                           VerticalAlignment="Top" Margin="0,3,10,0"/>
-                                            <StackPanel Grid.Column="2" Cursor="Hand"
-                                                        PointerReleased="TaskContent_Click">
+                                            <StackPanel Grid.Column="2">
                                                 <WrapPanel Margin="0,0,0,3">
                                                     <Border Background="{DynamicResource TagBackground}"
                                                             CornerRadius="3" Padding="4,1" Margin="0,2,4,2" VerticalAlignment="Center">
@@ -1692,7 +1789,7 @@
                                                FontSize="13" FontWeight="SemiBold"
                                                Foreground="{DynamicResource TextPrimary}"/>
                                     <TextBlock Theme="{StaticResource SubText}" TextWrapping="Wrap" Margin="0,2,0,0"
-                                               Text="Asks GitHub for the newest version number. Nothing about you or your tasks is sent. Off: Tasky never goes online."/>
+                                               Text="Asks GitHub for the newest version number. Nothing about you or your tasks is sent. Off: Sysslar never goes online."/>
                                 </StackPanel>
                                 <ToggleButton Grid.Column="1" x:Name="CheckUpdatesToggle"
                                               AutomationProperties.Name="Check for updates once a day"

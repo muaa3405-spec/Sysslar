@@ -38,6 +38,6 @@ public static class KeyboardShortcuts
         new($"{Command},",             "Open Settings"),
         new("Esc",                     "Close the new-task form, or go back"),
         new("?",                       "Show these shortcuts"),
-        new(QuickAddAnywhere,          "Quick add from any app, even when Tasky is hidden"),
+        new(QuickAddAnywhere,          "Quick add from any app, even when Sysslar is hidden"),
     ];
 }

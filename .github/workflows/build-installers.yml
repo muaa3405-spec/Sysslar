@@ -1,6 +1,6 @@
 # Builds the downloadable installers:
-#   • Windows — TaskySetup.exe (Inno Setup)
-#   • macOS   — Tasky-<version>-arm64.dmg (Apple silicon) and Tasky-<version>-x64.dmg (Intel)
+#   • Windows — SysslarSetup.exe (Inno Setup)
+#   • macOS   — Sysslar-<version>-arm64.dmg (Apple silicon) and Sysslar-<version>-x64.dmg (Intel)
 # The files are attached to each run under "Artifacts". Before packaging, each platform starts
 # the app with sample tasks and notes and opens every page (scripts/smoke-test.*); a crash or a
 # logged error fails the build, so a broken installer can't be released.
@@ -68,8 +68,8 @@ jobs:
         if: env.SIGN_WITH_SIGNPATH == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: Tasky-${{ steps.version.outputs.value }}-Windows-installer-unsigned
-          path: installer/Output/TaskySetup.exe
+          name: Sysslar-${{ steps.version.outputs.value }}-Windows-installer-unsigned
+          path: installer/Output/SysslarSetup.exe
           if-no-files-found: error
 
       - name: Sign the installer with SignPath
@@ -89,15 +89,15 @@ jobs:
         if: env.SIGN_WITH_SIGNPATH == 'true'
         shell: pwsh
         run: |
-          Copy-Item installer/Output/signed/TaskySetup.exe installer/Output/TaskySetup.exe -Force
-          $signature = Get-AuthenticodeSignature installer/Output/TaskySetup.exe
+          Copy-Item installer/Output/signed/SysslarSetup.exe installer/Output/SysslarSetup.exe -Force
+          $signature = Get-AuthenticodeSignature installer/Output/SysslarSetup.exe
           Write-Host "Signature: $($signature.Status) by $($signature.SignerCertificate.Subject)"
           if ($signature.Status -ne 'Valid') { exit 1 }
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Tasky-${{ steps.version.outputs.value }}-Windows-installer
-          path: installer/Output/TaskySetup.exe
+          name: Sysslar-${{ steps.version.outputs.value }}-Windows-installer
+          path: installer/Output/SysslarSetup.exe
           if-no-files-found: error
 
   macos:
@@ -131,7 +131,7 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
           security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
 
-      - name: Build Tasky.app and dmg
+      - name: Build Sysslar.app and dmg
         env:
           SIGN_IDENTITY: ${{ secrets.MACOS_SIGN_IDENTITY }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -142,7 +142,7 @@ jobs:
       # The runner is Apple silicon, so the arm64 build can be launched directly.
       - name: Smoke test (sample data, every page, screenshot)
         if: matrix.arch == 'arm64'
-        run: ./scripts/smoke-test.sh dist/Tasky.app/Contents/MacOS/Tasky "$RUNNER_TEMP/tasky-macos.png"
+        run: ./scripts/smoke-test.sh dist/Sysslar.app/Contents/MacOS/Tasky "$RUNNER_TEMP/tasky-macos.png"
 
       - uses: actions/upload-artifact@v4
         if: matrix.arch == 'arm64' && always()
@@ -153,7 +153,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Tasky-macOS-${{ matrix.arch }}-dmg
+          name: Sysslar-macOS-${{ matrix.arch }}-dmg
           path: dist/*.dmg
           if-no-files-found: error
 
@@ -175,9 +175,9 @@ jobs:
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           mkdir release
-          cp artifacts/*-Windows-installer/TaskySetup.exe       "release/Tasky-$VERSION-Windows-Setup.exe"
-          cp artifacts/Tasky-macOS-arm64-dmg/Tasky-*-arm64.dmg   "release/Tasky-$VERSION-macOS-AppleSilicon.dmg"
-          cp artifacts/Tasky-macOS-x64-dmg/Tasky-*-x64.dmg       "release/Tasky-$VERSION-macOS-Intel.dmg"
+          cp artifacts/*-Windows-installer/SysslarSetup.exe     "release/Sysslar-$VERSION-Windows-Setup.exe"
+          cp artifacts/Sysslar-macOS-arm64-dmg/Sysslar-*-arm64.dmg "release/Sysslar-$VERSION-macOS-AppleSilicon.dmg"
+          cp artifacts/Sysslar-macOS-x64-dmg/Sysslar-*-x64.dmg   "release/Sysslar-$VERSION-macOS-Intel.dmg"
           ls -l release
 
       - name: Create the release
@@ -185,5 +185,5 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "$GITHUB_REF_NAME" release/* \
-            --title "Tasky ${GITHUB_REF_NAME#v}" \
+            --title "Sysslar ${GITHUB_REF_NAME#v}" \
             --notes-file installer/RELEASE_NOTES.md

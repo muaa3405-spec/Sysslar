@@ -3,14 +3,14 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="Tasky.Windows.SafeModeWindow"
-        Title="Tasky couldn't start"
+        Title="Sysslar couldn't start"
         Width="480" SizeToContent="Height" CanResize="False"
         WindowStartupLocation="CenterScreen"
         Background="#111827">
     <StackPanel Margin="28,24" Spacing="14">
-        <TextBlock Text="Tasky couldn't start" FontSize="20" FontWeight="SemiBold" Foreground="White"/>
+        <TextBlock Text="Sysslar couldn't start" FontSize="20" FontWeight="SemiBold" Foreground="White"/>
         <TextBlock TextWrapping="Wrap" FontSize="13" Foreground="#D1D5DB"
-                   Text="Something went wrong while Tasky was opening. Your tasks, notes and attachments are safe: nothing has been deleted."/>
+                   Text="Something went wrong while Sysslar was opening. Your tasks, notes and attachments are safe: nothing has been deleted."/>
 
         <Border Background="#1F2937" CornerRadius="8" Padding="12,10">
             <StackPanel Spacing="4">
@@ -31,7 +31,7 @@
                     Padding="12,8" Click="OpenDataFolder_Click"/>
             <Button Content="Open the error log" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                     Padding="12,8" Click="OpenLog_Click"/>
-            <Button Content="Get the latest version of Tasky" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+            <Button Content="Get the latest version of Sysslar" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                     Padding="12,8" Click="Download_Click"/>
             <Button Content="Quit" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                     Padding="12,8" Click="Quit_Click"/>

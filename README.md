@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="Tasky/Assets/tasky-logo.png" alt="Tasky logo" width="96" height="96">
+  <img src="Tasky/Assets/sysslar-logo.png" alt="Sysslar logo" width="96" height="96">
 </p>
 
-<h1 align="center">Tasky</h1>
+<h1 align="center">Sysslar</h1>
 
 <p align="center">
   <strong>Your tasks. Your time. Your computer. Nobody else's business.</strong><br>
@@ -18,9 +18,9 @@
 
 ---
 
-## What is Tasky?
+## What is Sysslar?
 
-Tasky is a small desktop app that sits in your system tray (or the macOS menu bar) and keeps track of
+Sysslar is a small desktop app that sits in your system tray (or the macOS menu bar) and keeps track of
 **everything you want to get done**: work projects, personal errands, habits,
 goals. It also shows **where your time actually goes**.
 
@@ -28,18 +28,18 @@ It is built around one idea: **your to-do list is personal.** It shouldn't
 live on someone else's server, need a subscription, or stop working when the
 Wi-Fi drops.
 
-## Why Tasky exists
+## Why Sysslar exists
 
 Most task apps want you to sign up, sync to their cloud and pay monthly, and
-they hold your data. Tasky takes the opposite approach:
+they hold your data. Sysslar takes the opposite approach:
 
 - 🔒 **Private by design.** Everything is stored in a local database on your own computer.
   No telemetry, no analytics, no servers.
-- 📴 **No internet needed.** Tasky never connects to the internet unless you switch on the
+- 📴 **No internet needed.** Sysslar never connects to the internet unless you switch on the
   optional update check. It works on a plane, behind a firewall, anywhere.
 - 🧍 **Not just for projects.** Use it for your own life: daily routines,
   reminders, learning goals, side projects, chores.
-- 📈 **For personal improvement.** Tasky tracks time spent and tasks completed so you
+- 📈 **For personal improvement.** Sysslar tracks time spent and tasks completed so you
   can see your own progress and work habits. Only you see the reports.
 - ⚡ **Simple and fast.** One click (or one shortcut) adds a task. No setup, no
   tutorial, no clutter.
@@ -99,24 +99,33 @@ they hold your data. Tasky takes the opposite approach:
   No calendar access or sign-in needed. (Windows only.)
 - **App usage**, showing which apps you spend your day in
 
+### 🗂 Workspaces
+- Keep **separate workspaces**, for example **Personal** and **Office**. Each has its own tasks, notes,
+  groups, reminders, time history, reports, settings and backups, and **nothing mixes** between them
+- **Switch from the top of the window**: click the workspace name next to the Sysslar logo and pick
+  another one. Sysslar restarts in it in a second or two (a running timer is paused and saved first)
+- **Start a new workspace empty, or fill it from a migration file**, for example to bring your work
+  tasks from another computer in without touching your personal ones
+- Rename, recolour or delete workspaces under **Manage workspaces…** in the same menu
+
 ### 💻 Migrate to another computer
 - Move **everything** to a new PC in **one password-protected file**: open and completed
   tasks, groups, notes, reminders, task and note attachments, reports history, recycle bin and settings
 - The file is **encrypted with your password** (AES-256), so it is safe on a USB stick or shared drive
-- On the new PC, pick the file, enter the password, and Tasky restarts with all your data,
+- On the new PC, pick the file, enter the password, and Sysslar restarts with all your data,
   as if you had never switched computers
 - No cloud, no account: the file goes wherever *you* put it
 
 ### 🛟 Your data is safe
 - **Automatic daily backups** of your tasks, notes and settings; the last 14 days are kept.
   **Settings → Backups** puts an earlier day back (your current data is kept as a safety copy first)
-- If Tasky ever can't start, it shows what went wrong and offers to **restore the latest backup**,
+- If Sysslar ever can't start, it shows what went wrong and offers to **restore the latest backup**,
   instead of silently closing
 - Every build is tested by opening every page with sample data before an installer is made
 
 ### 📤 Export, import and print
 - **Export to CSV** (Excel, Numbers, Google Sheets) or **Markdown** (Obsidian, Notion, GitHub)
-- **Import tasks from CSV**: your own spreadsheet, a Tasky export, or another app such as Todoist.
+- **Import tasks from CSV**: your own spreadsheet, a Sysslar export, or another app such as Todoist.
   Only a Title column is needed; groups are created for you
 - **Print or save as PDF**: today's list, this week's, or all open tasks
 
@@ -142,7 +151,7 @@ cd tasky
 dotnet run --project Tasky/Tasky.csproj
 ```
 
-That's it. No accounts, keys or configuration. On first start Tasky creates its own
+That's it. No accounts, keys or configuration. On first start Sysslar creates its own
 empty database.
 
 To make a self-contained build you can copy to any Windows PC (no .NET install needed there):
@@ -155,6 +164,7 @@ See [BUILD.md](BUILD.md) for building the installer with Inno Setup.
 
 ## Where your data lives
 
+Sysslar was called Tasky before, and its folders keep that name, so updating keeps all your data.
 Everything stays inside your user profile. Nothing is ever uploaded. On macOS the same files live in
 `~/Library/Application Support/Tasky/` (logs, backups and safety copies in `~/Library/Application Support/Tasky Local/`).
 
@@ -168,13 +178,18 @@ Everything stays inside your user profile. Nothing is ever uploaded. On macOS th
 | Error logs | `%LocalAppData%\Tasky\logs\` |
 | Safety copy made before an import or a restore | `%LocalAppData%\Tasky\before-import\` |
 
+The table shows your first workspace. Every other workspace has the same files in its own folders:
+`%AppData%\Tasky Workspaces\<workspace id>\` and `%LocalAppData%\Tasky Workspaces\<workspace id>\`
+(macOS: `~/Library/Application Support/Tasky Workspaces/` and `~/Library/Application Support/Tasky Local Workspaces/`).
+The list of workspaces is `%AppData%\Tasky Workspaces\workspaces.json`.
+
 These folders are readable only by your user account (and administrators).
-Uninstalling Tasky does not remove them. **Remove all data** by deleting `%AppData%\Tasky`
-and `%LocalAppData%\Tasky`.
+Uninstalling Sysslar does not remove them. **Remove all data** by deleting `%AppData%\Tasky`,
+`%LocalAppData%\Tasky`, `%AppData%\Tasky Workspaces` and `%LocalAppData%\Tasky Workspaces`.
 
 ### What gets recorded on your PC
 
-To power the reports, Tasky also keeps two local logs:
+To power the reports, Sysslar also keeps two local logs:
 
 - **Meeting detection** (Windows) checks every 30 seconds whether a calling app is actively
   using your microphone or camera, and records only the start and end time of each
@@ -188,17 +203,19 @@ Both stay in the local database above and never leave your computer.
 
 1. On the old PC: **Settings → Migrate to another computer → Open → Export from this computer**.
 2. Create a password (at least 8 characters) and choose where to save the file
-   (for example a USB stick). It is named like `Tasky-migration-2026-10-21.taskymigration`.
-3. Install Tasky on the new PC and open **Settings → Migrate to another computer → Import on this computer**.
-4. Pick the file, enter the password, review what's inside and click **Import and restart Tasky**.
+   (for example a USB stick). It is named like `Sysslar-migration-2026-10-21.taskymigration`.
+3. Install Sysslar on the new PC and open **Settings → Migrate to another computer → Import on this computer**.
+4. Pick the file, enter the password, review what's inside and click **Import and restart Sysslar**.
 
 Good to know:
 
 - **The password can't be recovered.** The file is encrypted with it (AES-256-GCM, key
   derived with PBKDF2-SHA256, 600,000 rounds), and nothing about the password is stored.
   A wrong password or a damaged or edited file is refused.
-- **Importing replaces the data on that PC.** Whatever Tasky had there before is kept as a
-  safety copy in `%LocalAppData%\Tasky\before-import\`.
+- **Importing replaces the data of the open workspace.** Whatever it had before is kept as a
+  safety copy in `%LocalAppData%\Tasky\before-import\`. Your other workspaces are not touched.
+  To keep the imported data apart, choose **New workspace…** next to the logo and tick
+  **Import a Sysslar migration file into it**.
 - Attachments keep working even if your user name is different on the new computer, and you can
   move between Windows and macOS in either direction.
 

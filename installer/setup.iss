@@ -1,20 +1,23 @@
 ; Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Tasky Ã¢â‚¬â€œ Inno Setup 6 installer script Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 ; Download Inno Setup 6 from: https://jrsoftware.org/isdl.php
 ; Compile: iscc.exe setup.iss
-; Output:  installer\Output\TaskySetup.exe
+; Output:  installer\Output\SysslarSetup.exe
 
-#define AppName      "Tasky"
+#define AppName      "Sysslar"
 ; The build passes the project version with /DAppVersion=...; this is the fallback
 #ifndef AppVersion
-  #define AppVersion "1.2.3"
+  #define AppVersion "1.3.0"
 #endif
 #define AppPublisher "Muhammad Aadil"
 #define AppURL       "https://github.com/muaa3405-spec/tasky"
+; The program file keeps its old name, so an existing Tasky install is updated in place
 #define AppExeName   "Tasky.exe"
 ; Path to the published output of  dotnet publish -c Release -r win-x64 -o <PublishDir>
 #define PublishDir   "..\Tasky\bin\Release\net10.0\win-x64\publish"
 
 [Setup]
+; Same AppId as Tasky: installing Sysslar updates an existing Tasky (same folder, same data, one entry
+; in Installed apps) instead of adding a second app.
 AppId={{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
 AppName={#AppName}
 AppVersion={#AppVersion}
@@ -31,10 +34,12 @@ VersionInfoDescription={#AppName} Setup
 VersionInfoCopyright=Copyright (C) 2026 {#AppPublisher}
 DefaultDirName={autopf}\{#AppName}
 DefaultGroupName={#AppName}
+; Use the new Start-menu folder even when updating Tasky (its old folder is removed below)
+UsePreviousGroup=no
 DisableProgramGroupPage=yes
 LicenseFile=..\LICENSE
 OutputDir=Output
-OutputBaseFilename=TaskySetup
+OutputBaseFilename=SysslarSetup
 SetupIconFile=..\Tasky\Assets\icon.ico
 ; Icon shown in Windows Settings Ã¢â€ â€™ Apps Ã¢â€ â€™ Installed apps
 UninstallDisplayIcon={app}\icon.ico
@@ -51,7 +56,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
 Name: "desktopicon";    Description: "{cm:CreateDesktopIcon}";    GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
-Name: "startupentry";   Description: "Start Tasky with Windows";  GroupDescription: "Startup:"; Flags: unchecked
+Name: "startupentry";   Description: "Start Sysslar with Windows";  GroupDescription: "Startup:"; Flags: unchecked
 
 [Files]
 ; Publish the entire self-contained folder
@@ -60,6 +65,13 @@ Source: "{#PublishDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
 ; compiled into the exe as a resource and is NOT present as a loose file in the
 ; publish folder, so shortcuts cannot extract it from {app}\Tasky.exe reliably.
 Source: "..\Tasky\Assets\icon.ico"; DestDir: "{app}"; Flags: ignoreversion
+
+[InstallDelete]
+; Updating from Tasky: remove its old shortcuts, which now have new names
+Type: files;       Name: "{autoprograms}\Tasky\Tasky.lnk"
+Type: files;       Name: "{autoprograms}\Tasky\Uninstall Tasky.lnk"
+Type: dirifempty;  Name: "{autoprograms}\Tasky"
+Type: files;       Name: "{autodesktop}\Tasky.lnk"
 
 [Icons]
 Name: "{group}\{#AppName}";           Filename: "{app}\{#AppExeName}"; IconFilename: "{app}\icon.ico"

@@ -1,6 +1,6 @@
-# Tasky – Build & Install Guide
+# Sysslar – Build & Install Guide
 
-Tasky is one app for **Windows and macOS**. The UI is built with
+Sysslar is one app for **Windows and macOS**. The UI is built with
 [Avalonia](https://avaloniaui.net) (XAML, like WPF), so the same code and the same
 design run on both systems. Features that need the operating system (tray icon,
 global shortcut, idle detection, app usage, clipboard images, sounds) have a
@@ -30,7 +30,7 @@ Tasky/
 │   ├── Program.cs              ← entry point, fonts
 │   ├── App.axaml / .cs         ← startup, single-instance, theme, services
 │   ├── MainWindow.axaml / .cs  ← main UI + tray + event handlers
-│   ├── Assets/                 ← icon.ico (Windows), tasky-logo.png
+│   ├── Assets/                 ← icon.ico (Windows), sysslar-logo.png
 │   ├── Models/                 ← TaskItem, ReminderItem, Note… (plain C# classes)
 │   ├── Services/               ← database, reminders, idle monitor, app usage, migration…
 │   ├── Platform/               ← one interface per OS feature
@@ -44,8 +44,8 @@ Tasky/
 │   └── Resources/
 │       ├── DarkTheme.axaml / LightTheme.axaml  ← colour palettes
 │       └── Styles.axaml        ← all control styles
-├── installer/setup.iss         ← Inno Setup 6 script → TaskySetup.exe (Windows)
-└── scripts/package-macos.sh    ← builds Tasky.app and Tasky.dmg (macOS)
+├── installer/setup.iss         ← Inno Setup 6 script → SysslarSetup.exe (Windows)
+└── scripts/package-macos.sh    ← builds Sysslar.app and Sysslar.dmg (macOS)
 ```
 
 ---
@@ -96,12 +96,12 @@ The Windows folder contains `Tasky.exe` plus its DLLs; copy it anywhere and run 
    "C:\Program Files (x86)\Inno Setup 6\iscc.exe" installer\setup.iss
    ```
 
-3. The installer appears at `installer\Output\TaskySetup.exe`. It installs to
-   `%ProgramFiles%\Tasky\` and optionally adds a desktop shortcut and a startup entry.
+3. The installer appears at `installer\Output\SysslarSetup.exe`. It installs to
+   `%ProgramFiles%\Sysslar\` (an update from Tasky stays in its folder) and optionally adds a desktop shortcut and a startup entry.
 
 ---
 
-## macOS App (`Tasky.app` and `Tasky.dmg`)
+## macOS App (`Sysslar.app` and `Sysslar.dmg`)
 
 Run on a Mac:
 
@@ -110,8 +110,8 @@ Run on a Mac:
 ./scripts/package-macos.sh x64      # Intel
 ```
 
-The script publishes Tasky, wraps it in `dist/Tasky.app` (with its icon and
-`Info.plist`), signs it ad hoc so it runs on your own Mac, and builds `dist/Tasky.dmg`.
+The script publishes Sysslar, wraps it in `dist/Sysslar.app` (with its icon and
+`Info.plist`), signs it ad hoc so it runs on your own Mac, and builds `dist/Sysslar.dmg`.
 
 To give the app to other people without the "unidentified developer" warning, sign it
 with an Apple Developer ID and notarize it (needs a paid Apple Developer account). The
@@ -134,7 +134,7 @@ unsigned installers.
 
 ### Windows: SignPath Foundation (free for open source)
 
-Tasky's Windows installer is signed for free by [SignPath Foundation](https://signpath.org)
+Sysslar's Windows installer is signed for free by [SignPath Foundation](https://signpath.org)
 (see the README's *Code signing policy*). Only `v*` tag builds are signed; the job waits up
 to 2 hours for you to approve the signing request in SignPath, then attaches the signed
 installer to the release.
@@ -171,7 +171,7 @@ Apple has no free signing for distribution. With an Apple Developer Program memb
 ## Smoke test
 
 Every CI build starts the app against sample tasks and notes, opens every page and fails
-if Tasky crashes or logs an error, so a broken build can't become an installer. Run it
+if Sysslar crashes or logs an error, so a broken build can't become an installer. Run it
 yourself after publishing (it never touches your real data):
 
 ```powershell
@@ -179,12 +179,12 @@ yourself after publishing (it never touches your real data):
 ```
 
 ```bash
-./scripts/smoke-test.sh dist/Tasky.app/Contents/MacOS/Tasky
+./scripts/smoke-test.sh dist/Sysslar.app/Contents/MacOS/Tasky
 ```
 
-Tasky needs **no special macOS permissions**: idle time, the frontmost app name, the
+Sysslar needs **no special macOS permissions**: idle time, the frontmost app name, the
 clipboard and the global shortcut all work without Accessibility or Screen Recording access.
-To start Tasky at login, add it under **System Settings → General → Login Items**.
+To start Sysslar at login, add it under **System Settings → General → Login Items**.
 
 ---
 
@@ -209,7 +209,7 @@ OS works differently:
 ## Replacing the Icons
 
 - **Windows:** replace `Tasky/Assets/icon.ico` (used for `Tasky.exe`, the window and the tray).
-- **macOS:** replace `Tasky/Assets/tasky-logo.png` (512×512 or larger); the packaging
+- **macOS:** replace `Tasky/Assets/sysslar-logo.png` (512×512 or larger); the packaging
   script turns it into the app icon.
 
 ---
@@ -227,9 +227,9 @@ including from Windows to macOS and back — use **Settings → Migrate to anoth
 
 ### Testing with sandbox data
 
-Set the `TASKY_DATA_ROOT` environment variable to an empty folder to run Tasky
+Set the `TASKY_DATA_ROOT` environment variable to an empty folder to run Sysslar
 against throw-away data instead of your own. The sandboxed copy uses its own
-single-instance lock, so it can run next to your normal Tasky:
+single-instance lock, so it can run next to your normal Sysslar:
 
 ```powershell
 $env:TASKY_DATA_ROOT = "$env:TEMP\tasky-sandbox"
@@ -247,14 +247,14 @@ TASKY_DATA_ROOT="$TMPDIR/tasky-sandbox" dotnet run --project Tasky/Tasky.csproj
 | Feature | How it works |
 |---------|-------------|
 | Minimize to tray | `Window_Closing` cancels the close and hides the window; the tray icon stays |
-| Restore from tray | Double-click the tray icon (Windows), the "Open Tasky" menu item, or the Dock icon (macOS) |
+| Restore from tray | Double-click the tray icon (Windows), the "Open Sysslar" menu item, or the Dock icon (macOS) |
 | Quick Add shortcut | `IGlobalHotkey`: Win32 `RegisterHotKey` on Windows, Carbon `RegisterEventHotKey` on macOS |
 | Quick-Add window | `QuickAddWindow` — borderless, transparent, topmost, closes on Escape or when it loses focus |
 | Drag-to-reorder | `DragDropBehavior` attached property on the task `ItemsControl` (pointer capture, ghost card, drop line) |
 | Active task green highlight | `ActiveToBackgroundConverter` bound to `IsActive` |
 | Timer | `DispatcherTimer` in `TaskItemViewModel` refreshes the display every second; time comes from the clock |
 | Reminders | `ReminderDialog` stores them in SQLite; `ReminderSchedulerService` checks every minute |
-| Reminder pop-ups | `ReminderToastWindow`, Tasky's own themed window (bottom-right of the screen) |
+| Reminder pop-ups | `ReminderToastWindow`, Sysslar's own themed window (bottom-right of the screen) |
 | Idle / lock / sleep pause | `IdleMonitorService` + `IUserActivity` (Windows session events / macOS polling) |
 | SQLite persistence | `DatabaseService`, WAL mode |
 | Daily backups | `BackupService`: `VACUUM INTO` snapshot + settings, once a day, last 14 kept; restore is staged and applied at the next start |
