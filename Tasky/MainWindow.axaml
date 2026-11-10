@@ -1916,6 +1916,29 @@
             </Border>
         </Border>
 
+        <!-- Workspace switch: covers the window while Sysslar restarts in the other workspace -->
+        <Grid x:Name="SwitchOverlay" Grid.Row="0" Grid.RowSpan="3" ZIndex="1001" IsVisible="False"
+              Background="{DynamicResource AppBackground}">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="18">
+                <Panel Width="56" Height="56" HorizontalAlignment="Center">
+                    <Ellipse Stroke="{DynamicResource ChipBorder}" StrokeThickness="4"/>
+                    <Arc x:Name="SwitchSpinner" Classes="spinner" Stroke="{DynamicResource PrimaryBlue}" StrokeThickness="4"
+                         StrokeLineCap="Round" StartAngle="-90" SweepAngle="100" RenderTransformOrigin="50%,50%">
+                        <Arc.RenderTransform><RotateTransform/></Arc.RenderTransform>
+                    </Arc>
+                    <Ellipse x:Name="SwitchDot" Width="14" Height="14" Fill="{DynamicResource PrimaryBlue}"
+                             HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Panel>
+                <StackPanel Spacing="6" HorizontalAlignment="Center">
+                    <TextBlock x:Name="SwitchTitle" FontSize="17" FontWeight="SemiBold" TextAlignment="Center"
+                               TextTrimming="CharacterEllipsis" MaxWidth="320"
+                               Foreground="{DynamicResource TextPrimary}"/>
+                    <TextBlock x:Name="SwitchSub" Text="Getting things ready…" FontSize="13" TextAlignment="Center"
+                               Foreground="{DynamicResource TextSecondary}"/>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+
         <!-- Confetti canvas -->
         <Canvas x:Name="ConfettiLayer" Grid.Row="0" Grid.RowSpan="3" IsHitTestVisible="False"
                 ZIndex="1000"/>

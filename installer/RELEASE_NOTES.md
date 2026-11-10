@@ -16,6 +16,9 @@ Install it over your current Sysslar: your tasks, notes and attachments are kept
 
 [Code signing policy](https://github.com/muaa3405-spec/tasky#code-signing-policy) · [Privacy policy](https://github.com/muaa3405-spec/tasky#privacy-policy)
 
+### New in 1.4.3
+- **Switch workspaces instantly.** Sysslar no longer restarts: a short "Switching to …" screen covers the change while your tasks, notes, settings and reminders for the other workspace load. A running timer is paused and saved first, as before.
+
 ### New in 1.4.2
 - **Cleaner task cards.** Attachment and reminder counts are small chips next to the date (📎 1, 🔔 1), so the title and description keep their full width on narrow windows.
 - **Smoother scrolling** in the task list.

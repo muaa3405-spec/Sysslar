@@ -19,7 +19,7 @@
     <SelfContained>true</SelfContained>
     <RuntimeIdentifiers>win-x64;osx-x64;osx-arm64</RuntimeIdentifiers>
     <PublishSingleFile>false</PublishSingleFile>
-    <Version>1.4.2</Version>
+    <Version>1.4.3</Version>
     <!-- The app is called Sysslar (it was Tasky). The program file, namespaces and data folders keep
          the old name so updates install over an existing Tasky and keep all its data. -->
     <Product>Sysslar</Product>

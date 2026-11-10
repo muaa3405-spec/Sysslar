@@ -178,21 +178,7 @@ public partial class MainWindow : Window
         };
         Loaded += (_, _) =>
         {
-            if (DataContext is MainViewModel vm)
-            {
-                vm.PropertyChanged += (_, e) =>
-                {
-                    if (e.PropertyName == nameof(MainViewModel.CompletedSearch) && CompletedPage.IsVisible)
-                        RefreshCompletedList();
-                    if (e.PropertyName == nameof(MainViewModel.NoteSearch) && NotesPage.IsVisible)
-                        RefreshNotesEmpty();
-                };
-                vm.LoadGroups();
-                RestoreViewChoices(vm);
-                BuildGroupChips();
-                PopulateNewTaskGroupPicker();
-                vm.RefreshMissedNotifCount();
-            }
+            if (DataContext is MainViewModel vm) AttachViewModel(vm);
 
             // Auto-refresh every 10 minutes so due-date labels (Today/Tomorrow/Yesterday)
             // and sort order stay accurate without needing to restart the app.
@@ -200,6 +186,25 @@ public partial class MainWindow : Window
             autoRefresh.Tick += (_, _) => AutoRefresh();
             autoRefresh.Start();
         };
+    }
+
+    /// <summary>Wires the window to a view model: at start-up, and again after a workspace switch.</summary>
+    private void AttachViewModel(MainViewModel vm)
+    {
+        vm.PropertyChanged += (_, e) =>
+        {
+            if (!ReferenceEquals(vm, DataContext)) return;   // a previous workspace's view model
+            if (e.PropertyName == nameof(MainViewModel.CompletedSearch) && CompletedPage.IsVisible)
+                RefreshCompletedList();
+            if (e.PropertyName == nameof(MainViewModel.NoteSearch) && NotesPage.IsVisible)
+                RefreshNotesEmpty();
+        };
+        vm.LoadGroups();
+        RestoreViewChoices(vm);
+        BuildGroupChips();
+        PopulateNewTaskGroupPicker();
+        vm.RefreshMissedNotifCount();
+        AttachMotion(vm);
     }
 
     /// <summary>The few texts that name the operating system.</summary>

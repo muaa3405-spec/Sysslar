@@ -39,6 +39,7 @@ public partial class MainWindow
 
         vm.PropertyChanged += (_, e) =>
         {
+            if (!ReferenceEquals(vm, DataContext)) return;   // a previous workspace's view model
             if (e.PropertyName == nameof(MainViewModel.ActiveFilter))
                 RememberChoice(x => x.TaskView = vm.ActiveFilter.ToString());
             else if (e.PropertyName == nameof(MainViewModel.SelectedGroupFilter))

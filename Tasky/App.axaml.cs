@@ -79,50 +79,13 @@ public partial class App : Application
         // Both must run before anything opens the data files.
         var importResult  = ApplyPendingImport();
         var restoreResult = ApplyPendingRestore();
-        Settings.Load();
 
-        Database = new DatabaseService();
-        Database.Initialize();
-        SmokeTest.SeedSampleDataIfRequested(Database);
-
-        Backups = new BackupService(Database);
-        Backups.BackUpIfDueInBackground();
-        StartBackupTimer();
-
-        Notifications = new NotificationService(Database);
-
-        ViewModel = new MainViewModel(Database);
-        ViewModel.PurgeExpiredDeletedTasks();   // drop recycle-bin items older than 30 days
-        ViewModel.DeleteOrphanAttachmentFolders();
-        ViewModel.LoadTasks();
-        ViewModel.LoadDeletedTasks();
-        ViewModel.LoadGroups();
-        ViewModel.LoadNotes();
-
-        ReminderScheduler = new ReminderSchedulerService(Database, Notifications);
-        ReminderScheduler.Start();
-
-        // Idle / lock / sleep monitor — auto-pauses the running task
+        // Idle / lock / sleep detection is shared by every workspace
         _userActivity = PlatformServices.CreateUserActivity();
         _userActivity.SessionEnding += PauseRunningTimers;   // log-off / shutdown: stop the clock first
-        IdleMonitor = new IdleMonitorService(_userActivity, ViewModel.PauseRunningTasks, ViewModel.ResumeActiveTask);
+
+        StartWorkspaceServices(isAppStart: true);
         _userActivity.Start();
-        IdleMonitor.Start();
-
-        // Saves running timers every minute so a crash or power cut can't inflate them
-        _checkpoints = new TrackingCheckpointService(ViewModel.CheckpointRunningTasks);
-        _checkpoints.Start();
-
-        // Meeting monitor — detects mic/camera usage and records meeting sessions (Windows only)
-        if (PlatformServices.SupportsMeetingDetection && OperatingSystem.IsWindows())
-        {
-            MeetingMonitor = new MeetingMonitorService(Database);
-            MeetingMonitor.Start();
-        }
-
-        // App usage monitor — tracks foreground window time
-        AppUsage = new AppUsageService(Database, PlatformServices.CreateForegroundAppMonitor(), _userActivity);
-        AppUsage.Start();
 
         AccessibleNames.Register();
         ScrollPaddingWheel.Register();
@@ -152,10 +115,109 @@ public partial class App : Application
         }
         mainWindow.Opened += OnFirstOpened;
 
+        // Workspace switch: open on the "Opening …" screen, where the old window was
+        mainWindow.BeginArrival(args);
+
         // Before Show, so the window never flashes the wrong theme
         InitializeTheme();
         mainWindow.Show();
     }
+
+    // ─── The open workspace's data and services ──────────────────────────
+
+    /// <summary>Opens the active workspace's settings and database and starts everything that uses them.</summary>
+    private static void StartWorkspaceServices(bool isAppStart = false)
+    {
+        Settings.Load();
+
+        Database = new DatabaseService();
+        Database.Initialize();
+        if (isAppStart) SmokeTest.SeedSampleDataIfRequested(Database);   // not into workspaces opened later
+
+        Backups = new BackupService(Database);
+        Backups.BackUpIfDueInBackground();
+        StartBackupTimer();
+
+        Notifications = new NotificationService(Database);
+
+        ViewModel = new MainViewModel(Database);
+        ViewModel.PurgeExpiredDeletedTasks();   // drop recycle-bin items older than 30 days
+        ViewModel.DeleteOrphanAttachmentFolders();
+        ViewModel.LoadTasks();
+        ViewModel.LoadDeletedTasks();
+        ViewModel.LoadGroups();
+        ViewModel.LoadNotes();
+
+        ReminderScheduler = new ReminderSchedulerService(Database, Notifications);
+        ReminderScheduler.Start();
+
+        // Idle / lock / sleep monitor — auto-pauses the running task
+        IdleMonitor = new IdleMonitorService(_userActivity!, ViewModel.PauseRunningTasks, ViewModel.ResumeActiveTask);
+        IdleMonitor.Start();
+
+        // Saves running timers every minute so a crash or power cut can't inflate them
+        _checkpoints = new TrackingCheckpointService(ViewModel.CheckpointRunningTasks);
+        _checkpoints.Start();
+
+        // Meeting monitor — detects mic/camera usage and records meeting sessions (Windows only)
+        if (PlatformServices.SupportsMeetingDetection && OperatingSystem.IsWindows())
+        {
+            MeetingMonitor = new MeetingMonitorService(Database);
+            MeetingMonitor.Start();
+        }
+
+        // App usage monitor — tracks foreground window time
+        AppUsage = new AppUsageService(Database, PlatformServices.CreateForegroundAppMonitor(), _userActivity!);
+        AppUsage.Start();
+    }
+
+    /// <summary>Saves running timers and stops everything that uses the open workspace's files.</summary>
+    private static void StopWorkspaceServices()
+    {
+        PauseRunningTimers();
+        _backupTimer?.Stop();
+        _checkpoints?.Dispose();
+        AppUsage?.Dispose();
+        if (OperatingSystem.IsWindows()) MeetingMonitor?.Dispose();
+        MeetingMonitor = null;
+        IdleMonitor?.Dispose();
+        ReminderScheduler?.Stop();
+        if (ViewModel is { } old)
+            foreach (var task in old.Tasks) task.Detach();   // stop their one-second display timers
+    }
+
+    /// <summary>
+    /// Switches to another workspace without restarting: saves and stops the open workspace's services,
+    /// opens the other one's settings and database, and starts its services. The window, tray icon and
+    /// quick-add shortcut stay. Returns false (and keeps the old workspace) when anything fails.
+    /// </summary>
+    public static bool SwitchWorkspace(string id)
+    {
+        string previous = Workspaces.Active.Id;
+        StopWorkspaceServices();
+        try
+        {
+            Workspaces.Activate(id);
+            ApplyPendingImport()?.Notify();
+            ApplyPendingRestore()?.Notify();
+            StartWorkspaceServices();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            CrashLog.Write("Switching workspace failed", ex);
+            try
+            {
+                Workspaces.Activate(previous);
+                StartWorkspaceServices();
+            }
+            catch (Exception again) { CrashLog.Write("Reopening the previous workspace failed", again); }
+            return false;
+        }
+    }
+
+    /// <summary>Applies the open workspace's theme choice (after a switch).</summary>
+    public void ReapplyTheme() => ApplyThemePreference();
 
     /// <summary>Ends the app (tray "Exit Tasky", restart after an import).</summary>
     public static void Shutdown() => Instance.Desktop.Shutdown();
@@ -309,14 +371,8 @@ public partial class App : Application
     /// <summary>Saves timers and stops every background service (on exit, or when start-up fails).</summary>
     private static void StopServices()
     {
-        PauseRunningTimers();
-        _backupTimer?.Stop();
-        _checkpoints?.Dispose();
-        AppUsage?.Dispose();
-        if (OperatingSystem.IsWindows()) MeetingMonitor?.Dispose();
-        IdleMonitor?.Dispose();
+        StopWorkspaceServices();
         _userActivity?.Dispose();
         Hotkey?.Dispose();
-        ReminderScheduler?.Stop();
     }
 }

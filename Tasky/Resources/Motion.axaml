@@ -19,4 +19,18 @@
             </Animation>
         </Style.Animations>
     </Style>
+
+    <!-- Workspace switch spinner -->
+    <Style Selector="Window:not(.reduceMotion) Arc.spinner">
+        <Style.Animations>
+            <Animation Duration="0:0:0.9" IterationCount="Infinite">
+                <KeyFrame Cue="0%"><Setter Property="RotateTransform.Angle" Value="0"/></KeyFrame>
+                <KeyFrame Cue="100%"><Setter Property="RotateTransform.Angle" Value="360"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <!-- Reduce motion: the arc stays still and softly fades instead -->
+    <Style Selector="Window.reduceMotion Arc.spinner">
+        <Setter Property="SweepAngle" Value="360"/>
+    </Style>
 </Styles>

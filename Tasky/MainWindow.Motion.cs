@@ -33,17 +33,18 @@ public partial class MainWindow
     {
         Classes.Set("reduceMotion", !Motion.Enabled);
         TaskListControl.ContainerPrepared += (_, e) => StaggerCardIn(e.Container);
-        Loaded += (_, _) =>
+    }
+
+    /// <summary>Motion that follows the view model (called for each workspace's view model).</summary>
+    private void AttachMotion(MainViewModel vm)
+    {
+        vm.VisibleTasks.CollectionChanged += (_, _) => _lastListChange = DateTime.UtcNow;
+        _lastBadgeCount = vm.MissedNotifCount;
+        vm.PropertyChanged += (_, e) =>
         {
-            if (DataContext is not MainViewModel vm) return;
-            vm.VisibleTasks.CollectionChanged += (_, _) => _lastListChange = DateTime.UtcNow;
+            if (e.PropertyName != nameof(MainViewModel.MissedNotifCount) || !ReferenceEquals(vm, DataContext)) return;
+            if (vm.MissedNotifCount > _lastBadgeCount) PopBadge();
             _lastBadgeCount = vm.MissedNotifCount;
-            vm.PropertyChanged += (_, e) =>
-            {
-                if (e.PropertyName != nameof(MainViewModel.MissedNotifCount)) return;
-                if (vm.MissedNotifCount > _lastBadgeCount) PopBadge();
-                _lastBadgeCount = vm.MissedNotifCount;
-            };
         };
     }
 

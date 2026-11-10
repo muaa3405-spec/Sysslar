@@ -57,8 +57,25 @@ public static class Workspaces
 
     private static Registry _registry = Load();
 
-    /// <summary>The workspace this run of Tasky has open. Fixed until Tasky restarts.</summary>
-    public static Workspace Active { get; } = Find(_registry.Active) ?? Find(DefaultId)!;
+    /// <summary>The workspace Sysslar has open (changes when the user switches, see <see cref="Activate"/>).</summary>
+    public static Workspace Active { get; private set; } = Find(_registry.Active) ?? Find(DefaultId)!;
+
+    /// <summary>
+    /// Makes <paramref name="id"/> the open workspace right away (and the one to start with next time).
+    /// Every path in <see cref="AppPaths"/> follows it, so the caller must have stopped everything that
+    /// uses the old workspace's files first (see App.SwitchWorkspaceAsync).
+    /// </summary>
+    public static void Activate(string id)
+    {
+        lock (Sync)
+        {
+            var workspace = _registry.Workspaces.FirstOrDefault(w => w.Id == id)
+                            ?? throw new InvalidOperationException($"No workspace '{id}'");
+            _registry.Active = id;
+            Save();
+            Active = workspace;
+        }
+    }
 
     /// <summary>All workspaces, the default one first.</summary>
     public static IReadOnlyList<Workspace> All
@@ -117,7 +134,7 @@ public static class Workspaces
     public static void Delete(string id)
     {
         if (id == DefaultId)  throw new InvalidOperationException("The first workspace can't be deleted");
-        if (id == Active.Id)  throw new InvalidOperationException("The open workspace can't be deleted");
+        if (id == Active.Id)  throw new InvalidOperationException("The open workspace can't be deleted");   // re-read: Active can change
 
         lock (Sync)
         {

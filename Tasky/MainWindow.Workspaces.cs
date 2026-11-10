@@ -124,20 +124,30 @@ public partial class MainWindow
         if (confirm && Vm.Tasks.Any(t => t.IsRunning))
         {
             var ask = new ConfirmDialog("Switch Workspace",
-                $"Your running timer will be paused and saved, then Sysslar restarts in \"{target.Name}\".",
+                $"Your running timer will be paused and saved, then Sysslar opens \"{target.Name}\".",
                 "Pause and switch", ConfirmType.Info);
             if (await ShowModalDialog(ask) != true) return;
         }
 
+        if (!openImport)
+        {
+            await SwitchWorkspaceInPlaceAsync(target);   // no restart: the window stays, the data changes
+            return;
+        }
+
+        // "New workspace" with "Import a migration file": the import itself needs a fresh start
         try
         {
+            var restartArgs = (await ShowSwitchScreenAsync(target)).ToList();   // soft: fade to "Switching to …"
+            restartArgs.Add(Workspaces.OpenImportArg);
             Workspaces.OpenOnNextStart(id);   // timers are paused and saved as Tasky exits
-            MigrationService.RestartTasky(openImport ? [Workspaces.OpenImportArg] : []);
+            MigrationService.RestartTasky([.. restartArgs]);
         }
         catch (Exception ex)
         {
             CrashLog.Write("Switching workspace failed", ex);
             try { Workspaces.KeepActiveOnNextStart(); } catch { /* the list file is unwritable; nothing to undo */ }
+            SwitchOverlay.IsVisible = false;
             InAppNotificationService.Error("Sysslar couldn't switch workspace. Details were written to the Sysslar log.");
         }
     }

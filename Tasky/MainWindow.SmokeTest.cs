@@ -62,9 +62,38 @@ public partial class MainWindow
             }
             timer.Stop();
             if (App.Instance.IsDarkTheme != startDark) App.Instance.ApplyTheme(startDark);
-            onFinished();
+            _ = SmokeTestWorkspaceSwitchAsync(snapshotDir, onFinished);
         };
         timer.Start();
+    }
+
+    /// <summary>
+    /// Switches to a new, empty workspace and back without restarting, then removes it again.
+    /// A failure is logged as a fatal error, which fails the smoke test.
+    /// </summary>
+    private async Task SmokeTestWorkspaceSwitchAsync(string? snapshotDir, Action onFinished)
+    {
+        string home = Services.Workspaces.Active.Id;
+        int homeTasks = Vm.Tasks.Count;
+        try
+        {
+            var temp = Services.Workspaces.Create("Smoke switch", "#8B5CF6");
+            await SwitchWorkspaceInPlaceAsync(temp);
+            if (Services.Workspaces.Active.Id != temp.Id || Vm.Tasks.Count != 0)
+                throw new InvalidOperationException($"Expected the empty workspace, got {Services.Workspaces.Active.Id} with {Vm.Tasks.Count} tasks");
+            if (snapshotDir is not null) SaveSnapshot(snapshotDir, "Switch-empty");
+
+            await SwitchWorkspaceInPlaceAsync(Services.Workspaces.Find(home)!);
+            if (Services.Workspaces.Active.Id != home || Vm.Tasks.Count != homeTasks)
+                throw new InvalidOperationException($"Expected {home} with {homeTasks} tasks back, got {Services.Workspaces.Active.Id} with {Vm.Tasks.Count}");
+            if (snapshotDir is not null) SaveSnapshot(snapshotDir, "Switch-back");
+            Services.Workspaces.Delete(temp.Id);
+        }
+        catch (Exception ex)
+        {
+            Services.CrashLog.Write("Fatal error: switching workspace without a restart failed in the smoke test", ex);
+        }
+        onFinished();
     }
 
     private void ShowPageForSmokeTest(AppPage page)

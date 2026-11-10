@@ -57,7 +57,9 @@ public partial class MainWindow
 
         var s = App.Settings.Current;
         double left, top;
-        if (useSavedPosition && s.WindowLeft is { } savedLeft && s.WindowTop is { } savedTop)
+        if (useSavedPosition && _arrivalBounds is { } arrival)
+            (left, top) = (arrival.X, arrival.Y);   // workspace switch: exactly where the old window was
+        else if (useSavedPosition && s.WindowLeft is { } savedLeft && s.WindowTop is { } savedTop)
             (left, top) = (savedLeft, savedTop);
         else if (useSavedPosition)
         {
