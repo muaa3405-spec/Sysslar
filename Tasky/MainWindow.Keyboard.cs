@@ -43,6 +43,9 @@ public partial class MainWindow
             case Key.S when _editPage is not null:
                 _editPage.Save();
                 return true;
+            case Key.S when _notePage is not null:
+                _notePage.Save();
+                return true;
             case Key.Z when !IsTyping:   // in a text box Ctrl+Z undoes typing
                 Vm.UndoLast();
                 return true;
@@ -103,6 +106,11 @@ public partial class MainWindow
         if (_editPage is not null)
         {
             _editPage.Cancel();
+            return true;
+        }
+        if (_notePage is not null)
+        {
+            _notePage.TryLeave();
             return true;
         }
         if (_addPanelOpen)

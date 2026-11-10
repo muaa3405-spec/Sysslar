@@ -43,10 +43,13 @@ public partial class MainWindow : Window
 
     // Navigation
 
-    private enum AppPage { Main, Completed, Notes, Stats, Reminders, Settings, Trash, EditTask }
+    private enum AppPage { Main, Completed, Notes, Stats, Reminders, Settings, Trash, EditTask, NoteDetail }
 
     /// <summary>The Edit Task page while it is open (it is rebuilt for each task).</summary>
     private Views.EditTaskPage? _editPage;
+
+    /// <summary>The note page while it is open (it is rebuilt for each note).</summary>
+    private Views.NotePage? _notePage;
 
     private void NavigateTo(AppPage page)
     {
@@ -58,10 +61,12 @@ public partial class MainWindow : Window
         SettingsPage.IsVisible   = page == AppPage.Settings;
         TrashPage.IsVisible      = page == AppPage.Trash;
         EditTaskPageHost.IsVisible = page == AppPage.EditTask;
+        NotePageHost.IsVisible     = page == AppPage.NoteDetail;
         AddPanelBorder.IsVisible = page == AppPage.Main;
         MainHeader.IsVisible     = page == AppPage.Main;
-        SubHeader.IsVisible      = page is not (AppPage.Main or AppPage.EditTask);   // the edit page has its own header
-        if (page != AppPage.EditTask) CloseEditPage();
+        SubHeader.IsVisible      = page is not (AppPage.Main or AppPage.EditTask or AppPage.NoteDetail);   // these pages have their own header
+        if (page != AppPage.EditTask)   CloseEditPage();
+        if (page != AppPage.NoteDetail) CloseNotePage();
 
         EmptyBinBtn.IsVisible    = page == AppPage.Trash;
         NewNoteBtn.IsVisible     = page == AppPage.Notes;
@@ -105,6 +110,7 @@ public partial class MainWindow : Window
             AppPage.Settings  => SettingsPage,
             AppPage.Trash     => TrashPage,
             AppPage.EditTask  => EditTaskPageHost,
+            AppPage.NoteDetail => NotePageHost,
             AppPage.Main      => TaskListPage,
             _                 => null
         };
@@ -1294,10 +1300,27 @@ public partial class MainWindow : Window
         InAppNotificationService.Success(attached > 0 ? $"Note saved with {attached} attachment(s)." : "Note saved.");
     }
 
-    private async void Note_Click(object? sender, PointerReleasedEventArgs e)
+    private void Note_Click(object? sender, PointerReleasedEventArgs e)
     {
-        if (IsLeftClick(e) && sender is Control { DataContext: Note note })
-            await ShowModalDialog(new NoteDetailDialog(note, Vm));
+        if (IsLeftClick(e) && sender is Control { DataContext: Note note }) OpenNotePage(note);
+    }
+
+    /// <summary>Opens a note on its own page (Back / Esc / Save come back to the notes list).</summary>
+    private void OpenNotePage(Note note)
+    {
+        var page = new Views.NotePage(note, Vm, ShowModalDialog);
+        page.Closed += () => NavigateTo(AppPage.Notes);
+        _notePage = page;
+        NotePageHost.Children.Clear();
+        NotePageHost.Children.Add(page);
+        NavigateTo(AppPage.NoteDetail);
+    }
+
+    private void CloseNotePage()
+    {
+        if (_notePage is null) return;
+        NotePageHost.Children.Clear();
+        _notePage = null;
     }
 
     private async void DeleteNote_Click(object? sender, RoutedEventArgs e)

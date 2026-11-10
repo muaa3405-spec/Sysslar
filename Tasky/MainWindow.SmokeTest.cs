@@ -61,6 +61,12 @@ public partial class MainWindow
             if (Vm.VisibleTasks.FirstOrDefault() is { } task) _ = EditTaskAsync(task);
             return;
         }
+        if (page == AppPage.NoteDetail)
+        {
+            Vm.LoadNotes();
+            if (Vm.FilteredNotes.FirstOrDefault() is { } note) OpenNotePage(note);
+            return;
+        }
         NavigateTo(page);
     }
 

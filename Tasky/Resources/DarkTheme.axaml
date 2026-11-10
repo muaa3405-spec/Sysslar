@@ -41,5 +41,7 @@
     <SolidColorBrush x:Key="IconHoverBackground" Color="#FFFFFF" Opacity="0.07"/>
     <SolidColorBrush x:Key="CardRunning"        Color="#1A2B2D"/>
     <SolidColorBrush x:Key="CardRunningBorder"  Color="#2F5A47"/>
+    <SolidColorBrush x:Key="CardHover"          Color="#222C3F"/>
+    <SolidColorBrush x:Key="CardRunningHover"   Color="#1F3335"/>
     <SolidColorBrush x:Key="OverlayDim"         Color="#000000" Opacity="0.45"/>
 </ResourceDictionary>

@@ -191,14 +191,14 @@
             <Setter Property="IsVisible" Value="False"/>
         </Style>
 
-        <!-- Task cards: lift slightly on hover, press in like a tile while the mouse button is down -->
+        <!-- Task cards: background brightens a little on hover, press in like a tile while the mouse button is down -->
         <Style Selector="Border.taskTile">
             <Setter Property="RenderTransform" Value="none"/>
             <Setter Property="Transitions">
                 <Transitions>
                     <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.16" Easing="CubicEaseOut"/>
                     <BrushTransition Property="BorderBrush" Duration="0:0:0.16"/>
-                    <BrushTransition Property="Background"  Duration="0:0:0.25"/>
+                    <BrushTransition Property="Background"  Duration="0:0:0.15"/>
                 </Transitions>
             </Setter>
         </Style>
@@ -207,8 +207,10 @@
             <Setter Property="BorderBrush" Value="{DynamicResource CardRunningBorder}"/>
         </Style>
         <Style Selector="Border.taskTile:pointerover">
-            <Setter Property="RenderTransform" Value="translateY(-2px)"/>
-            <Setter Property="BorderBrush"     Value="{DynamicResource ChipBorder}"/>
+            <Setter Property="Background" Value="{DynamicResource CardHover}"/>
+        </Style>
+        <Style Selector="Border.taskTile.running:pointerover">
+            <Setter Property="Background" Value="{DynamicResource CardRunningHover}"/>
         </Style>
         <Style Selector="Border.taskTile.pressed">
             <Setter Property="RenderTransform" Value="scale(0.98)"/>
@@ -738,6 +740,9 @@
             <!-- PAGE 2: Completed Tasks -->
             <!-- Edit Task page (Views/EditTaskPage), created when a task is opened -->
             <Panel x:Name="EditTaskPageHost" IsVisible="False"/>
+
+            <!-- Note page (Views/NotePage), created when a note is opened -->
+            <Panel x:Name="NotePageHost" IsVisible="False"/>
 
             <Grid x:Name="CompletedPage" IsVisible="False">
                 <Grid.RowDefinitions>
