@@ -429,7 +429,15 @@ public class MainViewModel : INotifyPropertyChanged
     public TaskFilter ActiveFilter
     {
         get => _activeFilter;
-        set { _activeFilter = value; OnPropertyChanged(); RefreshVisibleTasks(); }
+        set
+        {
+            _activeFilter = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(FilterAll));
+            OnPropertyChanged(nameof(FilterToday));
+            OnPropertyChanged(nameof(FilterThisWeek));
+            RefreshVisibleTasks();
+        }
     }
 
     public bool FilterAll      => _activeFilter == TaskFilter.All;

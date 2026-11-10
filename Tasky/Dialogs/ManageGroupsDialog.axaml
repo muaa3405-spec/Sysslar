@@ -57,10 +57,10 @@
                                            FontSize="13" FontWeight="SemiBold"
                                            Foreground="{DynamicResource TextPrimary}"
                                            VerticalAlignment="Center"/>
-                                <Button Grid.Column="2" Theme="{StaticResource IconButton}"
+                                <Button Grid.Column="2" Theme="{StaticResource IconButton}" Classes="delete"
                                         ToolTip.Tip="Delete group"
                                         Tag="{Binding Id}" Click="DeleteGroup_Click">
-                                    <TextBlock Text="🗑" FontSize="13" Foreground="#F87171"/>
+                                    <ctrl:LineIcon Data="{StaticResource Icon.Trash}" Size="18"/>
                                 </Button>
                             </Grid>
                         </Border>

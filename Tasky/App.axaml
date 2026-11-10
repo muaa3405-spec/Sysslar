@@ -5,6 +5,7 @@
              RequestedThemeVariant="Dark">
     <Application.Styles>
         <FluentTheme/>
+        <StyleInclude Source="avares://Tasky/Resources/Motion.axaml"/>
 
         <!-- Same base text as the original Windows design: 12px, black unless a style says otherwise.
              (The font itself is set once in Program.cs: Segoe UI on Windows, the system font on macOS.) -->
@@ -32,6 +33,8 @@
                 <ResourceInclude x:Key="Light" Source="avares://Tasky/Resources/LightTheme.axaml"/>
             </ResourceDictionary.ThemeDictionaries>
             <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://Tasky/Resources/Tokens.axaml"/>
+                <ResourceInclude Source="avares://Tasky/Resources/Icons.axaml"/>
                 <ResourceInclude Source="avares://Tasky/Resources/Styles.axaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>

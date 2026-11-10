@@ -28,18 +28,23 @@ public partial class ConfirmDialog : Window
         MessageLabel.Text  = message;
         ConfirmBtn.Content = confirmLabel;
 
-        var (icon, color) = type switch
+        var (icon, colour, soft) = type switch
         {
-            ConfirmType.Warning => ("⚠️",  Color.FromRgb(245, 158, 11)),
-            ConfirmType.Info    => ("ℹ️",   Color.FromRgb(59,  130, 246)),
-            _                   => ("🗑️",  Color.FromRgb(239, 68,  68))   // Danger / Delete
+            ConfirmType.Warning => ("Icon.Info",  "Warning",     "WarningSoft"),
+            ConfirmType.Info    => ("Icon.Info",  "PrimaryBlue", "AccentSoft"),
+            _                   => ("Icon.Trash", "Danger",      "DangerSoft"),   // Danger / Delete
         };
 
-        IconLabel.Text = icon;
+        IconLabel.Data = UiResources.Geometry(icon);
+        IconLabel.WithResource(Controls.LineIcon.ForegroundProperty, colour);
+        IconBadge.WithResource(Border.BackgroundProperty, soft);
 
-        // Danger confirm button gets a red background
+        // Danger confirm button is red
         if (type == ConfirmType.Danger)
-            ConfirmBtn.Background = new SolidColorBrush(Color.FromRgb(239, 68, 68));
+        {
+            ConfirmBtn.WithResource(BackgroundProperty, "Danger");
+            ConfirmBtn.Foreground = Brushes.White;
+        }
     }
 
     private void Confirm_Click(object? sender, RoutedEventArgs e)

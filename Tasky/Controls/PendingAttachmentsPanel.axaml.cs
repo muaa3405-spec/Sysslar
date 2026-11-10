@@ -126,9 +126,10 @@ public partial class PendingAttachmentsPanel : UserControl
         var grid = new Grid();
         grid.Children.Add(image is not null
             ? new Image { Source = image, Stretch = Stretch.UniformToFill }
-            : new TextBlock
+            : new Tasky.Controls.LineIcon
             {
-                Text = "📄", FontSize = 26,
+                Data = UiResources.Geometry("Icon.File"), Size = 32, StrokeThickness = 1.5,
+                Foreground = UiResources.Brush("TextSecondary"),
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment   = VerticalAlignment.Center
             });
@@ -136,7 +137,7 @@ public partial class PendingAttachmentsPanel : UserControl
         var removeButton = new Button
         {
             Theme   = UiResources.Theme("PlainButton"),
-            Content = "✕", Width = 18, Height = 18, FontSize = 10,
+            Content = UiResources.Icon("Icon.Close", 12), Width = 18, Height = 18, FontSize = 10,
             HorizontalAlignment = HorizontalAlignment.Right,
             VerticalAlignment   = VerticalAlignment.Top,
             Margin = new Thickness(0, 2, 2, 0), Cursor = new Cursor(StandardCursorType.Hand),

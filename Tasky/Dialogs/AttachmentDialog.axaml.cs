@@ -19,14 +19,14 @@ public partial class AttachmentDialog : Window
     private const int ThumbnailDecodeWidth = 200;
 
     // Drop-zone colours: idle, and while files are dragged over the window.
-    private static readonly IBrush IdleBorderBrush   = new SolidColorBrush(Color.FromRgb(55, 65, 81));
-    private static readonly IBrush IdleBackground    = new SolidColorBrush(Color.FromRgb(31, 41, 55));
-    private static readonly IBrush ActiveBorderBrush = new SolidColorBrush(Color.FromRgb(59, 130, 246)); // PrimaryBlue
-    private static readonly IBrush ActiveBackground  = new SolidColorBrush(Color.FromRgb(30, 58, 95));
-    private static readonly IBrush DeleteForeground  = new SolidColorBrush(Color.FromRgb(239, 68, 68));
+    private static IBrush IdleBorderBrush   => UiResources.Brush("BorderColor");
+    private static IBrush IdleBackground    => UiResources.Brush("CardBackground");
+    private static IBrush ActiveBorderBrush => UiResources.Brush("PrimaryBlue");
+    private static IBrush ActiveBackground  => UiResources.Brush("AccentSoft");
+    private static IBrush DeleteForeground  => UiResources.Brush("Danger");
 
-    private const string IdleIcon   = "📋";
-    private const string ActiveIcon = "📂";
+    private const string IdleIcon   = "Icon.Clipboard";
+    private const string ActiveIcon = "Icon.Download";
     private const string ActiveTitle = "Release to attach";
     private static string IdleTitle => $"Click, paste ({KeyGestures.PasteHint}) or drop images here";
 
@@ -96,9 +96,10 @@ public partial class AttachmentDialog : Window
         }
         else
         {
-            stack.Children.Add(new TextBlock
+            stack.Children.Add(new Tasky.Controls.LineIcon
             {
-                Text = "📄", FontSize = 30,
+                Data = UiResources.Geometry("Icon.File"), Size = 36, StrokeThickness = 1.5,
+                Foreground = UiResources.Brush("TextSecondary"),
                 HorizontalAlignment = HorizontalAlignment.Center,
                 Margin = new Thickness(0, 16, 0, 4)
             });
@@ -115,7 +116,7 @@ public partial class AttachmentDialog : Window
         var del = new Button
         {
             Theme = UiResources.Theme("PlainButton"),
-            Content = "✕", FontSize = 10, Width = 20, Height = 20,
+            Content = UiResources.Icon("Icon.Close", 12), FontSize = 10, Width = 20, Height = 20,
             VerticalAlignment   = VerticalAlignment.Top,
             HorizontalAlignment = HorizontalAlignment.Right,
             Margin = new Thickness(0, 2, 2, 0),
@@ -234,7 +235,7 @@ public partial class AttachmentDialog : Window
     {
         DropZone.BorderBrush = active ? ActiveBorderBrush : IdleBorderBrush;
         DropZone.Background  = active ? ActiveBackground  : IdleBackground;
-        DropIcon.Text        = active ? ActiveIcon        : IdleIcon;
+        DropIcon.Data        = UiResources.Geometry(active ? ActiveIcon : IdleIcon);
         DropTitle.Text       = active ? ActiveTitle       : IdleTitle;
     }
 

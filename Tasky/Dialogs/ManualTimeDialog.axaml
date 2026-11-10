@@ -1,4 +1,4 @@
-<Window x:Class="Tasky.Dialogs.ManualTimeDialog"
+<Window xmlns:ctrl="using:Tasky.Controls" x:Class="Tasky.Dialogs.ManualTimeDialog"
         Classes="toolWindow"
         xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -26,8 +26,7 @@
                                     BorderBrush="{DynamicResource BorderColor}"
                                     BorderThickness="1" CornerRadius="8" Padding="14,10">
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                    <TextBlock Text="🤷" FontSize="16" Margin="0,0,8,0"
-                                               VerticalAlignment="Center"/>
+                                    <ctrl:LineIcon Data="{StaticResource Icon.Question}" Size="20" Foreground="{DynamicResource IconMuted}" Margin="0,0,10,0" VerticalAlignment="Center"/>
                                     <StackPanel VerticalAlignment="Center">
                                         <TextBlock Text="No idea" FontSize="13" FontWeight="SemiBold"
                                                    Foreground="{DynamicResource TextPrimary}"/>
@@ -39,7 +38,7 @@
                         </ControlTemplate>
                     </Setter>
                     <Style Selector="^:pointerover /template/ Border#Bd">
-                        <Setter Property="BorderBrush" Value="#60A5FA"/>
+                        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBlue}"/>
                     </Style>
                 </ControlTheme>
             </Button.Theme>

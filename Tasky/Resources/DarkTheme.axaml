@@ -1,19 +1,45 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <SolidColorBrush x:Key="AppBackground"      Color="#111827"/>
-    <SolidColorBrush x:Key="CardBackground"     Color="#1F2937"/>
-    <SolidColorBrush x:Key="HeaderBackground"   Color="#1F2937"/>
-    <SolidColorBrush x:Key="BorderColor"        Color="#374151"/>
-    <SolidColorBrush x:Key="TextPrimary"        Color="#F9FAFB"/>
-    <SolidColorBrush x:Key="TextSecondary"      Color="#9CA3AF"/>
-    <SolidColorBrush x:Key="PlaceholderColor"   Color="#6B7280"/>
-    <SolidColorBrush x:Key="InputBackground"    Color="#374151"/>
-    <SolidColorBrush x:Key="PrimaryBlue"        Color="#60A5FA"/>
-    <SolidColorBrush x:Key="AccentGreen"        Color="#34D399"/>
-    <SolidColorBrush x:Key="TagBackground"      Color="#1E3A5F"/>
-    <SolidColorBrush x:Key="TagForeground"      Color="#60A5FA"/>
+    <!-- Navy dark theme. Keep every key in sync with LightTheme.axaml. -->
+    <SolidColorBrush x:Key="AppBackground"      Color="#121A28"/>
+    <SolidColorBrush x:Key="CardBackground"     Color="#1B2333"/>
+    <SolidColorBrush x:Key="HeaderBackground"   Color="#121A28"/>
+    <SolidColorBrush x:Key="BorderColor"        Color="#2B3547"/>
+    <SolidColorBrush x:Key="TextPrimary"        Color="#F3F5F9"/>
+    <SolidColorBrush x:Key="TextSecondary"      Color="#A3ADBD"/>
+    <SolidColorBrush x:Key="PlaceholderColor"   Color="#6E7A8E"/>
+    <SolidColorBrush x:Key="InputBackground"    Color="#222C3D"/>
+    <SolidColorBrush x:Key="PrimaryBlue"        Color="#4A90E2"/>
+    <SolidColorBrush x:Key="AccentGreen"        Color="#7FD1A1"/>
+    <SolidColorBrush x:Key="TagBackground"      Color="#22324A"/>
+    <SolidColorBrush x:Key="TagForeground"      Color="#7DB3F0"/>
     <SolidColorBrush x:Key="ShadowColor"        Color="#000000"/>
-    <SolidColorBrush x:Key="DialogFrameBorder"  Color="#60A5FA" Opacity="0.6"/>
-    <SolidColorBrush x:Key="CompletedOpacity"   Color="#9CA3AF"/>
+    <SolidColorBrush x:Key="DialogFrameBorder"  Color="#2B3547"/>
+    <SolidColorBrush x:Key="CompletedOpacity"   Color="#6E7A8E"/>
     <SolidColorBrush x:Key="CalendarDayTitle"   Color="#CBD5E1"/>
+
+    <!-- Design-language tokens -->
+    <SolidColorBrush x:Key="SurfaceRaised"      Color="#2A3548"/>
+    <SolidColorBrush x:Key="ChipBorder"         Color="#3A4559"/>
+    <SolidColorBrush x:Key="AccentSoft"         Color="#2E4A73"/>
+    <SolidColorBrush x:Key="AccentText"         Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="PrimaryPillBackground" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="PrimaryPillForeground" Color="#121A28"/>
+    <SolidColorBrush x:Key="CheckIdle"          Color="#7B879B"/>
+    <SolidColorBrush x:Key="Success"            Color="#7FD1A1"/>
+    <SolidColorBrush x:Key="SuccessSoft"        Color="#1F3A2E"/>
+    <SolidColorBrush x:Key="Warning"            Color="#F2B55A"/>
+    <SolidColorBrush x:Key="WarningSoft"        Color="#3A2F1C"/>
+    <SolidColorBrush x:Key="Danger"             Color="#F2706B"/>
+    <SolidColorBrush x:Key="DangerSoft"         Color="#3B2226"/>
+    <SolidColorBrush x:Key="IconMuted"          Color="#9AA4B5"/>
+    <SolidColorBrush x:Key="IconAttachHover"    Color="#5AA9FF"/>
+    <SolidColorBrush x:Key="IconPostponeHover"  Color="#4CD39B"/>
+    <SolidColorBrush x:Key="IconEditHover"      Color="#B48CFF"/>
+    <SolidColorBrush x:Key="IconReminderHover"  Color="#F5C04A"/>
+    <SolidColorBrush x:Key="IconDeleteHover"    Color="#FF6B6B"/>
+    <SolidColorBrush x:Key="IconHoverBackground" Color="#FFFFFF" Opacity="0.07"/>
+    <SolidColorBrush x:Key="CardRunning"        Color="#1A2B2D"/>
+    <SolidColorBrush x:Key="CardRunningBorder"  Color="#2F5A47"/>
+    <SolidColorBrush x:Key="OverlayDim"         Color="#000000" Opacity="0.45"/>
 </ResourceDictionary>

@@ -36,7 +36,7 @@
                     <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextPrimary}"
                                Text="Import a Sysslar migration file into it"/>
                 </CheckBox>
-                <TextBlock x:Name="FormError" Foreground="#EF4444" FontSize="12" TextWrapping="Wrap"
+                <TextBlock x:Name="FormError" Foreground="{DynamicResource Danger}" FontSize="12" TextWrapping="Wrap"
                            IsVisible="False" Margin="0,2,0,4"/>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,6,0,0">
                     <Button x:Name="CancelEditButton" Content="Cancel" Theme="{StaticResource SecondaryButton}"

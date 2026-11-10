@@ -36,8 +36,7 @@
                     Theme="{StaticResource IconButton}"
                     ToolTip.Tip="Copy description to clipboard"
                     Click="CopyDesc_Click" Padding="4">
-                <TextBlock Text="📋" FontSize="14"
-                           Foreground="{DynamicResource TextSecondary}"/>
+                <ctrl:LineIcon Data="{StaticResource Icon.Clipboard}" Size="18"/>
             </Button>
         </Grid>
 

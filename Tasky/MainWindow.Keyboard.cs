@@ -40,6 +40,9 @@ public partial class MainWindow
             case Key.OemComma:
                 NavigateTo(AppPage.Settings);
                 return true;
+            case Key.S when _editPage is not null:
+                _editPage.Save();
+                return true;
             case Key.Z when !IsTyping:   // in a text box Ctrl+Z undoes typing
                 Vm.UndoLast();
                 return true;
@@ -97,6 +100,11 @@ public partial class MainWindow
     /// <summary>Esc closes the new-task form, leaves a sub-page, or clears the task search.</summary>
     private bool HandleEscape()
     {
+        if (_editPage is not null)
+        {
+            _editPage.Cancel();
+            return true;
+        }
         if (_addPanelOpen)
         {
             AddToggle_Click(this, new RoutedEventArgs());
@@ -149,16 +157,5 @@ public partial class MainWindow
         foreach (var task in Vm.Tasks) task.IsSelected = false;
         tasks[next].IsSelected = true;
         TaskListControl.ContainerFromItem(tasks[next])?.BringIntoView();
-    }
-
-    // ── First start ──────────────────────────────────────────────────────
-
-    /// <summary>Shows the "Good to know" tips once, the first time Tasky opens.</summary>
-    public async void ShowWelcomeTipsOnFirstStart()
-    {
-        if (App.Settings.Current.HasSeenWelcomeTips) return;
-        App.Settings.Current.HasSeenWelcomeTips = true;
-        App.Settings.Save();
-        await ShowModalDialog(new GoodToKnowDialog(showTips: true));
     }
 }

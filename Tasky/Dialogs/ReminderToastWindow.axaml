@@ -1,4 +1,4 @@
-<Window x:Class="Tasky.Dialogs.ReminderToastWindow"
+<Window xmlns:ctrl="using:Tasky.Controls" x:Class="Tasky.Dialogs.ReminderToastWindow"
         xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         SystemDecorations="None" CanResize="False"
@@ -9,7 +9,7 @@
         RequestedThemeVariant="Dark">
     <!-- The toast always uses the dark theme brushes, whatever the app theme is -->
 
-    <Border CornerRadius="12" Background="#1F2937" Padding="0" x:Name="RootBorder">
+    <Border CornerRadius="12" Background="{DynamicResource CardBackground}" Padding="0" x:Name="RootBorder">
         <Border.RenderTransform>
             <TranslateTransform X="360"/>
         </Border.RenderTransform>
@@ -19,31 +19,32 @@
         <Grid>
             <!-- Blue top accent bar -->
             <Border x:Name="AccentStrip" Height="3" VerticalAlignment="Top" CornerRadius="12,12,0,0"
-                    Background="#60A5FA"/>
+                    Background="{DynamicResource PrimaryBlue}"/>
 
             <StackPanel Margin="16,14,16,16">
 
                 <!-- Header row -->
                 <Grid Margin="0,0,0,10" ColumnDefinitions="Auto,*,Auto">
-                    <TextBlock Grid.Column="0" Text="⏰" FontSize="15"
-                               VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <ctrl:LineIcon Grid.Column="0" Data="{StaticResource Icon.Alarm}" Size="18" Foreground="{DynamicResource PrimaryBlue}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                     <TextBlock Grid.Column="1" Text="Sysslar Reminder"
-                               FontSize="13" FontWeight="SemiBold" Foreground="#60A5FA"
+                               FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryBlue}"
                                VerticalAlignment="Center"/>
-                    <Button Grid.Column="2" Content="✕" Click="Dismiss_Click"
+                    <Button Grid.Column="2" Click="Dismiss_Click"
                             Background="Transparent" BorderThickness="0"
-                            Foreground="#6B7280" FontSize="13" Cursor="Hand"
+                            Foreground="{DynamicResource PlaceholderColor}" FontSize="13" Cursor="Hand"
                             Padding="6,0" VerticalAlignment="Center">
                         <Button.Theme>
                             <ControlTheme TargetType="Button">
                                 <Setter Property="Template">
                                     <ControlTemplate>
-                                        <TextBlock Name="T" Text="✕" FontSize="13"
-                                                   Foreground="#6B7280" Cursor="Hand"/>
+                                        <Border Background="Transparent" Padding="2" Cursor="Hand">
+                                            <ctrl:LineIcon Name="T" Data="{StaticResource Icon.Close}" Size="16"
+                                                           Foreground="{TemplateBinding Foreground}"/>
+                                        </Border>
                                     </ControlTemplate>
                                 </Setter>
-                                <Style Selector="^:pointerover /template/ TextBlock#T">
-                                    <Setter Property="Foreground" Value="#F9FAFB"/>
+                                <Style Selector="^:pointerover /template/ ctrl|LineIcon#T">
+                                    <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
                                 </Style>
                             </ControlTheme>
                         </Button.Theme>
@@ -52,13 +53,13 @@
 
                 <!-- Task title -->
                 <TextBlock x:Name="TitleText"
-                           FontSize="13" FontWeight="SemiBold" Foreground="#F9FAFB"
+                           FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimary}"
                            TextWrapping="Wrap" Margin="0,0,0,14" LineHeight="19"/>
 
                 <!-- Snooze row -->
                 <Grid Margin="0,0,0,12" ColumnDefinitions="Auto,*">
                     <TextBlock Grid.Column="0" Text="Snooze for" FontSize="12"
-                               Foreground="#9CA3AF" VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center"
                                Margin="0,0,10,0"/>
                     <ComboBox x:Name="SnoozeBox" Grid.Column="1"
                               Theme="{StaticResource ThemedComboBox}"

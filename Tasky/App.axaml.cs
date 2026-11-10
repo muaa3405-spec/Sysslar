@@ -138,7 +138,7 @@ public partial class App : Application
         {
             mainWindow.Opened -= OnFirstOpened;   // Opened repeats each time the window is shown from the tray
             if (ViewModel!.Tasks.Any(t => t.WasInterrupted))
-                InAppNotificationService.Info("⏸  Your timer was paused because Sysslar closed while it was running.");
+                InAppNotificationService.Info("Your timer was paused because Sysslar closed while it was running.");
             importResult?.Notify();
             restoreResult?.Notify();
 
@@ -146,7 +146,6 @@ public partial class App : Application
             Hotkey.Register(ShowQuickAdd);
             SmokeTest.ShowReminderIfRequested();
             SmokeTest.VisitAllPagesIfRequested(mainWindow);
-            mainWindow.ShowWelcomeTipsOnFirstStart();
             if (args.Contains(Workspaces.OpenImportArg)) mainWindow.OpenImportForNewWorkspace();
             _ = mainWindow.CheckForUpdatesIfDueAsync();
             Task.Run(Platform.MacOS.MacLegacyAppCleanup.MoveOldTaskyAppToTrash);   // renamed app: drop the old Tasky.app
@@ -206,12 +205,12 @@ public partial class App : Application
 
     private static StartupSwapOutcome? ApplyPendingImport()
         => ApplyStartupSwap(MigrationService.ApplyPendingImport,
-            "✔  Your Sysslar data has been imported. Welcome back!",
+            "Your Sysslar data has been imported. Welcome back!",
             "Import failed, so your existing data was kept.");
 
     private static StartupSwapOutcome? ApplyPendingRestore()
         => ApplyStartupSwap(BackupService.ApplyPendingRestore,
-            "✔  Your backup has been restored.",
+            "Your backup has been restored.",
             "Restoring the backup failed, so your existing data was kept.");
 
     private static StartupSwapOutcome? ApplyStartupSwap(Func<bool> apply, string success, string failure)
@@ -272,7 +271,7 @@ public partial class App : Application
             window.ApplyTitleBarThemePublic(dark);   // a window that isn't open yet does this when it opens
     }
 
-    private void ApplyTheme(bool dark)
+    internal void ApplyTheme(bool dark)
     {
         _isDark = dark;
         RequestedThemeVariant = dark ? ThemeVariant.Dark : ThemeVariant.Light;

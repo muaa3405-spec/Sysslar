@@ -115,7 +115,7 @@ public class TaskItemViewModel : INotifyPropertyChanged
     public void RefreshDateLabels()
     {
         OnPropertyChanged(nameof(DueDateTag));
-        OnPropertyChanged(nameof(DueDateBrush));
+        OnPropertyChanged(nameof(DueDateBrush)); OnPropertyChanged(nameof(IsOverdue)); OnPropertyChanged(nameof(IsDueToday));
         OnPropertyChanged(nameof(CompletedGroup));
     }
 
@@ -149,7 +149,7 @@ public class TaskItemViewModel : INotifyPropertyChanged
         set { _isDescriptionExpanded = value; OnPropertyChanged(); OnPropertyChanged(nameof(ShowMoreLabel)); }
     }
 
-    public string ShowMoreLabel => _isDescriptionExpanded ? "Show less ▲" : "Show more ▼";
+    public string ShowMoreLabel => _isDescriptionExpanded ? "Show less" : "Show more";
 
     private bool _isSelected;
     /// <summary>Picked with the arrow keys; keyboard shortcuts act on this task.</summary>
@@ -162,7 +162,7 @@ public class TaskItemViewModel : INotifyPropertyChanged
     public DateTime? DueDate
     {
         get => _model.DueDate;
-        set { _model.DueDate = value; OnPropertyChanged(); OnPropertyChanged(nameof(DueDateTag)); OnPropertyChanged(nameof(DueDateBrush)); }
+        set { _model.DueDate = value; OnPropertyChanged(); OnPropertyChanged(nameof(DueDateTag)); OnPropertyChanged(nameof(DueDateBrush)); OnPropertyChanged(nameof(IsOverdue)); OnPropertyChanged(nameof(IsDueToday)); }
     }
 
     public string DueDateTag
@@ -192,6 +192,12 @@ public class TaskItemViewModel : INotifyPropertyChanged
             return GrayBrush;
         }
     }
+
+    /// <summary>Starts before today (the date tag is shown in the danger colour).</summary>
+    public bool IsOverdue => _model.DueDate.HasValue && _model.DueDate.Value.Date < DateTime.Today;
+
+    /// <summary>Starts today (the date tag is shown in the success colour).</summary>
+    public bool IsDueToday => _model.DueDate.HasValue && _model.DueDate.Value.Date == DateTime.Today;
 
     private static readonly IBrush OverdueBrush  = new ImmutableSolidColorBrush(Color.Parse("#EF4444"));
     private static readonly IBrush DueTodayBrush = new ImmutableSolidColorBrush(Color.Parse("#22C55E"));

@@ -1,0 +1,133 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ctrl="using:Tasky.Controls"
+             xmlns:helpers="using:Tasky.Helpers"
+             x:Class="Tasky.Views.EditTaskPage">
+
+    <Grid RowDefinitions="Auto,*">
+        <!-- Header: Back · Edit task #006 · Cancel / Save -->
+        <Border Grid.Row="0" Padding="16,12,16,0">
+            <Border BorderBrush="{DynamicResource BorderColor}" BorderThickness="0,0,0,1" Padding="0,0,0,12">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    <Button Grid.Column="0" Theme="{StaticResource GhostButton}" Click="Cancel_Click"
+                            Margin="-8,0,8,0" ToolTip.Tip="Back without saving (Esc)">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <ctrl:LineIcon Data="{StaticResource Icon.ChevronLeft}" Size="18" VerticalAlignment="Center"/>
+                            <TextBlock Text="Back" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center"
+                                ClipToBounds="True">
+                        <TextBlock Text="Edit task" FontSize="16" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="NumberText" FontSize="16"
+                                   Foreground="{DynamicResource PrimaryBlue}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <Button x:Name="HeaderCancel" Content="Cancel" Theme="{StaticResource SecondaryButton}"
+                                Padding="16,7" Click="Cancel_Click"/>
+                        <Button x:Name="HeaderSave" Content="Save" Theme="{StaticResource PrimaryButton}"
+                                Padding="18,8" Click="Save_Click" ToolTip.Tip="Save changes (Ctrl+S / ⌘S)"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Border>
+
+        <!-- Body: sections in cards, scrolls when the window is short -->
+        <ScrollViewer Grid.Row="1" x:Name="BodyScroll" VerticalScrollBarVisibility="Auto" Padding="16,0">
+            <StackPanel MaxWidth="720" Margin="0,16" HorizontalAlignment="Stretch">
+
+                <!-- Details -->
+                <Border Theme="{StaticResource SectionCard}">
+                    <StackPanel Spacing="12">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <ctrl:LineIcon Data="{StaticResource Icon.Text}" Size="15" Foreground="{DynamicResource PlaceholderColor}"/>
+                            <TextBlock Text="DETAILS" Theme="{StaticResource SectionTitle}"/>
+                        </StackPanel>
+                        <StackPanel>
+                            <TextBlock Text="Title" Theme="{StaticResource LabelText}"/>
+                            <TextBox x:Name="TitleBox" Theme="{StaticResource InputBox}"
+                                     FontSize="17" FontWeight="SemiBold"
+                                     Watermark="Task title..."/>
+                        </StackPanel>
+                        <StackPanel>
+                            <TextBlock Text="Description" Theme="{StaticResource LabelText}"/>
+                            <TextBox x:Name="DescBox" Theme="{StaticResource InputBox}"
+                                     MinHeight="120" MaxHeight="360" TextWrapping="Wrap" AcceptsReturn="True"
+                                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                     VerticalContentAlignment="Top"
+                                     Watermark="Add more detail, links or notes…"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Schedule -->
+                <Border Theme="{StaticResource SectionCard}">
+                    <StackPanel Spacing="12">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <ctrl:LineIcon Data="{StaticResource Icon.Calendar}" Size="15" Foreground="{DynamicResource PlaceholderColor}"/>
+                            <TextBlock Text="SCHEDULE" Theme="{StaticResource SectionTitle}"/>
+                        </StackPanel>
+                        <Grid x:Name="SchedulePair" ColumnDefinitions="*,12,*" RowDefinitions="Auto,Auto,Auto">
+                            <StackPanel>
+                                <TextBlock Text="Start date" Theme="{StaticResource LabelText}"/>
+                                <CalendarDatePicker x:Name="DueDatePicker" Theme="{StaticResource ThemedDatePicker}"
+                                                    FirstDayOfWeek="Monday"/>
+                            </StackPanel>
+                            <StackPanel x:Name="RepeatField" Grid.Column="2">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Repeat" Theme="{StaticResource LabelText}"/>
+                                    <ctrl:LineIcon Data="{StaticResource Icon.Info}" Size="13"
+                                                   Foreground="{DynamicResource TextSecondary}"
+                                                   Margin="6,0,0,6" VerticalAlignment="Center" Cursor="Help"
+                                                   ToolTip.ShowDelay="0"
+                                                   ToolTip.Tip="{x:Static helpers:RecurrenceRules.Explanation}"/>
+                                </StackPanel>
+                                <ComboBox x:Name="RecurrencePicker" Theme="{StaticResource ThemedComboBox}"
+                                          HorizontalAlignment="Stretch" SelectedIndex="0"
+                                          SelectionChanged="RecurrencePicker_Changed">
+                                    <ComboBoxItem Content="None"    Tag="0"/>
+                                    <ComboBoxItem Content="Daily"   Tag="1"/>
+                                    <ComboBoxItem Content="Weekly"  Tag="2"/>
+                                    <ComboBoxItem Content="Monthly" Tag="3"/>
+                                </ComboBox>
+                            </StackPanel>
+                        </Grid>
+                        <!-- Optional: only for repeating tasks -->
+                        <StackPanel x:Name="RepeatEndSection" IsVisible="False">
+                            <TextBlock Text="Repeat ends on (optional)" Theme="{StaticResource LabelText}"/>
+                            <CalendarDatePicker x:Name="RepeatEndPicker" Theme="{StaticResource ThemedDatePicker}"
+                                                FirstDayOfWeek="Monday" Watermark="No end date"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Group -->
+                <Border Theme="{StaticResource SectionCard}">
+                    <StackPanel Spacing="12">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <ctrl:LineIcon Data="{StaticResource Icon.Tag}" Size="15" Foreground="{DynamicResource PlaceholderColor}"/>
+                            <TextBlock Text="GROUP" Theme="{StaticResource SectionTitle}"/>
+                        </StackPanel>
+                        <ComboBox x:Name="GroupPicker" Theme="{StaticResource ThemedComboBox}"
+                                  HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Attachments: saved immediately, independent of Save -->
+                <Border x:Name="AttachmentsSection" Theme="{StaticResource SectionCard}" Margin="0">
+                    <StackPanel Spacing="12">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <ctrl:LineIcon Data="{StaticResource Icon.Clip}" Size="15" Foreground="{DynamicResource PlaceholderColor}"/>
+                            <TextBlock Text="ATTACHMENTS" Theme="{StaticResource SectionTitle}"/>
+                            <TextBlock Text="· saved right away" FontSize="11"
+                                       Foreground="{DynamicResource PlaceholderColor}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <ctrl:AttachmentsPanel x:Name="Attachments"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+    </Grid>
+</UserControl>

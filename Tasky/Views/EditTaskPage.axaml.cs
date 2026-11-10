@@ -1,40 +1,46 @@
-using System.IO;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
 using Avalonia.Controls.Templates;
-using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
-using Tasky.Helpers;
 using Tasky.Models;
 using Tasky.Services;
 using Tasky.ViewModels;
 
-namespace Tasky.Dialogs;
+namespace Tasky.Views;
 
-public partial class EditTaskDialog : Window
+/// <summary>
+/// Edit a task on a page inside the main window (it replaced the Edit Task dialog).
+/// Title, description, dates, repeat and group are applied on Save; attachments are saved right away.
+/// </summary>
+public partial class EditTaskPage : UserControl
 {
     private static readonly Color FallbackGroupColor = Color.FromRgb(107, 114, 128);
 
     private readonly TaskItemViewModel _vm = null!;
-    private readonly MainViewModel? _mainVm;
+    private readonly MainViewModel _mainVm = null!;
+
+    /// <summary>The changes were copied onto the task; the caller saves it and leaves the page.</summary>
+    public event Action<TaskItemViewModel>? Saved;
+
+    /// <summary>Back, Cancel or Esc: nothing was changed (apart from attachments, which save on their own).</summary>
+    public event Action? Cancelled;
 
     /// <summary>One entry of the group picker: "(No group)" has no id and no dot.</summary>
     private sealed record GroupOption(int? Id, string Name, IBrush? DotBrush);
 
     [Obsolete("XAML previewer only")]
-    public EditTaskDialog() => InitializeComponent();
+    public EditTaskPage() => InitializeComponent();
 
-    public EditTaskDialog(TaskItemViewModel vm, MainViewModel? mainVm = null)
+    public EditTaskPage(TaskItemViewModel vm, MainViewModel mainVm)
     {
         _vm     = vm;
         _mainVm = mainVm;
         InitializeComponent();
-        ThemeHelper.Attach(this);
-        DialogLayoutHelper.FitToWorkArea(this);
 
+        NumberText.Text            = vm.TaskNumberDisplay;
         TitleBox.Text              = vm.Title;
         DescBox.Text               = vm.Description;
         DueDatePicker.SelectedDate = vm.DueDate ?? DateTime.Today;
@@ -43,13 +49,25 @@ public partial class EditTaskDialog : Window
         SelectRecurrence(vm.Recurrence);
         RepeatEndPicker.SelectedDate = vm.RecurrenceEndDate;
 
-        Opened += (_, _) =>
-        {
-            TitleBox.Focus();
-            TitleBox.SelectAll();
-        };
-
         SetUpAttachments();
+    }
+
+    /// <summary>Narrow window: the schedule fields stack in one column.</summary>
+    public void SetCompact(bool compact)
+    {
+        Classes.Set("compact", compact);
+        Grid.SetColumn(RepeatField, compact ? 0 : 2);
+        Grid.SetRow(RepeatField,    compact ? 2 : 0);
+        SchedulePair.RowDefinitions[1].Height = new GridLength(compact ? 12 : 0);
+        SchedulePair.ColumnDefinitions[1].Width = new GridLength(compact ? 0 : 12);
+        SchedulePair.ColumnDefinitions[2].Width = compact ? new GridLength(0) : new GridLength(1, GridUnitType.Star);
+    }
+
+    /// <summary>Puts the cursor in the title, with the text selected.</summary>
+    public void FocusTitle()
+    {
+        TitleBox.Focus();
+        TitleBox.SelectAll();
     }
 
     // ─── Pickers ──────────────────────────────────────────────────────────
@@ -57,16 +75,13 @@ public partial class EditTaskDialog : Window
     private void PopulateGroupPicker(int? currentGroupId)
     {
         var options = new List<GroupOption> { new(null, "(No group)", null) };
-        if (_mainVm is not null)
+        foreach (var g in _mainVm.Groups)
         {
-            foreach (var g in _mainVm.Groups)
-            {
-                var dotColor = Color.TryParse(g.Color, out var c) ? c : FallbackGroupColor;
-                options.Add(new GroupOption(g.Id, g.Name, new SolidColorBrush(dotColor)));
-            }
+            var dotColor = Color.TryParse(g.Color, out var c) ? c : FallbackGroupColor;
+            options.Add(new GroupOption(g.Id, g.Name, new SolidColorBrush(dotColor)));
         }
 
-        // Coloured dot + group name (same as filter chips)
+        // Coloured dot + group name (same as the filter chips)
         GroupPicker.ItemTemplate = new FuncDataTemplate<GroupOption>((option, _) => BuildGroupContent(option));
         GroupPicker.ItemsSource  = options;
 
@@ -79,22 +94,15 @@ public partial class EditTaskDialog : Window
         if (option is null) return new TextBlock();
         if (option.DotBrush is null) return new TextBlock { Text = option.Name };
 
-        var dot = new Ellipse
-        {
-            Width  = 10, Height = 10,
-            Fill   = option.DotBrush,
-            Margin = new Thickness(0, 0, 7, 0),
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        var label = new TextBlock
-        {
-            Text = option.Name,
-            VerticalAlignment = VerticalAlignment.Center
-        };
         return new StackPanel
         {
             Orientation = Orientation.Horizontal,
-            Children    = { dot, label }
+            Spacing     = 8,
+            Children    =
+            {
+                new Ellipse { Width = 9, Height = 9, Fill = option.DotBrush, VerticalAlignment = VerticalAlignment.Center },
+                new TextBlock { Text = option.Name, VerticalAlignment = VerticalAlignment.Center },
+            },
         };
     }
 
@@ -128,14 +136,6 @@ public partial class EditTaskDialog : Window
 
     private void SetUpAttachments()
     {
-        if (_mainVm is null)
-        {
-            // No view-model context — hide the whole section.
-            AttachmentsLabel.IsVisible = false;
-            Attachments.IsVisible      = false;
-            return;
-        }
-
         Attachments.FilesAdded      += AttachFiles;
         Attachments.ImagePasted     += AttachPastedImage;
         Attachments.DeleteRequested += RemoveAttachment;
@@ -145,20 +145,20 @@ public partial class EditTaskDialog : Window
 
     private void ReloadAttachments()
     {
-        Attachments.SetAttachments(_mainVm!.GetAttachments(_vm.Id));
+        Attachments.SetAttachments(_mainVm.GetAttachments(_vm.Id));
         _mainVm.RefreshAttachmentCount(_vm);
     }
 
     private void AttachFiles(IReadOnlyList<string> paths)
     {
-        int saved = paths.Count(path => _mainVm!.SaveAttachment(_vm.Id, path));
+        int saved = paths.Count(path => _mainVm.SaveAttachment(_vm.Id, path));
         ReloadAttachments();
         if (saved > 0) InAppNotificationService.Success(saved == 1 ? "File attached." : $"{saved} files attached.");
     }
 
     private void AttachPastedImage(byte[] png)
     {
-        if (_mainVm!.SaveAttachmentFromBytes(_vm.Id, png, ".png"))
+        if (_mainVm.SaveAttachmentFromBytes(_vm.Id, png, ".png"))
             InAppNotificationService.Success("Image pasted and attached.");
         ReloadAttachments();
     }
@@ -166,32 +166,38 @@ public partial class EditTaskDialog : Window
     private void RemoveAttachment(IAttachment attachment)
     {
         if (attachment is not TaskAttachment taskAttachment) return;
-        _mainVm!.DeleteAttachment(taskAttachment);
+        _mainVm.DeleteAttachment(taskAttachment);
         ReloadAttachments();
     }
 
     // ─── Save / cancel ────────────────────────────────────────────────────
 
-    private void Save_Click(object? sender, RoutedEventArgs e)
+    /// <summary>Copies the fields onto the task and raises <see cref="Saved"/>; false when the title is empty.</summary>
+    public bool Save()
     {
         if (string.IsNullOrWhiteSpace(TitleBox.Text))
         {
             InAppNotificationService.Warning("Title cannot be empty.");
-            return;
+            FocusTitle();
+            return false;
         }
         _vm.Title       = TitleBox.Text.Trim();
         _vm.Description = (DescBox.Text ?? string.Empty).Trim();
         _vm.DueDate     = DueDatePicker.SelectedDate ?? DateTime.Today;
 
-        // Group
         if (GroupPicker.SelectedItem is GroupOption group)
             _vm.GroupId = group.Id;
 
         _vm.Recurrence        = SelectedRecurrence;
         _vm.RecurrenceEndDate = SelectedRecurrence == RecurrenceType.None ? null : RepeatEndPicker.SelectedDate;
 
-        Close(true);
+        Saved?.Invoke(_vm);
+        return true;
     }
 
-    private void Cancel_Click(object? sender, RoutedEventArgs e) => Close(false);
+    public void Cancel() => Cancelled?.Invoke();
+
+    private void Save_Click(object? sender, RoutedEventArgs e) => Save();
+
+    private void Cancel_Click(object? sender, RoutedEventArgs e) => Cancel();
 }

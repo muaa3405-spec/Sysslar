@@ -13,8 +13,8 @@
     <Grid>
     <!-- Main card -->
     <Border x:Name="CardRoot" CornerRadius="16" Opacity="0"
-            Background="#0F172A"
-            BorderBrush="#1E293B" BorderThickness="1">
+            Background="{DynamicResource AppBackground}"
+            BorderBrush="{DynamicResource CardBackground}" BorderThickness="1">
         <Border.Effect>
             <DropShadowDirectionEffect BlurRadius="32" ShadowDepth="8" Opacity="0.5" Color="#000000"/>
         </Border.Effect>
@@ -28,7 +28,7 @@
             <StackPanel Margin="0,0,0,0">
 
                 <!-- ── Celebration header ──────────────────────────────── -->
-                <Border Background="#1E293B" CornerRadius="16,16,0,0" Padding="24,20,24,18">
+                <Border Background="{DynamicResource CardBackground}" CornerRadius="16,16,0,0" Padding="24,20,24,18">
                     <StackPanel>
                         <!-- Logo + App name -->
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"
@@ -38,29 +38,29 @@
                                    RenderOptions.BitmapInterpolationMode="HighQuality"
                                    VerticalAlignment="Center" Margin="0,0,8,0"/>
                             <TextBlock Text="Sysslar" FontSize="15" FontWeight="SemiBold"
-                                       Foreground="#94A3B8" VerticalAlignment="Center"/>
+                                       Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center"/>
                         </StackPanel>
 
                         <!-- Big celebration text -->
                         <TextBlock Text="🎉  Task Completed!"
                                    FontSize="24" FontWeight="Bold"
-                                   Foreground="White"
+                                   Foreground="{DynamicResource TextPrimary}"
                                    HorizontalAlignment="Center"
                                    Margin="0,0,0,4"/>
                         <TextBlock x:Name="SubtitleLabel"
-                                   FontSize="12" Foreground="#64748B"
+                                   FontSize="12" Foreground="{DynamicResource PlaceholderColor}"
                                    HorizontalAlignment="Center"/>
                     </StackPanel>
                 </Border>
 
                 <!-- ── Task details card ──────────────────────────────── -->
-                <Border Margin="20,16,20,0" Background="#1E293B"
-                        BorderBrush="#334155" BorderThickness="1"
+                <Border Margin="20,16,20,0" Background="{DynamicResource CardBackground}"
+                        BorderBrush="{DynamicResource BorderColor}" BorderThickness="1"
                         CornerRadius="10" Padding="18,14">
                     <StackPanel>
                         <!-- Task number badge -->
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                            <Border Background="#0EA5E9" CornerRadius="4" Padding="6,2">
+                            <Border Background="{DynamicResource PrimaryBlue}" CornerRadius="4" Padding="6,2">
                                 <TextBlock x:Name="TaskNumberLabel"
                                            FontSize="11" FontWeight="Bold" Foreground="White"/>
                             </Border>
@@ -75,14 +75,14 @@
                         <!-- Title -->
                         <TextBlock x:Name="TitleLabel"
                                    FontSize="18" FontWeight="Bold"
-                                   Foreground="White" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource TextPrimary}" TextWrapping="Wrap"
                                    Margin="0,0,0,8"/>
 
                         <!-- Description — capped so a long one scrolls instead of
                              pushing the Continue button off screen -->
                         <ScrollViewer MaxHeight="200" VerticalScrollBarVisibility="Auto">
                             <TextBlock x:Name="DescLabel"
-                                       FontSize="12" Foreground="#94A3B8"
+                                       FontSize="12" Foreground="{DynamicResource TextSecondary}"
                                        TextWrapping="Wrap" Margin="0,0,0,12"
                                        IsVisible="False"/>
                         </ScrollViewer>
@@ -90,10 +90,10 @@
                         <!-- Completed date only -->
                         <StackPanel>
                             <TextBlock Text="COMPLETED" FontSize="10" FontWeight="SemiBold"
-                                       Foreground="#475569" Margin="0,0,0,2"/>
+                                       Foreground="{DynamicResource PlaceholderColor}" Margin="0,0,0,2"/>
                             <TextBlock x:Name="DateLabel"
                                        FontSize="14" FontWeight="SemiBold"
-                                       Foreground="#60A5FA"/>
+                                       Foreground="{DynamicResource PrimaryBlue}"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -108,21 +108,20 @@
                             <ControlTheme TargetType="Button">
                                 <Setter Property="Template">
                                     <ControlTemplate>
-                                        <Border Name="Bd" Background="#1E3A5F"
-                                                BorderBrush="#0EA5E9" BorderThickness="1"
-                                                CornerRadius="8" Padding="16,10" Cursor="Hand">
+                                        <Border Name="Bd" Background="{DynamicResource AccentSoft}"
+                                                BorderBrush="{DynamicResource PrimaryBlue}" BorderThickness="1"
+                                                CornerRadius="999" Padding="18,10" Cursor="Hand">
                                             <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="📸" FontSize="14" Margin="0,0,6,0"
-                                                           VerticalAlignment="Center"/>
+                                                <ctrl:LineIcon Data="{StaticResource Icon.Camera}" Size="16" Foreground="{DynamicResource PrimaryBlue}" Margin="0,0,8,0" VerticalAlignment="Center"/>
                                                 <TextBlock Text="Take Screenshot" FontSize="13"
-                                                           FontWeight="SemiBold" Foreground="#0EA5E9"
+                                                           FontWeight="SemiBold" Foreground="{DynamicResource PrimaryBlue}"
                                                            VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </Border>
                                     </ControlTemplate>
                                 </Setter>
                                 <Style Selector="^:pointerover /template/ Border#Bd">
-                                    <Setter Property="Background" Value="#1E4A6F"/>
+                                    <Setter Property="Background" Value="{DynamicResource SurfaceRaised}"/>
                                 </Style>
                             </ControlTheme>
                         </Button.Theme>
@@ -133,21 +132,19 @@
                             <ControlTheme TargetType="Button">
                                 <Setter Property="Template">
                                     <ControlTemplate>
-                                        <Border Name="Bd" Background="#22C55E"
-                                                CornerRadius="8" Padding="16,10" Cursor="Hand">
+                                        <Border Name="Bd" Background="{DynamicResource PrimaryPillBackground}"
+                                                CornerRadius="999" Padding="18,10" Cursor="Hand">
                                             <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="✓" FontSize="14" FontWeight="Bold"
-                                                           Foreground="White" Margin="0,0,6,0"
-                                                           VerticalAlignment="Center"/>
+                                                <ctrl:LineIcon Data="{StaticResource Icon.Check}" Size="16" StrokeThickness="2.6" Foreground="{DynamicResource PrimaryPillForeground}" Margin="0,0,8,0" VerticalAlignment="Center"/>
                                                 <TextBlock Text="Continue" FontSize="13"
-                                                           FontWeight="SemiBold" Foreground="White"
+                                                           FontWeight="SemiBold" Foreground="{DynamicResource PrimaryPillForeground}"
                                                            VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </Border>
                                     </ControlTemplate>
                                 </Setter>
                                 <Style Selector="^:pointerover /template/ Border#Bd">
-                                    <Setter Property="Background" Value="#16A34A"/>
+                                    <Setter Property="Opacity" Value="0.9"/>
                                 </Style>
                             </ControlTheme>
                         </Button.Theme>
@@ -163,8 +160,8 @@
     <Border x:Name="BannerCapture" IsVisible="False"
             HorizontalAlignment="Left" VerticalAlignment="Top"
             Padding="22,16"
-            Background="#0F172A"
-            BorderBrush="#1E293B" BorderThickness="1"
+            Background="{DynamicResource AppBackground}"
+            BorderBrush="{DynamicResource CardBackground}" BorderThickness="1"
             CornerRadius="0">
         <Grid>
             <Grid.ColumnDefinitions>
@@ -174,24 +171,23 @@
             </Grid.ColumnDefinitions>
             <!-- Left: green check -->
             <Border Grid.Column="0" Width="56" Height="56" CornerRadius="28"
-                    Background="#052E16" BorderBrush="#22C55E" BorderThickness="2"
+                    Background="{DynamicResource SuccessSoft}" BorderBrush="{DynamicResource Success}" BorderThickness="2"
                     VerticalAlignment="Center" Margin="0,0,20,0">
-                <TextBlock Text="&#x2713;" FontSize="26" FontWeight="Bold" Foreground="#22C55E"
-                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <ctrl:LineIcon Data="{StaticResource Icon.Check}" Size="28" StrokeThickness="2.6" Foreground="{DynamicResource Success}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
             <!-- Centre: task info -->
             <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,28,0">
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-                    <Border Background="#0EA5E9" CornerRadius="4" Padding="7,2" Margin="0,0,8,0">
+                    <Border Background="{DynamicResource PrimaryBlue}" CornerRadius="4" Padding="7,2" Margin="0,0,8,0">
                         <TextBlock x:Name="BannerTaskNum" FontSize="11" FontWeight="Bold" Foreground="White"/>
                     </Border>
-                    <Border Background="#166534" CornerRadius="10" Padding="10,2">
-                        <TextBlock Text="&#x2713;  Completed" FontSize="11" FontWeight="SemiBold" Foreground="#4ADE80"/>
+                    <Border Background="{DynamicResource SuccessSoft}" CornerRadius="10" Padding="10,2">
+                        <TextBlock Text="Completed" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource Success}"/>
                     </Border>
                 </StackPanel>
                 <TextBlock x:Name="BannerTitle" FontSize="18" FontWeight="Bold"
-                           Foreground="White" TextTrimming="CharacterEllipsis" MaxWidth="300"/>
-                <TextBlock x:Name="BannerDate" FontSize="12" Foreground="#64748B" Margin="0,4,0,0"/>
+                           Foreground="{DynamicResource TextPrimary}" TextTrimming="CharacterEllipsis" MaxWidth="300"/>
+                <TextBlock x:Name="BannerDate" FontSize="12" Foreground="{DynamicResource PlaceholderColor}" Margin="0,4,0,0"/>
             </StackPanel>
             <!-- Right: branding -->
             <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right">
@@ -199,7 +195,7 @@
                        Width="28" Height="28" HorizontalAlignment="Center"
                        RenderOptions.BitmapInterpolationMode="HighQuality" Margin="0,0,0,4"/>
                 <TextBlock Text="Sysslar" FontSize="12" FontWeight="SemiBold"
-                           Foreground="#475569" HorizontalAlignment="Center"/>
+                           Foreground="{DynamicResource PlaceholderColor}" HorizontalAlignment="Center"/>
             </StackPanel>
         </Grid>
     </Border>

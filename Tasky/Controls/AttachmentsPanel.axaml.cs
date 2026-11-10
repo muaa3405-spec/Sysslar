@@ -48,7 +48,7 @@ public partial class AttachmentsPanel : UserControl
     /// Lets the whole <paramref name="window"/> take attachments: files dropped anywhere on it, and
     /// Ctrl+V / ⌘V for a copied image or files. While typing in a text box, copied text still pastes as text.
     /// </summary>
-    public void AcceptAttachmentsAnywhereIn(Window window)
+    public void AcceptAttachmentsAnywhereIn(Control window)
     {
         DragDrop.SetAllowDrop(window, true);
         window.AddHandler(DragDrop.DragOverEvent, Panel_DragOver);
@@ -120,9 +120,10 @@ public partial class AttachmentsPanel : UserControl
         }
         else
         {
-            stack.Children.Add(new TextBlock
+            stack.Children.Add(new Tasky.Controls.LineIcon
             {
-                Text = "📄", FontSize = 28, HorizontalAlignment = HorizontalAlignment.Center,
+                Data = UiResources.Geometry("Icon.File"), Size = 34, StrokeThickness = 1.5,
+                Foreground = UiResources.Brush("TextSecondary"), HorizontalAlignment = HorizontalAlignment.Center,
                 Margin = new Thickness(0, 12, 0, 4)
             });
         }
@@ -137,7 +138,7 @@ public partial class AttachmentsPanel : UserControl
         var remove = new Button
         {
             Theme = UiResources.Theme("PlainButton"),
-            Content = "✕", Width = 18, Height = 18, FontSize = 10,
+            Content = UiResources.Icon("Icon.Close", 12), Width = 18, Height = 18, FontSize = 10,
             HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top,
             Margin = new Thickness(0, 2, 2, 0), Cursor = new Cursor(StandardCursorType.Hand),
             BorderThickness = new Thickness(0),

@@ -1,4 +1,4 @@
-<Window x:Class="Tasky.Dialogs.MigrateDialog"
+<Window xmlns:ctrl="using:Tasky.Controls" x:Class="Tasky.Dialogs.MigrateDialog"
         Classes="toolWindow"
         xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -40,7 +40,7 @@
 
             <Button Theme="{StaticResource MigrateOptionButton}" Click="ChooseExport_Click" Margin="0,0,0,10">
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="📤" FontSize="22" Margin="0,0,14,0" VerticalAlignment="Center"/>
+                    <ctrl:LineIcon Data="{StaticResource Icon.Upload}" Size="26" Foreground="{DynamicResource PrimaryBlue}" Margin="0,0,14,0" VerticalAlignment="Center"/>
                     <StackPanel VerticalAlignment="Center">
                         <TextBlock Text="Export from this computer" FontSize="14" FontWeight="SemiBold"
                                    Foreground="{DynamicResource TextPrimary}"/>
@@ -51,7 +51,7 @@
 
             <Button Theme="{StaticResource MigrateOptionButton}" Click="ChooseImport_Click">
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="📥" FontSize="22" Margin="0,0,14,0" VerticalAlignment="Center"/>
+                    <ctrl:LineIcon Data="{StaticResource Icon.Download}" Size="26" Foreground="{DynamicResource PrimaryBlue}" Margin="0,0,14,0" VerticalAlignment="Center"/>
                     <StackPanel VerticalAlignment="Center">
                         <TextBlock Text="Import on this computer" FontSize="14" FontWeight="SemiBold"
                                    Foreground="{DynamicResource TextPrimary}"/>
@@ -129,7 +129,7 @@
                 </StackPanel>
             </Border>
 
-            <Border Background="#1AF59E0B" BorderBrush="#F59E0B" BorderThickness="1"
+            <Border Background="{DynamicResource WarningSoft}" BorderBrush="{DynamicResource Warning}" BorderThickness="1"
                     CornerRadius="6" Padding="12,8" Margin="0,0,0,10">
                 <TextBlock x:Name="ExportWarning" TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource TextPrimary}"/>
             </Border>
@@ -137,7 +137,7 @@
                 <TextBlock x:Name="ExportAcknowledgeText" TextWrapping="Wrap" FontSize="12"
                            Foreground="{DynamicResource TextPrimary}"/>
             </CheckBox>
-            <TextBlock x:Name="ExportError" Foreground="#EF4444" FontSize="12" TextWrapping="Wrap"
+            <TextBlock x:Name="ExportError" Foreground="{DynamicResource Danger}" FontSize="12" TextWrapping="Wrap"
                        IsVisible="False" Margin="0,4,0,0"/>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
@@ -174,7 +174,7 @@
                     <TextBlock Text="Show" Foreground="{DynamicResource TextPrimary}"/>
                 </CheckBox>
             </Grid>
-            <TextBlock x:Name="ImportError" Foreground="#EF4444" FontSize="12" TextWrapping="Wrap"
+            <TextBlock x:Name="ImportError" Foreground="{DynamicResource Danger}" FontSize="12" TextWrapping="Wrap"
                        IsVisible="False" Margin="0,4,0,0"/>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
@@ -207,11 +207,11 @@
                 <TextBlock Text="NEW WORKSPACE NAME" Theme="{StaticResource LabelText}"/>
                 <TextBox x:Name="NewWorkspaceName" Theme="{StaticResource InputBox}"
                          Watermark="e.g. Office" TextChanged="NewWorkspaceName_Changed"/>
-                <TextBlock x:Name="NewWorkspaceHint" Foreground="#EF4444" FontSize="12" TextWrapping="Wrap"
+                <TextBlock x:Name="NewWorkspaceHint" Foreground="{DynamicResource Danger}" FontSize="12" TextWrapping="Wrap"
                            IsVisible="False" Margin="0,4,0,0"/>
             </StackPanel>
 
-            <Border Background="#1AF59E0B" BorderBrush="#F59E0B" BorderThickness="1"
+            <Border Background="{DynamicResource WarningSoft}" BorderBrush="{DynamicResource Warning}" BorderThickness="1"
                     CornerRadius="6" Padding="12,8">
                 <TextBlock x:Name="ReplaceWarning" TextWrapping="Wrap" FontSize="12"
                            Foreground="{DynamicResource TextPrimary}"/>

@@ -1,3 +1,4 @@
+using Avalonia.Animation.Easings;
 using System.IO;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
@@ -62,6 +63,19 @@ public partial class MainWindow
         MinHeight = BaseMinHeight * scale;
         if (Width  < MinWidth)  Width  = MinWidth;
         if (Height < MinHeight) Height = MinHeight;
+    }
+
+    /// <summary>Settings → Keyboard shortcuts: open or fold the list (it starts folded).</summary>
+    private void ShortcutsToggle_Click(object? sender, RoutedEventArgs e)
+    {
+        bool open = ShortcutsToggle.IsChecked == true;
+        ShortcutsBody.IsVisible = open;
+        if (!open) return;
+        var drop = new TranslateTransform(0, -6);
+        ShortcutsBody.RenderTransform = drop;
+        var ease = new CubicEaseOut();
+        _ = Animator.Animate(drop, TranslateTransform.YProperty, -6, 0, TimeSpan.FromMilliseconds(200), ease);
+        _ = Animator.Fade(ShortcutsBody, 0, 1, TimeSpan.FromMilliseconds(200), ease);
     }
 
     private async void ShowWelcomeTips_Click(object? sender, RoutedEventArgs e)

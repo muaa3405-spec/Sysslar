@@ -13,6 +13,7 @@ using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Tasky.Behaviors;
+using Tasky.Controls;
 using Tasky.Dialogs;
 using Tasky.Helpers;
 using Tasky.Models;
@@ -37,11 +38,15 @@ public partial class MainWindow : Window
 
     private MainViewModel Vm => (MainViewModel)DataContext!;
 
-    private static readonly TimeSpan PageAnimation = TimeSpan.FromMilliseconds(250);
+    private static readonly TimeSpan PageAnimation = TimeSpan.FromMilliseconds(220);
+    private const double PageSlide = 16;
 
     // Navigation
 
-    private enum AppPage { Main, Completed, Notes, Stats, Reminders, Settings, Trash }
+    private enum AppPage { Main, Completed, Notes, Stats, Reminders, Settings, Trash, EditTask }
+
+    /// <summary>The Edit Task page while it is open (it is rebuilt for each task).</summary>
+    private Views.EditTaskPage? _editPage;
 
     private void NavigateTo(AppPage page)
     {
@@ -52,21 +57,23 @@ public partial class MainWindow : Window
         RemindersPage.IsVisible  = page == AppPage.Reminders;
         SettingsPage.IsVisible   = page == AppPage.Settings;
         TrashPage.IsVisible      = page == AppPage.Trash;
+        EditTaskPageHost.IsVisible = page == AppPage.EditTask;
         AddPanelBorder.IsVisible = page == AppPage.Main;
         MainHeader.IsVisible     = page == AppPage.Main;
-        SubHeader.IsVisible      = page != AppPage.Main;
+        SubHeader.IsVisible      = page is not (AppPage.Main or AppPage.EditTask);   // the edit page has its own header
+        if (page != AppPage.EditTask) CloseEditPage();
 
         EmptyBinBtn.IsVisible    = page == AppPage.Trash;
         NewNoteBtn.IsVisible     = page == AppPage.Notes;
 
         SubPageTitle.Text = page switch
         {
-            AppPage.Completed => "☑  Completed Tasks",
-            AppPage.Notes     => "\U0001F4DD  Notes",
-            AppPage.Stats     => "Stats",
-            AppPage.Reminders => "\U0001F514  Reminders",
-            AppPage.Settings  => "⚙  Settings",
-            AppPage.Trash     => "\U0001F5D1  Recycle Bin",
+            AppPage.Completed => "Completed Tasks",
+            AppPage.Notes     => "Notes",
+            AppPage.Stats     => "Stats & Reports",
+            AppPage.Reminders => "Reminders",
+            AppPage.Settings  => "Settings",
+            AppPage.Trash     => "Recycle Bin",
             _                 => ""
         };
 
@@ -97,16 +104,19 @@ public partial class MainWindow : Window
             AppPage.Reminders => RemindersPage,
             AppPage.Settings  => SettingsPage,
             AppPage.Trash     => TrashPage,
+            AppPage.EditTask  => EditTaskPageHost,
             AppPage.Main      => TaskListPage,
             _                 => null
         };
         if (target is null || !target.IsVisible) return;
 
-        var tt = new TranslateTransform(40, 0);
+        // Sub-pages slide in from the right; going back to the list slides in from the left
+        double from = page == AppPage.Main ? -PageSlide : PageSlide;
+        var tt = new TranslateTransform(from, 0);
         target.RenderTransform = tt;
 
         var ease = new CubicEaseOut();
-        _ = Animator.Animate(tt, TranslateTransform.XProperty, 40, 0, PageAnimation, ease);
+        _ = Animator.Animate(tt, TranslateTransform.XProperty, from, 0, PageAnimation, ease);
         _ = Animator.Fade(target, 0, 1, PageAnimation, ease);
     }
 
@@ -128,7 +138,7 @@ public partial class MainWindow : Window
 
     public void SyncThemeIcons(bool dark)
     {
-        SubThemeIcon.Text = dark ? "☀️" : "\U0001F319";
+        SubThemeIcon.Data = UiResources.Geometry(dark ? "Icon.Sun" : "Icon.Moon");
     }
 
     public MainWindow()
@@ -143,6 +153,8 @@ public partial class MainWindow : Window
         InitTrayIcon();
         RegisterKeyboardShortcuts();
         ApplyTextScale(App.Settings.Current.TextScale);
+        SetUpResponsiveLayout();
+        SetUpMotion();
 
         NewTaskAttachments.AcceptAttachmentsAnywhereIn(AddFormPanel);
         NewNoteAttachments.AcceptAttachmentsAnywhereIn(AddNotePanel);
@@ -401,6 +413,7 @@ public partial class MainWindow : Window
     private async Task<bool?> ShowModalDialog(Window dlg)
     {
         ShowDimOverlay();
+        AnimateDialogIn(dlg);
         try   { return await dlg.ShowDialog<bool?>(this); }
         finally { HideDimOverlay(); }
     }
@@ -413,10 +426,19 @@ public partial class MainWindow : Window
     private static readonly TimeSpan NotificationDuration       = TimeSpan.FromSeconds(3);
     private static readonly TimeSpan ActionNotificationDuration = TimeSpan.FromSeconds(7);   // time to reach "Undo"
 
-    public void ShowInAppNotification(string message, string accentHex, string icon, NotificationAction? action = null)
+    public void ShowInAppNotification(string message, NotificationKind kind, NotificationAction? action = null)
     {
-        // Set content
-        NotifIcon.Text    = icon;
+        // Icon and its colour say what kind of message it is; the card itself stays neutral
+        var (icon, colour) = kind switch
+        {
+            NotificationKind.Success => ("Icon.Done",  "Success"),
+            NotificationKind.Warning => ("Icon.Info",  "Warning"),
+            NotificationKind.Error   => ("Icon.Close", "Danger"),
+            NotificationKind.Undo    => ("Icon.Undo",  "PrimaryBlue"),
+            _                        => ("Icon.Info",  "PrimaryBlue"),
+        };
+        NotifIcon.Data = UiResources.Geometry(icon);
+        NotifIcon.WithResource(LineIcon.ForegroundProperty, colour);
         NotifMessage.Text = message;
 
         _notifAction = action;
@@ -424,26 +446,13 @@ public partial class MainWindow : Window
         NotifActionBtn.IsVisible = action is not null;
         InAppNotifBorder.IsHitTestVisible = action is not null;   // otherwise clicks pass through to the page
 
-        // Set accent colour + tinted background
-        if (Color.TryParse(accentHex, out var col))
-        {
-            NotifAccent.Background = new SolidColorBrush(col);
-
-            // Dark-tinted background based on accent (green/amber/blue/red)
-            var bgHex = accentHex.ToUpperInvariant() switch
-            {
-                "#22C55E" or "#34D399" => "#052E16",  // success → dark green
-                "#F59E0B" or "#FCD34D" => "#451A03",  // warning → dark amber
-                "#EF4444" or "#F87171" => "#3B0A0A",  // error   → dark red
-                _                      => "#1E3A5F",  // default → dark blue
-            };
-            NotifMainBorder.Background = new SolidColorBrush(Color.Parse(bgHex));
-        }
-        else NotifAccent.Background = Brushes.Gray;
-
-        // Fade in
+        // Rise in from below
         InAppNotifBorder.IsVisible = true;
-        _ = Animator.Fade(InAppNotifBorder, 0, 1, TimeSpan.FromMilliseconds(200));
+        var rise = new TranslateTransform(0, 12);
+        InAppNotifBorder.RenderTransform = rise;
+        var ease = new CubicEaseOut();
+        _ = Animator.Animate(rise, TranslateTransform.YProperty, 12, 0, TimeSpan.FromMilliseconds(240), ease);
+        _ = Animator.Fade(InAppNotifBorder, 0, 1, TimeSpan.FromMilliseconds(200), ease);
 
         _notifTimer?.Stop();
         _notifTimer = new DispatcherTimer { Interval = action is null ? NotificationDuration : ActionNotificationDuration };
@@ -658,6 +667,9 @@ public partial class MainWindow : Window
     // ── Settings page ────────────────────────────────────────────────────────
     private void LoadSettingsPage()
     {
+        // Keyboard shortcuts start folded each time Settings opens
+        ShortcutsToggle.IsChecked = false;
+        ShortcutsBody.IsVisible   = false;
         var s = App.Settings.Current;
         SettingUserName.Text = s.UserName;
 
@@ -755,9 +767,7 @@ public partial class MainWindow : Window
 
     private void AddToggle_Click(object? sender, RoutedEventArgs e)
     {
-        _addPanelOpen = !_addPanelOpen;
-        AddFormPanel.IsVisible = _addPanelOpen;
-        AddToggleBtn.Content   = _addPanelOpen ? "✕  Cancel" : "➕  New Task";
+        SetAddFormOpen(!_addPanelOpen);
         if (_addPanelOpen)
         {
             Vm.NewDueDate = DateTime.Today;  // always default to today when form opens
@@ -787,9 +797,23 @@ public partial class MainWindow : Window
             if (saved > 0) InAppNotificationService.Success($"Task created with {saved} attachment(s).");
         }
 
-        _addPanelOpen          = false;
-        AddFormPanel.IsVisible = false;
-        AddToggleBtn.Content   = "➕  New Task";
+        SetAddFormOpen(false);
+    }
+
+    /// <summary>Shows or hides the New Task form (with a short drop-in) and flips the button to Cancel.</summary>
+    private void SetAddFormOpen(bool open)
+    {
+        _addPanelOpen          = open;
+        AddFormPanel.IsVisible = open;
+        AddToggleText.Text     = open ? "Cancel" : "New Task";
+        AddToggleIcon.Data     = UiResources.Geometry(open ? "Icon.Close" : "Icon.Plus");
+        if (!open) return;
+
+        var tt = new TranslateTransform(0, -8);
+        AddFormPanel.RenderTransform = tt;
+        var ease = new CubicEaseOut();
+        _ = Animator.Animate(tt, TranslateTransform.YProperty, -8, 0, PageAnimation, ease);
+        _ = Animator.Fade(AddFormPanel, 0, 1, PageAnimation, ease);
     }
 
     private void TitleBox_KeyDown(object? sender, KeyEventArgs e)
@@ -825,6 +849,10 @@ public partial class MainWindow : Window
             box?.SetCurrentValue(ToggleButton.IsCheckedProperty, vm.IsCompleted);
             return;
         }
+
+        // The tick pops, then the card folds away before the task leaves the list
+        box?.SetCurrentValue(ToggleButton.IsCheckedProperty, true);
+        await AnimateCardOutAsync(vm, box);
 
         // 1. Mark as completed first (task moves to CompletedTasks)
         bool ok = Vm.CompleteTask(vm, out bool needsManualTime);
@@ -891,15 +919,50 @@ public partial class MainWindow : Window
         if (GetTaskVm(sender) is { } vm) await EditTaskAsync(vm);
     }
 
-    private async Task EditTaskAsync(TaskItemViewModel vm)
+    /// <summary>Opens the Edit Task page for <paramref name="vm"/> (Save / Cancel / Esc come back to the list).</summary>
+    private Task EditTaskAsync(TaskItemViewModel vm)
     {
-        var dlg = new EditTaskDialog(vm, Vm);
-        if (await ShowModalDialog(dlg) == true)
+        if (_addPanelOpen) SetAddFormOpen(false);
+        var page = new Views.EditTaskPage(vm, Vm);
+        page.Saved += task =>
         {
-            Vm.SaveTask(vm);
+            Vm.SaveTask(task);
             // Preserve the user's custom sort order — just refresh the display
             Vm.RefreshVisibleTasks();
-        }
+            NavigateTo(AppPage.Main);
+            HighlightCard(task);
+        };
+        page.Cancelled += () => NavigateTo(AppPage.Main);
+
+        _editPage = page;
+        EditTaskPageHost.Children.Clear();
+        EditTaskPageHost.Children.Add(page);
+        ApplyBreakpoints(RootGrid.Bounds.Width);
+        NavigateTo(AppPage.EditTask);
+        Dispatcher.UIThread.Post(page.FocusTitle, DispatcherPriority.Input);
+        return Task.CompletedTask;
+    }
+
+    private void CloseEditPage()
+    {
+        if (_editPage is null) return;
+        EditTaskPageHost.Children.Clear();
+        _editPage = null;
+    }
+
+    /// <summary>After an edit: scroll the card into view and flash its border, so you see what changed.</summary>
+    private void HighlightCard(TaskItemViewModel task)
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            int index = Vm.VisibleTasks.IndexOf(task);
+            if (index < 0 || TaskListControl.ContainerFromIndex(index) is not { } container) return;
+            container.BringIntoView();
+            if (container.GetVisualDescendants().OfType<Border>().FirstOrDefault(b => b.Classes.Contains("taskTile")) is not { } card)
+                return;
+            card.Classes.Add("justEdited");
+            DispatcherTimer.RunOnce(() => card.Classes.Remove("justEdited"), TimeSpan.FromMilliseconds(900));
+        }, DispatcherPriority.Background);
     }
 
     private async void Reminder_Click(object? sender, RoutedEventArgs e)
@@ -1255,6 +1318,48 @@ public partial class MainWindow : Window
     private static TaskItemViewModel? GetTaskVm(object? sender)
         => (sender as StyledElement)?.DataContext as TaskItemViewModel;
 
+    // ── Narrow window: a card's actions behind ⋯ ─────────────────────────
+    private void CardMore_Click(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button more || GetTaskVm(sender) is not { } vm) return;
+
+        var flyout = new Flyout { Placement = PlacementMode.BottomEdgeAlignedRight, FlyoutPresenterClasses = { "workspaceMenu" } };
+        var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2 };
+
+        void Add(string icon, string tip, string cls, EventHandler<RoutedEventArgs> action, bool visible = true)
+        {
+            if (!visible) return;
+            var button = new Button
+            {
+                Theme       = UiResources.Theme("IconButton"),
+                Classes     = { cls },
+                DataContext = vm,
+                Content     = new LineIcon { Data = UiResources.Geometry(icon) },
+            };
+            ToolTip.SetTip(button, tip);
+            button.Click += (s, args) => { flyout.Hide(); action(s, args); };
+            row.Children.Add(button);
+        }
+
+        Add(vm.IsPaused ? "Icon.Play" : "Icon.Pause", "Pause / Resume", "timer", Pause_Click, vm.IsActive);
+        Add("Icon.Clip",  "Attachments",  "attach",   Attachment_Click);
+        Add("Icon.Skip",  "Postpone",     "postpone", Postpone_Click);
+        Add("Icon.Edit",  "Edit",         "edit",     Edit_Click);
+        Add("Icon.Bell",  "Set reminder", "remind",   Reminder_Click);
+        Add("Icon.Trash", "Delete",       "delete",   Delete_Click);
+
+        flyout.Content = new Border
+        {
+            Background      = UiResources.Brush("CardBackground"),
+            BorderBrush     = UiResources.Brush("BorderColor"),
+            BorderThickness = new Thickness(1),
+            CornerRadius    = new CornerRadius(12),
+            Padding         = new Thickness(4),
+            Child           = row,
+        };
+        flyout.ShowAt(more);
+    }
+
     private static bool IsLeftClick(PointerReleasedEventArgs e)
         => e.InitialPressMouseButton == MouseButton.Left;
 
@@ -1286,7 +1391,7 @@ public partial class MainWindow : Window
             int    max    = Math.Max(Vm.Last7DaysMax, 1);
             double height = Math.Max(4, 80.0 * count / max);
             var col = new StackPanel
-                { VerticalAlignment = VerticalAlignment.Bottom, Width = 30, Margin = new Thickness(3, 0, 3, 0) };
+                { VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(3, 0, 3, 0) };
             var bar = new Border { Height = height, CornerRadius = new CornerRadius(3, 3, 0, 0) }
                 .WithResource(Border.BackgroundProperty, "PrimaryBlue");
             col.Children.Add(ChartLabel(count > 0 ? count.ToString() : string.Empty, 10, "TextPrimary"));
@@ -1394,7 +1499,7 @@ public partial class MainWindow : Window
         {
             double height = Math.Max(4, 80.0 * secs / max);
             var col = new StackPanel
-                { VerticalAlignment = VerticalAlignment.Bottom, Width = 30, Margin = new Thickness(3, 0, 3, 0) };
+                { VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(3, 0, 3, 0) };
             var bar = new Border { Height = height, CornerRadius = new CornerRadius(3, 3, 0, 0) }
                 .WithResource(Border.BackgroundProperty, "AccentGreen");
             col.Children.Add(ChartLabel(secs > 0 ? FormatSecsShort(secs) : string.Empty, 9, "TextPrimary"));
@@ -1428,6 +1533,7 @@ public partial class MainWindow : Window
         BusiestHourPanel.Children.Clear();
         var data     = Vm.BusiestHourData;   // 15 slots: 7 AM–9 PM, avg/day last 30 days
         double maxVal = data.Max();
+        var accent    = UiResources.Brush("PrimaryBlue") as ISolidColorBrush ?? new SolidColorBrush(Colors.CornflowerBlue);
 
         BusiestHourEmpty.IsVisible = maxVal == 0;
         if (maxVal == 0) return;
@@ -1442,17 +1548,15 @@ public partial class MainWindow : Window
             var bar = new Border
             {
                 Height       = height,
-                Width        = 26,
-                CornerRadius = new CornerRadius(2, 2, 0, 0),
-                Background   = new SolidColorBrush(Color.FromArgb(alpha, 96, 165, 250))
+                CornerRadius = new CornerRadius(3, 3, 0, 0),
+                Background   = new SolidColorBrush(accent.Color, alpha / 255.0)
             };
             ToolTip.SetTip(bar, $"{hour:D2}:00: avg {avg:F2} completions/active day (last 30 days)");
 
             var col = new StackPanel
             {
                 VerticalAlignment = VerticalAlignment.Bottom,
-                Width             = 30,
-                Margin            = new Thickness(1, 0, 1, 0)
+                Margin            = new Thickness(2, 0, 2, 0)
             };
             col.Children.Add(bar);
             col.Children.Add(ChartLabel($"{hour:D2}", 8, "TextSecondary"));

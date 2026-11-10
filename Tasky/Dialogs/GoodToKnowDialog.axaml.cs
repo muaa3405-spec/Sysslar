@@ -15,7 +15,7 @@ public partial class GoodToKnowDialog : Window
     [
         $"Add a task from any app with {KeyboardShortcuts.QuickAddAnywhere}, even while Sysslar is in the background.",
         "Switch on a task's timer to see where your time goes. It pauses by itself when you step away or lock the computer.",
-        "Use ⏭ on a task to move it to tomorrow or next week, and Undo on the message that appears if you change your mind.",
+        "Use the postpone button on a task to move it to tomorrow or next week, and Undo on the message that appears if you change your mind.",
         "Sysslar backs up your tasks every day. Settings → Backups puts an earlier day back.",
         "New computer? Settings → Migrate packs everything into one password-protected file, for Windows or Mac.",
     ];
@@ -27,7 +27,7 @@ public partial class GoodToKnowDialog : Window
     {
         InitializeComponent();
         ThemeHelper.Attach(this);
-        TitleLabel.Text       = showTips ? "👋  Good to know" : "⌨  Keyboard shortcuts";
+        TitleLabel.Text       = showTips ? "Good to know" : "Keyboard shortcuts";
         TipsList.IsVisible    = showTips;
         TipsList.ItemsSource  = showTips ? Tips : null;
     }

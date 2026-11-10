@@ -64,10 +64,9 @@ public partial class MainWindow
             row.Children.Add(name);
             if (workspace.IsActive)
             {
-                var check = new TextBlock
-                {
-                    Text = "✓", FontSize = 13, Margin = new Thickness(10, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center,
-                }.WithResource(TextBlock.ForegroundProperty, "PrimaryBlue");
+                var check = UiResources.Icon("Icon.Check", 16).WithResource(Controls.LineIcon.ForegroundProperty, "PrimaryBlue");
+                check.Margin = new Thickness(10, 0, 0, 0);
+                check.VerticalAlignment = VerticalAlignment.Center;
                 Grid.SetColumn(check, 2);
                 row.Children.Add(check);
             }
@@ -81,12 +80,12 @@ public partial class MainWindow
 
         items.Children.Add(new Border { Height = 1, Margin = new Thickness(4, 5) }
             .WithResource(Border.BackgroundProperty, "BorderColor"));
-        items.Children.Add(MenuItemButton(MenuText("＋  New workspace…"), () => _ = ShowWorkspacesDialogAsync(startWithNew: true)));
-        items.Children.Add(MenuItemButton(MenuText("⚙  Manage workspaces…"), () => _ = ShowWorkspacesDialogAsync(startWithNew: false)));
+        items.Children.Add(MenuItemButton(MenuText("New workspace…"), () => _ = ShowWorkspacesDialogAsync(startWithNew: true)));
+        items.Children.Add(MenuItemButton(MenuText("Manage workspaces…"), () => _ = ShowWorkspacesDialogAsync(startWithNew: false)));
 
         return new Border
             {
-                BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(10), Padding = new Thickness(5),
+                BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(12), Padding = new Thickness(6),
                 Child = items,
                 BoxShadow = new BoxShadows(new BoxShadow { Blur = 18, OffsetY = 4, Color = Color.FromArgb(70, 0, 0, 0) }),
             }

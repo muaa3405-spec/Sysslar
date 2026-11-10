@@ -91,7 +91,7 @@ public sealed class IdleMonitorService : IDisposable
         {
             _isAutoPaused = _pauseRunning(pausedAt);
             if (_isAutoPaused)
-                InAppNotificationService.Warning($"⏸  Timer paused — {reason}.");
+                InAppNotificationService.Warning($"Timer paused — {reason}.");
         });
     }
 
@@ -101,7 +101,7 @@ public sealed class IdleMonitorService : IDisposable
         OnUiThread(() =>
         {
             _resumeActive();
-            InAppNotificationService.Info("▶  Timer resumed — you're back!");
+            InAppNotificationService.Info("Timer resumed — you're back!");
         });
     }
 

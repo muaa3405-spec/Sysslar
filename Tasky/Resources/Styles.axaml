@@ -1,6 +1,7 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:conv="using:Tasky.Converters">
+                    xmlns:conv="using:Tasky.Converters"
+                    xmlns:ctrl="using:Tasky.Controls">
 
     <!-- ── Fonts ──────────────────────────────────────────────────────── -->
     <!-- Consolas on Windows; Menlo is the matching monospace font on macOS -->
@@ -14,14 +15,14 @@
          COMBOBOX ITEM
     ══════════════════════════════════════════════════════════════════ -->
     <ControlTheme x:Key="ComboBoxItemStyle" TargetType="ComboBoxItem">
-        <Setter Property="Padding"    Value="12,8"/>
+        <Setter Property="Padding"    Value="12,9"/>
         <Setter Property="FontSize"   Value="13"/>
         <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="Template">
             <ControlTemplate>
                 <Border Name="Bd" Background="{TemplateBinding Background}"
-                        Padding="{TemplateBinding Padding}" CornerRadius="4" Margin="2,1">
+                        Padding="{TemplateBinding Padding}" CornerRadius="8" Margin="2,1">
                     <ContentPresenter Name="PART_ContentPresenter"
                                       Content="{TemplateBinding Content}"
                                       ContentTemplate="{TemplateBinding ContentTemplate}"
@@ -66,9 +67,10 @@
     <ControlTheme x:Key="ThemedComboBox" TargetType="ComboBox">
         <Setter Property="Background"          Value="{DynamicResource InputBackground}"/>
         <Setter Property="Foreground"          Value="{DynamicResource TextPrimary}"/>
-        <Setter Property="BorderBrush"         Value="{DynamicResource BorderColor}"/>
-        <Setter Property="BorderThickness"     Value="1"/>
-        <Setter Property="Padding"             Value="10,8"/>
+        <Setter Property="BorderBrush"         Value="Transparent"/>
+        <Setter Property="BorderThickness"     Value="1.5"/>
+        <Setter Property="Padding"             Value="12,9"/>
+        <Setter Property="MinHeight"           Value="40"/>
         <Setter Property="FontSize"            Value="13"/>
         <Setter Property="Cursor"              Value="Arrow"/>
         <Setter Property="MaxDropDownHeight"   Value="320"/>
@@ -81,8 +83,8 @@
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="6">
-                        <Grid Margin="{TemplateBinding Padding}" ColumnDefinitions="*,24">
+                            CornerRadius="12">
+                        <Grid Margin="{TemplateBinding Padding}" ColumnDefinitions="*,24" VerticalAlignment="Center">
                             <ContentControl Grid.Column="0"
                                             Content="{TemplateBinding SelectionBoxItem}"
                                             ContentTemplate="{TemplateBinding ItemTemplate}"
@@ -90,12 +92,16 @@
                                             HorizontalAlignment="Left"
                                             VerticalAlignment="Center"
                                             IsHitTestVisible="False"/>
-                            <Path Grid.Column="1" Name="Arrow"
-                                  Data="M 0 0 L 4 4 L 8 0"
-                                  Stroke="{DynamicResource TextSecondary}"
-                                  StrokeThickness="1.5"
-                                  HorizontalAlignment="Center" VerticalAlignment="Center"
-                                  IsHitTestVisible="False"/>
+                            <ctrl:LineIcon Grid.Column="1" Name="Arrow" Size="16"
+                                           Data="{StaticResource Icon.ChevronDown}"
+                                           Foreground="{DynamicResource TextSecondary}"
+                                           HorizontalAlignment="Right" VerticalAlignment="Center"
+                                           RenderTransformOrigin="50%,50%"
+                                           IsHitTestVisible="False">
+                                <ctrl:LineIcon.Transitions>
+                                    <Transitions><TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.18"/></Transitions>
+                                </ctrl:LineIcon.Transitions>
+                            </ctrl:LineIcon>
                         </Grid>
                     </Border>
                     <Popup Name="PART_Popup" Placement="AnchorAndGravity" PlacementAnchor="BottomLeft" PlacementGravity="BottomRight"
@@ -107,8 +113,8 @@
                                 MaxHeight="{TemplateBinding MaxDropDownHeight}"
                                 Background="{DynamicResource CardBackground}"
                                 BorderBrush="{DynamicResource BorderColor}"
-                                BorderThickness="1" CornerRadius="6"
-                                Margin="0,2,0,0" Padding="4,4">
+                                BorderThickness="1" CornerRadius="12"
+                                Margin="0,4,0,0" Padding="4,4">
                             <Border.Effect>
                                 <DropShadowDirectionEffect BlurRadius="12" ShadowDepth="2" Opacity="0.15" Color="#000"/>
                             </Border.Effect>
@@ -125,11 +131,11 @@
         <Style Selector="^:dropdownopen /template/ Border#MainBorder">
             <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBlue}"/>
         </Style>
-        <Style Selector="^:dropdownopen /template/ Path#Arrow">
-            <Setter Property="Data" Value="M 0 4 L 4 0 L 8 4"/>
+        <Style Selector="^:dropdownopen /template/ ctrl|LineIcon#Arrow">
+            <Setter Property="RenderTransform" Value="rotate(180deg)"/>
         </Style>
         <Style Selector="^:pointerover /template/ Border#MainBorder">
-            <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBlue}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource ChipBorder}"/>
         </Style>
         <Style Selector="^:disabled">
             <Setter Property="Opacity" Value="0.5"/>
@@ -141,14 +147,14 @@
     ══════════════════════════════════════════════════════════════════ -->
     <ControlTheme x:Key="InputBox" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
         <Setter Property="FontSize"        Value="14"/>
-        <Setter Property="Padding"         Value="10,8"/>
+        <Setter Property="Padding"         Value="12,10"/>
         <Setter Property="MinHeight"       Value="0"/>
         <Setter Property="Background"      Value="{DynamicResource InputBackground}"/>
-        <Setter Property="BorderBrush"     Value="{DynamicResource BorderColor}"/>
-        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush"     Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="1.5"/>
         <Setter Property="Foreground"      Value="{DynamicResource TextPrimary}"/>
         <Setter Property="CaretBrush"      Value="{DynamicResource TextPrimary}"/>
-        <Setter Property="SelectionBrush"  Value="#3399FF"/>
+        <Setter Property="SelectionBrush"  Value="{DynamicResource PrimaryBlue}"/>
         <Setter Property="SelectionForegroundBrush" Value="White"/>
         <Setter Property="VerticalContentAlignment" Value="Top"/>
         <Setter Property="Template">
@@ -157,16 +163,22 @@
                         Background="{TemplateBinding Background}"
                         BorderBrush="{TemplateBinding BorderBrush}"
                         BorderThickness="{TemplateBinding BorderThickness}"
-                        CornerRadius="6">
-                    <Panel>
+                        CornerRadius="12">
+                  <Grid ColumnDefinitions="Auto,*">
+                    <ContentPresenter Grid.Column="0" Content="{TemplateBinding InnerLeftContent}"
+                                      Foreground="{DynamicResource PlaceholderColor}"
+                                      VerticalAlignment="Center" Margin="14,0,0,0"
+                                      IsVisible="{TemplateBinding InnerLeftContent, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                    <Panel Grid.Column="1" Margin="2,0">
                         <TextBlock Name="PART_Watermark"
                                    Text="{TemplateBinding Watermark}"
                                    Foreground="{DynamicResource PlaceholderColor}"
                                    FontSize="{TemplateBinding FontSize}"
-                                   Margin="12,8,0,0" VerticalAlignment="Top"
+                                   Margin="{TemplateBinding Padding}"
+                                   VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                    IsHitTestVisible="False"
                                    IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNullOrEmpty}}"/>
-                        <ScrollViewer Name="PART_ScrollViewer" Margin="2,0"
+                        <ScrollViewer Name="PART_ScrollViewer"
                                       HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
                                       VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}"
                                       AllowAutoHide="False">
@@ -190,9 +202,16 @@
                                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
                         </ScrollViewer>
                     </Panel>
+                  </Grid>
                 </Border>
             </ControlTemplate>
         </Setter>
+        <Setter Property="Transitions">
+            <Transitions><BrushTransition Property="BorderBrush" Duration="0:0:0.15"/></Transitions>
+        </Setter>
+        <Style Selector="^:pointerover">
+            <Setter Property="BorderBrush" Value="{DynamicResource ChipBorder}"/>
+        </Style>
         <Style Selector="^:focus">
             <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBlue}"/>
         </Style>
@@ -207,14 +226,15 @@
     <ControlTheme x:Key="PrimaryButton" TargetType="Button">
         <Setter Property="FontSize"        Value="13"/>
         <Setter Property="FontWeight"      Value="SemiBold"/>
-        <Setter Property="Foreground"      Value="White"/>
-        <Setter Property="Background"      Value="{DynamicResource PrimaryBlue}"/>
+        <Setter Property="Foreground"      Value="{DynamicResource PrimaryPillForeground}"/>
+        <Setter Property="Background"      Value="{DynamicResource PrimaryPillBackground}"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Padding"         Value="18,9"/>
         <Setter Property="Cursor"          Value="Hand"/>
+        <Setter Property="RenderTransformOrigin" Value="50%,50%"/>
         <Setter Property="Template">
             <ControlTemplate>
-                <Border Background="{TemplateBinding Background}" CornerRadius="6"
+                <Border Background="{TemplateBinding Background}" CornerRadius="999"
                         Padding="{TemplateBinding Padding}">
                     <ContentPresenter Name="PART_ContentPresenter"
                                       Content="{TemplateBinding Content}"
@@ -223,25 +243,32 @@
                 </Border>
             </ControlTemplate>
         </Setter>
-        <Style Selector="^:pointerover"><Setter Property="Opacity" Value="0.88"/></Style>
-        <Style Selector="^:pressed"><Setter Property="Opacity" Value="0.72"/></Style>
+        <Setter Property="Transitions">
+            <Transitions>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15"/>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.15"/>
+            </Transitions>
+        </Setter>
+        <Style Selector="^:pointerover"><Setter Property="RenderTransform" Value="translateY(-1px)"/></Style>
+        <Style Selector="^:pressed"><Setter Property="RenderTransform" Value="scale(0.97)"/></Style>
         <Style Selector="^:disabled"><Setter Property="Opacity" Value="0.4"/></Style>
     </ControlTheme>
 
     <ControlTheme x:Key="SecondaryButton" TargetType="Button">
         <Setter Property="FontSize"        Value="13"/>
-        <Setter Property="Foreground"      Value="{DynamicResource TextSecondary}"/>
+        <Setter Property="FontWeight"      Value="Medium"/>
+        <Setter Property="Foreground"      Value="{DynamicResource TextPrimary}"/>
         <Setter Property="Background"      Value="Transparent"/>
-        <Setter Property="BorderBrush"     Value="{DynamicResource BorderColor}"/>
+        <Setter Property="BorderBrush"     Value="{DynamicResource ChipBorder}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Padding"         Value="18,9"/>
+        <Setter Property="Padding"         Value="18,8"/>
         <Setter Property="Cursor"          Value="Hand"/>
         <Setter Property="Template">
             <ControlTemplate>
                 <Border Background="{TemplateBinding Background}"
                         BorderBrush="{TemplateBinding BorderBrush}"
                         BorderThickness="{TemplateBinding BorderThickness}"
-                        CornerRadius="6" Padding="{TemplateBinding Padding}">
+                        CornerRadius="999" Padding="{TemplateBinding Padding}">
                     <ContentPresenter Name="PART_ContentPresenter"
                                       Content="{TemplateBinding Content}"
                                       ContentTemplate="{TemplateBinding ContentTemplate}"
@@ -249,32 +276,123 @@
                 </Border>
             </ControlTemplate>
         </Setter>
+        <Setter Property="Transitions">
+            <Transitions><BrushTransition Property="Background" Duration="0:0:0.15"/></Transitions>
+        </Setter>
         <Style Selector="^:pointerover">
-            <Setter Property="Background" Value="{DynamicResource TagBackground}"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
+            <Setter Property="Background" Value="{DynamicResource IconHoverBackground}"/>
         </Style>
         <Style Selector="^:pressed"><Setter Property="Opacity" Value="0.75"/></Style>
+        <Style Selector="^:disabled"><Setter Property="Opacity" Value="0.4"/></Style>
     </ControlTheme>
 
+    <!-- Icon-only button. The icon is muted grey; on hover it turns TextPrimary, or the action colour
+         given by a class: attach · postpone · edit · remind · delete · timer · accent -->
     <ControlTheme x:Key="IconButton" TargetType="Button">
         <Setter Property="Background"      Value="Transparent"/>
+        <Setter Property="Foreground"      Value="{DynamicResource IconMuted}"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Cursor"          Value="Hand"/>
-        <Setter Property="Padding"         Value="5"/>
+        <Setter Property="Padding"         Value="6"/>
+        <Setter Property="MinWidth"        Value="32"/>
+        <Setter Property="MinHeight"       Value="32"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment"   Value="Center"/>
         <Setter Property="Template">
             <ControlTemplate>
-                <Border Background="{TemplateBinding Background}" CornerRadius="5"
+                <Border Background="{TemplateBinding Background}" CornerRadius="8"
                         Padding="{TemplateBinding Padding}">
                     <ContentPresenter Name="PART_ContentPresenter"
                                       Content="{TemplateBinding Content}"
-                                      ContentTemplate="{TemplateBinding ContentTemplate}"/>
+                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
                 </Border>
             </ControlTemplate>
         </Setter>
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="Background" Duration="0:0:0.15"/>
+                <BrushTransition Property="Foreground" Duration="0:0:0.15"/>
+            </Transitions>
+        </Setter>
         <Style Selector="^:pointerover">
-            <Setter Property="Background" Value="{DynamicResource BorderColor}"/>
+            <Setter Property="Background" Value="{DynamicResource IconHoverBackground}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
         </Style>
+        <Style Selector="^.attach:pointerover">   <Setter Property="Foreground" Value="{DynamicResource IconAttachHover}"/></Style>
+        <Style Selector="^.postpone:pointerover"> <Setter Property="Foreground" Value="{DynamicResource IconPostponeHover}"/></Style>
+        <Style Selector="^.edit:pointerover">     <Setter Property="Foreground" Value="{DynamicResource IconEditHover}"/></Style>
+        <Style Selector="^.remind:pointerover">   <Setter Property="Foreground" Value="{DynamicResource IconReminderHover}"/></Style>
+        <Style Selector="^.delete:pointerover">   <Setter Property="Foreground" Value="{DynamicResource IconDeleteHover}"/></Style>
+        <Style Selector="^.timer:pointerover">    <Setter Property="Foreground" Value="{DynamicResource Success}"/></Style>
+        <Style Selector="^.accent:pointerover">   <Setter Property="Foreground" Value="{DynamicResource PrimaryBlue}"/></Style>
         <Style Selector="^:pressed"><Setter Property="Opacity" Value="0.7"/></Style>
+        <Style Selector="^:disabled"><Setter Property="Opacity" Value="0.35"/></Style>
+    </ControlTheme>
+
+    <!-- Header row of a collapsible section: content on the left, a chevron that turns when open -->
+    <ControlTheme x:Key="CollapsibleHeader" TargetType="ToggleButton">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Cursor"     Value="Hand"/>
+        <Setter Property="Padding"    Value="16,14"/>
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="{TemplateBinding Background}" CornerRadius="14" Padding="{TemplateBinding Padding}">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <ContentPresenter Grid.Column="0" Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          VerticalAlignment="Center"/>
+                        <ctrl:LineIcon Grid.Column="1" Name="Chevron" Data="{StaticResource Icon.ChevronDown}" Size="18"
+                                       Foreground="{DynamicResource TextSecondary}" Margin="12,0,0,0"
+                                       VerticalAlignment="Center" RenderTransformOrigin="50%,50%">
+                            <ctrl:LineIcon.Transitions>
+                                <Transitions><TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2"/></Transitions>
+                            </ctrl:LineIcon.Transitions>
+                        </ctrl:LineIcon>
+                    </Grid>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+        <Setter Property="Transitions">
+            <Transitions><BrushTransition Property="Background" Duration="0:0:0.15"/></Transitions>
+        </Setter>
+        <Style Selector="^:pointerover"><Setter Property="Background" Value="{DynamicResource IconHoverBackground}"/></Style>
+        <Style Selector="^:checked /template/ ctrl|LineIcon#Chevron"><Setter Property="RenderTransform" Value="rotate(180deg)"/></Style>
+    </ControlTheme>
+
+    <!-- Text button without chrome until hover (Back, inline links) -->
+    <ControlTheme x:Key="GhostButton" TargetType="Button">
+        <Setter Property="Background"      Value="Transparent"/>
+        <Setter Property="Foreground"      Value="{DynamicResource TextSecondary}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="FontSize"        Value="13"/>
+        <Setter Property="FontWeight"      Value="Medium"/>
+        <Setter Property="Padding"         Value="8,6,10,6"/>
+        <Setter Property="Cursor"          Value="Hand"/>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="{TemplateBinding Background}" CornerRadius="8"
+                        Padding="{TemplateBinding Padding}">
+                    <ContentPresenter Name="PART_ContentPresenter"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                      VerticalAlignment="Center"/>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="Background" Duration="0:0:0.15"/>
+                <BrushTransition Property="Foreground" Duration="0:0:0.15"/>
+            </Transitions>
+        </Setter>
+        <Style Selector="^:pointerover">
+            <Setter Property="Background" Value="{DynamicResource IconHoverBackground}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
+        </Style>
+        <Style Selector="^:pressed"><Setter Property="Opacity" Value="0.75"/></Style>
     </ControlTheme>
 
     <!-- A button that is just its content (custom-drawn content, no chrome) -->
@@ -314,8 +432,8 @@
          TYPOGRAPHY
     ══════════════════════════════════════════════════════════════════ -->
     <ControlTheme x:Key="HeadingText" TargetType="TextBlock">
-        <Setter Property="FontSize"   Value="22"/>
-        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="FontSize"   Value="20"/>
+        <Setter Property="FontWeight" Value="Bold"/>
         <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
     </ControlTheme>
 
@@ -339,7 +457,34 @@
         <Setter Property="FontSize"   Value="11"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
-        <Setter Property="Margin"     Value="0,0,0,5"/>
+        <Setter Property="Margin"     Value="0,0,0,6"/>
+    </ControlTheme>
+
+    <!-- Small uppercase heading at the top of a SectionCard -->
+    <ControlTheme x:Key="SectionTitle" TargetType="TextBlock">
+        <Setter Property="FontSize"      Value="11"/>
+        <Setter Property="FontWeight"    Value="SemiBold"/>
+        <Setter Property="LetterSpacing" Value="0.6"/>
+        <Setter Property="Foreground"    Value="{DynamicResource PlaceholderColor}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </ControlTheme>
+
+    <!-- A titled group of fields or content (edit page, settings, stats) -->
+    <ControlTheme x:Key="SectionCard" TargetType="Border">
+        <Setter Property="Background"      Value="{DynamicResource CardBackground}"/>
+        <Setter Property="BorderBrush"     Value="{DynamicResource BorderColor}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius"    Value="14"/>
+        <Setter Property="Padding"         Value="16"/>
+        <Setter Property="Margin"          Value="0,0,0,12"/>
+    </ControlTheme>
+
+    <!-- Small rounded status tag: Today · overdue · Weekly … (colours set per use) -->
+    <ControlTheme x:Key="Tag" TargetType="Border">
+        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="Padding"      Value="8,2"/>
+        <Setter Property="Background"   Value="{DynamicResource SuccessSoft}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
     </ControlTheme>
 
     <!-- ══════════════════════════════════════════════════════════════════
@@ -349,12 +494,9 @@
         <Setter Property="Background"      Value="{DynamicResource CardBackground}"/>
         <Setter Property="BorderBrush"     Value="{DynamicResource BorderColor}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="CornerRadius"    Value="8"/>
-        <Setter Property="Padding"         Value="12,10"/>
-        <Setter Property="Margin"          Value="0,0,0,6"/>
-        <Setter Property="Effect">
-            <DropShadowDirectionEffect BlurRadius="6" ShadowDepth="1" Opacity="0.06" Color="#000"/>
-        </Setter>
+        <Setter Property="CornerRadius"    Value="14"/>
+        <Setter Property="Padding"         Value="16,14"/>
+        <Setter Property="Margin"          Value="0,0,0,10"/>
     </ControlTheme>
 
     <!-- ══════════════════════════════════════════════════════════════════
@@ -371,7 +513,7 @@
     <ControlTheme x:Key="DialogFrame" TargetType="Border">
         <Setter Property="Background"      Value="{DynamicResource AppBackground}"/>
         <Setter Property="BorderBrush"     Value="{DynamicResource DialogFrameBorder}"/>
-        <Setter Property="BorderThickness" Value="2"/>
+        <Setter Property="BorderThickness" Value="1"/>
     </ControlTheme>
 
     <!-- ══════════════════════════════════════════════════════════════════
@@ -382,15 +524,21 @@
         <Setter Property="Height"      Value="22"/>
         <Setter Property="Cursor"      Value="Hand"/>
         <Setter Property="ToolTip.Tip" Value="Mark as done"/>
+        <Setter Property="RenderTransformOrigin" Value="50%,50%"/>
         <Setter Property="Template">
             <ControlTemplate>
-                <Border Name="Circle" Width="22" Height="22"
-                        CornerRadius="11" BorderThickness="2"
-                        BorderBrush="#4B5563" Background="Transparent">
-                    <TextBlock Name="Check" Text="✓"
-                               FontSize="11" FontWeight="Bold" Foreground="White"
-                               HorizontalAlignment="Center" VerticalAlignment="Center"
-                               IsVisible="False"/>
+                <Border Name="Circle" Width="22" Height="22" CornerRadius="11"
+                        Background="{DynamicResource CheckIdle}">
+                    <Border.Transitions>
+                        <Transitions><BrushTransition Property="Background" Duration="0:0:0.18"/></Transitions>
+                    </Border.Transitions>
+                    <ctrl:LineIcon Name="Check" Data="{StaticResource Icon.Check}" Size="14" StrokeThickness="3"
+                                   Foreground="White" Opacity="0"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <ctrl:LineIcon.Transitions>
+                            <Transitions><DoubleTransition Property="Opacity" Duration="0:0:0.15"/></Transitions>
+                        </ctrl:LineIcon.Transitions>
+                    </ctrl:LineIcon>
                 </Border>
             </ControlTemplate>
         </Setter>
@@ -398,18 +546,16 @@
             <Setter Property="ToolTip.Tip" Value="Completed"/>
         </Style>
         <Style Selector="^:checked /template/ Border#Circle">
-            <Setter Property="Background"  Value="#22C55E"/>
-            <Setter Property="BorderBrush" Value="#22C55E"/>
+            <Setter Property="Background" Value="{DynamicResource Success}"/>
         </Style>
-        <Style Selector="^:checked /template/ TextBlock#Check">
-            <Setter Property="IsVisible" Value="True"/>
+        <Style Selector="^:checked /template/ ctrl|LineIcon#Check">
+            <Setter Property="Opacity" Value="1"/>
         </Style>
         <Style Selector="^:pointerover:not(:checked) /template/ Border#Circle">
-            <Setter Property="BorderBrush" Value="#22C55E"/>
+            <Setter Property="Background" Value="{DynamicResource Success}"/>
         </Style>
-        <Style Selector="^:pointerover:not(:checked) /template/ TextBlock#Check">
-            <Setter Property="IsVisible" Value="True"/>
-            <Setter Property="Opacity"   Value="0.4"/>
+        <Style Selector="^:pointerover:not(:checked) /template/ ctrl|LineIcon#Check">
+            <Setter Property="Opacity" Value="0.6"/>
         </Style>
     </ControlTheme>
 
@@ -423,7 +569,7 @@
         <Setter Property="ToolTip.Tip" Value="Toggle active"/>
         <Setter Property="Template">
             <ControlTemplate>
-                <Border Name="Track" CornerRadius="9" Background="#4B5563"
+                <Border Name="Track" CornerRadius="9" Background="{DynamicResource CheckIdle}"
                         Width="{TemplateBinding Width}" Height="{TemplateBinding Height}">
                     <Ellipse Name="Thumb" Width="14" Height="14" Fill="White"
                              Margin="2,0,18,0" HorizontalAlignment="Left" VerticalAlignment="Center">
@@ -435,7 +581,7 @@
             </ControlTemplate>
         </Setter>
         <Style Selector="^:checked /template/ Border#Track">
-            <Setter Property="Background" Value="#22C55E"/>
+            <Setter Property="Background" Value="{DynamicResource Success}"/>
         </Style>
         <Style Selector="^:checked /template/ Ellipse#Thumb">
             <Setter Property="HorizontalAlignment" Value="Right"/>
@@ -449,43 +595,56 @@
     <!-- ══════════════════════════════════════════════════════════════════
          TIMER PLAY / STOP BUTTON — round, ▶ when stopped, ■ while running
     ══════════════════════════════════════════════════════════════════ -->
+    <!-- ══ TIMER PLAY / PAUSE BUTTON — round: ▶ when stopped, ❚❚ (with a soft pulse ring) while running ══ -->
     <ControlTheme x:Key="TimerPlayButton" TargetType="ToggleButton">
-        <Setter Property="Width"  Value="22"/>
-        <Setter Property="Height" Value="22"/>
+        <Setter Property="Width"  Value="26"/>
+        <Setter Property="Height" Value="26"/>
         <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="RenderTransformOrigin" Value="50%,50%"/>
         <Setter Property="Template">
             <ControlTemplate>
-                <Border Name="Circle" CornerRadius="11" Background="#1A22C55E"
-                        BorderBrush="#22C55E" BorderThickness="1.5"
-                        Width="{TemplateBinding Width}" Height="{TemplateBinding Height}">
-                    <Panel>
-                        <Path Name="Play" Data="M0,0 L7,4.5 L0,9 Z" Fill="#22C55E"
-                              HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2,0,0,0"/>
-                        <Rectangle Name="Stop" Width="8" Height="8" RadiusX="1.5" RadiusY="1.5" Fill="White"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="False"/>
-                    </Panel>
-                </Border>
+                <Panel>
+                    <Ellipse Name="Ring" Fill="{DynamicResource Success}" Opacity="0" RenderTransformOrigin="50%,50%">
+                        <Ellipse.RenderTransform><ScaleTransform/></Ellipse.RenderTransform>
+                    </Ellipse>
+                    <Border Name="Circle" CornerRadius="13" Background="{DynamicResource InputBackground}"
+                            Width="{TemplateBinding Width}" Height="{TemplateBinding Height}">
+                        <Border.Transitions>
+                            <Transitions><BrushTransition Property="Background" Duration="0:0:0.18"/></Transitions>
+                        </Border.Transitions>
+                        <Panel>
+                            <ctrl:LineIcon Name="Play" Data="{StaticResource Icon.Play}" IsFilled="True" Size="13" StrokeThickness="2"
+                                           Foreground="{DynamicResource TextSecondary}" Margin="1.5,0,0,0"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <ctrl:LineIcon Name="Pause" Data="{StaticResource Icon.Pause}" Size="13" StrokeThickness="3.4"
+                                           Foreground="{DynamicResource AppBackground}" IsVisible="False"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Panel>
+                    </Border>
+                </Panel>
             </ControlTemplate>
         </Setter>
         <Setter Property="Transitions">
             <Transitions>
-                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.1"/>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.12"/>
             </Transitions>
         </Setter>
         <Style Selector="^:pointerover">
             <Setter Property="RenderTransform" Value="scale(1.1)"/>
         </Style>
         <Style Selector="^:pointerover /template/ Border#Circle">
-            <Setter Property="Background" Value="#3322C55E"/>
+            <Setter Property="Background" Value="{DynamicResource SuccessSoft}"/>
+        </Style>
+        <Style Selector="^:pointerover /template/ ctrl|LineIcon#Play">
+            <Setter Property="Foreground" Value="{DynamicResource Success}"/>
         </Style>
         <Style Selector="^:checked /template/ Border#Circle">
-            <Setter Property="Background"  Value="#EF4444"/>
-            <Setter Property="BorderBrush" Value="#EF4444"/>
+            <Setter Property="Background" Value="{DynamicResource Success}"/>
         </Style>
-        <Style Selector="^:checked /template/ Path#Play">
+        <Style Selector="^:checked /template/ ctrl|LineIcon#Play">
             <Setter Property="IsVisible" Value="False"/>
         </Style>
-        <Style Selector="^:checked /template/ Rectangle#Stop">
+        <Style Selector="^:checked /template/ ctrl|LineIcon#Pause">
             <Setter Property="IsVisible" Value="True"/>
         </Style>
     </ControlTheme>
@@ -535,8 +694,8 @@
         <Setter Property="Template">
             <ControlTemplate>
                 <Border Background="Transparent" Padding="2">
-                    <TextBlock Text="📅" FontSize="14"
-                               Foreground="{DynamicResource TextSecondary}"/>
+                    <ctrl:LineIcon Data="{StaticResource Icon.Calendar}" Size="17"
+                                   Foreground="{DynamicResource TextSecondary}"/>
                 </Border>
             </ControlTemplate>
         </Setter>
@@ -545,9 +704,10 @@
     <ControlTheme x:Key="ThemedDatePicker" TargetType="CalendarDatePicker">
         <Setter Property="Background"      Value="{DynamicResource InputBackground}"/>
         <Setter Property="Foreground"      Value="{DynamicResource TextPrimary}"/>
-        <Setter Property="BorderBrush"     Value="{DynamicResource BorderColor}"/>
-        <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Padding"         Value="10,8"/>
+        <Setter Property="BorderBrush"     Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="1.5"/>
+        <Setter Property="Padding"         Value="12,9"/>
+        <Setter Property="MinHeight"       Value="40"/>
         <Setter Property="FontSize"        Value="13"/>
         <Setter Property="IsTodayHighlighted" Value="True"/>
         <Setter Property="Watermark"       Value="yyyy-MM-dd"/>
@@ -560,8 +720,8 @@
                         Background="{TemplateBinding Background}"
                         BorderBrush="{TemplateBinding BorderBrush}"
                         BorderThickness="{TemplateBinding BorderThickness}"
-                        CornerRadius="6">
-                    <Grid Margin="{TemplateBinding Padding}" ColumnDefinitions="*,28">
+                        CornerRadius="12">
+                    <Grid Margin="{TemplateBinding Padding}" ColumnDefinitions="*,28" VerticalAlignment="Center">
                         <TextBox Grid.Column="0" Name="PART_TextBox"
                                  Theme="{StaticResource ThemedDatePickerTextBox}"
                                  Watermark="{TemplateBinding Watermark}"
@@ -590,8 +750,8 @@
         <Style Selector="^:focus-within /template/ Border#Bd">
             <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBlue}"/>
         </Style>
-        <Style Selector="^:pointerover /template/ Border#Bd">
-            <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBlue}"/>
+        <Style Selector="^:pointerover:not(:focus-within) /template/ Border#Bd">
+            <Setter Property="BorderBrush" Value="{DynamicResource ChipBorder}"/>
         </Style>
     </ControlTheme>
 
@@ -776,15 +936,21 @@
     <!-- ── Filter Chips ───────────────────────────────────────────────── -->
     <ControlTheme x:Key="FilterChip" TargetType="RadioButton">
         <Setter Property="Cursor"     Value="Hand"/>
-        <Setter Property="Padding"    Value="12,4"/>
-        <Setter Property="FontSize"   Value="12"/>
-        <Setter Property="FontWeight" Value="SemiBold"/>
-        <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
+        <Setter Property="Padding"    Value="14,5"/>
+        <Setter Property="FontSize"   Value="13"/>
+        <Setter Property="FontWeight" Value="Medium"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
         <Setter Property="Template">
             <ControlTemplate>
-                <Border Name="Bd" CornerRadius="12" Background="Transparent"
-                        BorderBrush="{DynamicResource BorderColor}" BorderThickness="1"
+                <Border Name="Bd" CornerRadius="999" Background="Transparent"
+                        BorderBrush="{DynamicResource ChipBorder}" BorderThickness="1"
                         Padding="{TemplateBinding Padding}">
+                    <Border.Transitions>
+                        <Transitions>
+                            <BrushTransition Property="Background"  Duration="0:0:0.18"/>
+                            <BrushTransition Property="BorderBrush" Duration="0:0:0.18"/>
+                        </Transitions>
+                    </Border.Transitions>
                     <ContentPresenter Name="PART_ContentPresenter"
                                       Content="{TemplateBinding Content}"
                                       ContentTemplate="{TemplateBinding ContentTemplate}"
@@ -792,16 +958,40 @@
                 </Border>
             </ControlTemplate>
         </Setter>
-        <Style Selector="^:checked">
-            <Setter Property="Foreground" Value="White"/>
+        <Style Selector="^:pointerover /template/ Border#Bd">
+            <Setter Property="BorderBrush" Value="{DynamicResource TextSecondary}"/>
         </Style>
         <Style Selector="^:checked /template/ Border#Bd">
-            <Setter Property="Background"  Value="{DynamicResource PrimaryBlue}"/>
+            <Setter Property="Background"  Value="{DynamicResource AccentSoft}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBlue}"/>
         </Style>
-        <Style Selector="^:pointerover /template/ Border#Bd">
-            <Setter Property="Opacity" Value="0.8"/>
-        </Style>
+    </ControlTheme>
+
+    <!-- One option inside a ctrl:SegmentedBar (the bar draws the sliding highlight) -->
+    <ControlTheme x:Key="SegmentItem" TargetType="RadioButton">
+        <Setter Property="Cursor"     Value="Hand"/>
+        <Setter Property="Padding"    Value="14,0"/>
+        <Setter Property="FontSize"   Value="13"/>
+        <Setter Property="FontWeight" Value="Medium"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="VerticalAlignment"   Value="Stretch"/>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                    <ContentPresenter Name="PART_ContentPresenter"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+        <Setter Property="Transitions">
+            <Transitions><BrushTransition Property="Foreground" Duration="0:0:0.2"/></Transitions>
+        </Setter>
+        <Style Selector="^:pointerover"><Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/></Style>
+        <Style Selector="^:checked"><Setter Property="Foreground" Value="{DynamicResource AccentText}"/></Style>
     </ControlTheme>
 
     <!-- ── ScrollViewer: the bar sits in its own column, as on Windows ─── -->
@@ -846,7 +1036,7 @@
     <ControlTheme x:Key="ScrollThumb" TargetType="Thumb">
         <Setter Property="Template">
             <ControlTemplate>
-                <Border Name="Bd" Background="#4B5563" CornerRadius="3" Margin="1,0"/>
+                <Border Name="Bd" Background="{DynamicResource ChipBorder}" CornerRadius="3" Margin="1,0"/>
             </ControlTemplate>
         </Setter>
         <Style Selector="^:pointerover /template/ Border#Bd">

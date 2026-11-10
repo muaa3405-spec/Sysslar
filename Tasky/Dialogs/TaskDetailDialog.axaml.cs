@@ -47,19 +47,16 @@ public partial class TaskDetailDialog : Window
         // Status badge
         if (vm.IsCompleted)
         {
-            StatusLabel.Text       = "✔ Completed";
-            StatusBadge.Background = new SolidColorBrush(Color.FromRgb(34, 197, 94));
+            SetStatus("Completed", "Success", "SuccessSoft");
         }
         else if (vm.IsActive)
         {
-            StatusLabel.Text       = vm.IsPaused ? "⏸ Paused" : "▶ Active";
-            StatusBadge.Background = new SolidColorBrush(
-                vm.IsPaused ? Color.FromRgb(245, 158, 11) : Color.FromRgb(34, 197, 94));
+            if (vm.IsPaused) SetStatus("Paused", "Warning", "WarningSoft");
+            else             SetStatus("Timer running", "Success", "SuccessSoft");
         }
         else
         {
-            StatusLabel.Text       = "○ Pending";
-            StatusBadge.Background = new SolidColorBrush(Color.FromRgb(107, 114, 128));
+            SetStatus("Pending", "TextSecondary", "InputBackground");
         }
 
         // Time
@@ -78,6 +75,13 @@ public partial class TaskDetailDialog : Window
             : "Not set";
 
         LoadAttachments(mainVm.GetAttachments(vm.Id));
+    }
+
+    private void SetStatus(string text, string foreground, string background)
+    {
+        StatusLabel.Text = text;
+        StatusLabel.WithResource(ForegroundProperty, foreground);
+        StatusBadge.WithResource(Border.BackgroundProperty, background);
     }
 
     // ─── Attachments ──────────────────────────────────────────────────────
@@ -126,9 +130,10 @@ public partial class TaskDetailDialog : Window
         }
         else
         {
-            stack.Children.Add(new TextBlock
+            stack.Children.Add(new Tasky.Controls.LineIcon
             {
-                Text = "📄", FontSize = 30,
+                Data = UiResources.Geometry("Icon.File"), Size = 36, StrokeThickness = 1.5,
+                Foreground = UiResources.Brush("TextSecondary"),
                 HorizontalAlignment = HorizontalAlignment.Center,
                 Margin = new Thickness(0, 14, 0, 4)
             });

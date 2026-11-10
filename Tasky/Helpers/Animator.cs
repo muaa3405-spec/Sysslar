@@ -39,6 +39,9 @@ public static class Animator
         var running = Running.GetOrCreateValue(target);
         if (running.Remove(property, out var stopPrevious)) stopPrevious();
 
+        // Reduce motion: jump straight to the end value
+        if (!Motion.Enabled) duration = TimeSpan.Zero;
+
         var done  = new TaskCompletionSource<bool>();
         var clock = Stopwatch.StartNew();
         var timer = new DispatcherTimer { Interval = FrameInterval };

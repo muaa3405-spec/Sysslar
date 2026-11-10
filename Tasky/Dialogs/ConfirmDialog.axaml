@@ -1,4 +1,4 @@
-<Window x:Class="Tasky.Dialogs.ConfirmDialog"
+<Window xmlns:ctrl="using:Tasky.Controls" x:Class="Tasky.Dialogs.ConfirmDialog"
         xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Sysslar"
@@ -20,8 +20,10 @@
 
         <StackPanel>
             <!-- Icon -->
-            <TextBlock x:Name="IconLabel" FontSize="36"
-                       HorizontalAlignment="Center" Margin="0,0,0,12"/>
+            <Border x:Name="IconBadge" Width="52" Height="52" CornerRadius="26"
+                    HorizontalAlignment="Center" Margin="0,0,0,14">
+                <ctrl:LineIcon x:Name="IconLabel" Size="26" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
 
             <!-- Title -->
             <TextBlock x:Name="TitleLabel"

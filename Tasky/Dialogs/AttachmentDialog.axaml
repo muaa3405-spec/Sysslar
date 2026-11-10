@@ -1,4 +1,4 @@
-<Window x:Class="Tasky.Dialogs.AttachmentDialog"
+<Window xmlns:ctrl="using:Tasky.Controls" x:Class="Tasky.Dialogs.AttachmentDialog"
         Classes="toolWindow"
         xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -31,13 +31,12 @@
         <!-- ── Paste / Drop zone (colours change in code while dragging) ── -->
         <Border Grid.Row="1" x:Name="DropZone"
                 BorderThickness="2" CornerRadius="10"
-                BorderBrush="#374151" Background="#1F2937"
+                BorderBrush="{DynamicResource BorderColor}" Background="{DynamicResource CardBackground}"
                 Cursor="Hand"
                 PointerReleased="DropZone_Click">
 
             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                <TextBlock x:Name="DropIcon" Text="📋"
-                           FontSize="32" HorizontalAlignment="Center"/>
+                <ctrl:LineIcon x:Name="DropIcon" Data="{StaticResource Icon.Clipboard}" Size="36" StrokeThickness="1.5" Foreground="{DynamicResource TextSecondary}" HorizontalAlignment="Center"/>
                 <!-- Text set in code: the paste shortcut differs by OS (Ctrl+V / ⌘V) -->
                 <TextBlock x:Name="DropTitle"
                            FontSize="13" FontWeight="SemiBold"

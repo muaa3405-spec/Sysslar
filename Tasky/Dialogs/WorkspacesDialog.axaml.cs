@@ -207,21 +207,21 @@ public partial class WorkspacesDialog : Window
             grid.Children.Add(open);
         }
 
-        var rename = IconButton("✏", "#94A3B8", "Rename", () => StartRename(workspace));
+        var rename = IconButton("Icon.Edit", "edit", "Rename", () => StartRename(workspace));
         Grid.SetColumn(rename, 3);
         grid.Children.Add(rename);
 
         // The first workspace holds Tasky's original data, and the open one is in use: neither can go.
         if (!workspace.IsDefault && !workspace.IsActive)
         {
-            var delete = IconButton("🗑", "#F87171", "Delete workspace", () => _ = DeleteAsync(workspace));
+            var delete = IconButton("Icon.Trash", "delete", "Delete workspace", () => _ = DeleteAsync(workspace));
             Grid.SetColumn(delete, 4);
             grid.Children.Add(delete);
         }
 
         return new Border
             {
-                CornerRadius = new CornerRadius(6), Padding = new Thickness(10, 8), Margin = new Thickness(0, 0, 0, 5),
+                CornerRadius = new CornerRadius(12), Padding = new Thickness(12, 10), Margin = new Thickness(0, 0, 0, 8),
                 BorderThickness = new Thickness(workspace.IsActive ? 2 : 1),
                 Child = grid,
             }
@@ -229,12 +229,13 @@ public partial class WorkspacesDialog : Window
             .WithResource(Border.BorderBrushProperty, workspace.IsActive ? "PrimaryBlue" : "BorderColor");
     }
 
-    private Button IconButton(string glyph, string color, string tip, Action onClick)
+    private Button IconButton(string icon, string hoverClass, string tip, Action onClick)
     {
         var button = new Button
         {
             Theme = UiResources.Theme("IconButton"),
-            Content = new TextBlock { Text = glyph, FontSize = 13, Foreground = new SolidColorBrush(Color.Parse(color)) },
+            Classes = { hoverClass },
+            Content = UiResources.Icon(icon),
             VerticalAlignment = VerticalAlignment.Center,
         };
         ToolTip.SetTip(button, tip);

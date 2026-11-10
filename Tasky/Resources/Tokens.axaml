@@ -1,0 +1,25 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+    <!-- Design-language tokens: use these instead of literal numbers.
+         Spacing scale 4 · 8 · 12 · 16 · 24 · 32. -->
+    <Thickness x:Key="Gutter">16</Thickness>
+    <Thickness x:Key="PagePadding">16,12,16,16</Thickness>
+    <Thickness x:Key="CardPadding">16,14</Thickness>
+    <Thickness x:Key="SectionPadding">16</Thickness>
+
+    <CornerRadius x:Key="RadiusSmall">8</CornerRadius>
+    <CornerRadius x:Key="RadiusInput">12</CornerRadius>
+    <CornerRadius x:Key="RadiusCard">14</CornerRadius>
+    <CornerRadius x:Key="RadiusPill">999</CornerRadius>
+
+    <sys:Double x:Key="FontCaption">11</sys:Double>
+    <sys:Double x:Key="FontSmall">12</sys:Double>
+    <sys:Double x:Key="FontBody">13</sys:Double>
+    <sys:Double x:Key="FontBodyLarge">14</sys:Double>
+    <sys:Double x:Key="FontTitle">16</sys:Double>
+    <sys:Double x:Key="FontHeading">20</sys:Double>
+
+    <sys:Double x:Key="ControlHeight">36</sys:Double>
+    <sys:Double x:Key="InputHeight">44</sys:Double>
+</ResourceDictionary>
