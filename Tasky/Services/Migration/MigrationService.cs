@@ -129,10 +129,15 @@ public sealed class MigrationService
     }
 
     /// <summary>Starts a fresh Tasky that waits for this one to exit, then closes this one.</summary>
-    public static void RestartTasky()
+    /// <param name="extraArgs">Passed on to the new Tasky (e.g. <see cref="Workspaces.OpenImportArg"/>).</param>
+    public static void RestartTasky(params string[] extraArgs)
     {
         var exe = Environment.ProcessPath ?? throw new InvalidOperationException("Cannot find the Tasky executable");
-        Process.Start(new ProcessStartInfo(exe, $"{WaitForPidArg} {Environment.ProcessId}") { UseShellExecute = false });
+        var start = new ProcessStartInfo(exe) { UseShellExecute = false };
+        start.ArgumentList.Add(WaitForPidArg);
+        start.ArgumentList.Add(Environment.ProcessId.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        foreach (var arg in extraArgs) start.ArgumentList.Add(arg);
+        Process.Start(start);
         App.Shutdown();
     }
 

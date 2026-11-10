@@ -16,9 +16,9 @@ Install it over your current Tasky: your tasks, notes and attachments are kept.
 
 [Code signing policy](https://github.com/muaa3405-spec/tasky#code-signing-policy) · [Privacy policy](https://github.com/muaa3405-spec/tasky#privacy-policy)
 
-### Fixed
-- **Light theme now sticks.** If you chose Light (or Auto), Tasky started dark again the next time you opened it. Your theme choice is now applied as soon as Tasky starts, and the ☀️/🌙 button in the header is remembered too.
-- **Appearance buttons overflowed** at the Large and Larger text sizes. They now move to a new line when there isn't room.
-
-### Improved
-- **Softer light theme.** Pure white is replaced by warm, off-white "silk ivory" tones that are easier on the eyes.
+### New
+- **Workspaces.** Keep separate sets of tasks, for example **Personal** and **Office**. Each workspace has its own tasks, notes, groups, reminders, time history, reports, settings and backups, and nothing mixes between them.
+  - Click the workspace name **next to the Tasky logo** to switch. Tasky restarts in the other workspace in a second or two; a running timer is paused and saved first.
+  - **New workspace…** starts one empty, or fills it straight from a Tasky migration file, so you can bring tasks from another computer in without touching what you already have.
+  - **Manage workspaces…** renames, recolours or deletes them.
+- Your existing tasks become the first workspace, **Personal** (rename it any time). Nothing about them changes or moves.

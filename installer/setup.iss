@@ -6,7 +6,7 @@
 #define AppName      "Tasky"
 ; The build passes the project version with /DAppVersion=...; this is the fallback
 #ifndef AppVersion
-  #define AppVersion "1.2.3"
+  #define AppVersion "1.3.0"
 #endif
 #define AppPublisher "Muhammad Aadil"
 #define AppURL       "https://github.com/muaa3405-spec/tasky"

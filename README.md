@@ -99,6 +99,15 @@ they hold your data. Tasky takes the opposite approach:
   No calendar access or sign-in needed. (Windows only.)
 - **App usage**, showing which apps you spend your day in
 
+### 🗂 Workspaces
+- Keep **separate workspaces**, for example **Personal** and **Office**. Each has its own tasks, notes,
+  groups, reminders, time history, reports, settings and backups, and **nothing mixes** between them
+- **Switch from the top of the window**: click the workspace name next to the Tasky logo and pick
+  another one. Tasky restarts in it in a second or two (a running timer is paused and saved first)
+- **Start a new workspace empty, or fill it from a migration file**, for example to bring your work
+  tasks from another computer in without touching your personal ones
+- Rename, recolour or delete workspaces under **Manage workspaces…** in the same menu
+
 ### 💻 Migrate to another computer
 - Move **everything** to a new PC in **one password-protected file**: open and completed
   tasks, groups, notes, reminders, task and note attachments, reports history, recycle bin and settings
@@ -168,9 +177,14 @@ Everything stays inside your user profile. Nothing is ever uploaded. On macOS th
 | Error logs | `%LocalAppData%\Tasky\logs\` |
 | Safety copy made before an import or a restore | `%LocalAppData%\Tasky\before-import\` |
 
+The table shows your first workspace. Every other workspace has the same files in its own folders:
+`%AppData%\Tasky Workspaces\<workspace id>\` and `%LocalAppData%\Tasky Workspaces\<workspace id>\`
+(macOS: `~/Library/Application Support/Tasky Workspaces/` and `~/Library/Application Support/Tasky Local Workspaces/`).
+The list of workspaces is `%AppData%\Tasky Workspaces\workspaces.json`.
+
 These folders are readable only by your user account (and administrators).
-Uninstalling Tasky does not remove them. **Remove all data** by deleting `%AppData%\Tasky`
-and `%LocalAppData%\Tasky`.
+Uninstalling Tasky does not remove them. **Remove all data** by deleting `%AppData%\Tasky`,
+`%LocalAppData%\Tasky`, `%AppData%\Tasky Workspaces` and `%LocalAppData%\Tasky Workspaces`.
 
 ### What gets recorded on your PC
 
@@ -197,8 +211,10 @@ Good to know:
 - **The password can't be recovered.** The file is encrypted with it (AES-256-GCM, key
   derived with PBKDF2-SHA256, 600,000 rounds), and nothing about the password is stored.
   A wrong password or a damaged or edited file is refused.
-- **Importing replaces the data on that PC.** Whatever Tasky had there before is kept as a
-  safety copy in `%LocalAppData%\Tasky\before-import\`.
+- **Importing replaces the data of the open workspace.** Whatever it had before is kept as a
+  safety copy in `%LocalAppData%\Tasky\before-import\`. Your other workspaces are not touched.
+  To keep the imported data apart, choose **New workspace…** next to the logo and tick
+  **Import a Tasky migration file into it**.
 - Attachments keep working even if your user name is different on the new computer, and you can
   move between Windows and macOS in either direction.
 

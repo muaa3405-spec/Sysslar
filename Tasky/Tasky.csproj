@@ -19,7 +19,7 @@
     <SelfContained>true</SelfContained>
     <RuntimeIdentifiers>win-x64;osx-x64;osx-arm64</RuntimeIdentifiers>
     <PublishSingleFile>false</PublishSingleFile>
-    <Version>1.2.3</Version>
+    <Version>1.3.0</Version>
   </PropertyGroup>
 
   <ItemGroup>

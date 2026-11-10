@@ -1,0 +1,64 @@
+<Window x:Class="Tasky.Dialogs.WorkspacesDialog"
+        xmlns:ctrl="using:Tasky.Controls"
+        Classes="toolWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Workspaces"
+        Background="{DynamicResource AppBackground}"
+        Width="420" Height="600"
+        MinHeight="420"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False">
+
+    <!-- Rows: title · intro · new/rename form · WORKSPACES label · list (stretches) · close button -->
+    <Grid Margin="20,16" RowDefinitions="Auto,Auto,Auto,Auto,*,Auto">
+
+        <TextBlock Grid.Row="0" Text="Workspaces" FontSize="16" FontWeight="SemiBold"
+                   Foreground="{DynamicResource TextPrimary}" Margin="0,0,0,6"/>
+
+        <TextBlock Grid.Row="1" Theme="{StaticResource SubText}" TextWrapping="Wrap" Margin="0,0,0,14"
+                   Text="Each workspace has its own tasks, notes, groups, reminders, time history, settings and backups. Nothing is shared between them. Switching restarts Tasky in the other workspace."/>
+
+        <!-- New workspace / rename form -->
+        <Border Grid.Row="2"
+                Background="{DynamicResource CardBackground}"
+                BorderBrush="{DynamicResource BorderColor}" BorderThickness="1"
+                CornerRadius="8" Padding="12,12" Margin="0,0,0,14">
+            <StackPanel>
+                <TextBlock x:Name="FormTitle" Text="NEW WORKSPACE" Theme="{StaticResource LabelText}" Margin="0,0,0,8"/>
+                <TextBox x:Name="NameBox" Theme="{StaticResource InputBox}"
+                         Watermark="Name, e.g. Office" Margin="0,0,0,10"
+                         KeyDown="NameBox_KeyDown" TextChanged="NameBox_TextChanged"/>
+                <TextBlock Text="COLOUR" Theme="{StaticResource LabelText}" Margin="0,0,0,6"/>
+                <WrapPanel x:Name="SwatchPanel" Margin="0,0,0,6"/>
+                <CheckBox x:Name="ImportCheck" Margin="0,0,0,4"
+                          Foreground="{DynamicResource TextPrimary}" FontSize="12">
+                    <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextPrimary}"
+                               Text="Import a Tasky migration file into it"/>
+                </CheckBox>
+                <TextBlock x:Name="FormError" Foreground="#EF4444" FontSize="12" TextWrapping="Wrap"
+                           IsVisible="False" Margin="0,2,0,4"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,6,0,0">
+                    <Button x:Name="CancelEditButton" Content="Cancel" Theme="{StaticResource SecondaryButton}"
+                            Padding="14,8" Margin="0,0,8,0" IsVisible="False" Click="CancelEdit_Click"/>
+                    <Button x:Name="SubmitButton" Theme="{StaticResource PrimaryButton}" Padding="18,8"
+                            Content="Create and open" IsEnabled="False" Click="Submit_Click"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <TextBlock Grid.Row="3" Text="YOUR WORKSPACES" Theme="{StaticResource LabelText}" Margin="0,0,0,6"/>
+
+        <ScrollViewer Grid.Row="4" VerticalScrollBarVisibility="Auto">
+            <StackPanel x:Name="WorkspaceList"/>
+        </ScrollViewer>
+
+        <Button Grid.Row="5" Content="Close"
+                Theme="{StaticResource SecondaryButton}"
+                HorizontalAlignment="Right" Margin="0,14,0,0"
+                Padding="18,8" Click="Close_Click"/>
+
+        <!-- Dotted resize grip in the bottom-right window corner, as on Windows -->
+        <ctrl:ResizeGrip Grid.RowSpan="6" Margin="0,0,-20,-16"/>
+    </Grid>
+</Window>

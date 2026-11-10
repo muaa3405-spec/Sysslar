@@ -42,13 +42,15 @@ public partial class MigrateDialog : Window
         InitializeComponent();
     }
 
-    public MigrateDialog(MigrationService migration)
+    /// <param name="startWithImport">Skip the export / import choice and open the import step.</param>
+    public MigrateDialog(MigrationService migration, bool startWithImport = false)
     {
         _migration = migration;
         InitializeComponent();
         ThemeHelper.Attach(this);
         DialogLayoutHelper.FitToWorkArea(this);
         if (OperatingSystem.IsMacOS()) IntroText.Text = MacIntroText;
+        if (startWithImport) ChooseImport_Click(this, new RoutedEventArgs());
     }
 
     // ── Navigation ────────────────────────────────────────────────────────
@@ -209,10 +211,14 @@ public partial class MigrateDialog : Window
         MigrationCounts? current = null;
         try { current = _migration.CurrentCounts(); } catch { /* treat as empty */ }
         bool hasData = current is { } c && (c.OpenTasks + c.CompletedTasks + c.Notes) > 0;
+        // With several workspaces, say which one receives the data; the others are not touched.
+        var where = Workspaces.HasSeveral ? $"the \"{Workspaces.Active.Name}\" workspace" : "this computer";
         ReplaceWarning.Text = hasData
-            ? $"⚠  This replaces the Tasky data on this computer ({current!.Summary}). " +
+            ? $"⚠  This replaces the Tasky data in {where} ({current!.Summary}). " +
               $"A safety copy of it is kept in {AppPaths.ImportBackupsFolder}."
-            : "Tasky will restart and open with this data.";
+            : Workspaces.HasSeveral
+                ? $"Tasky will restart and open \"{Workspaces.Active.Name}\" with this data. Your other workspaces are not changed."
+                : "Tasky will restart and open with this data.";
         ShowStep(ConfirmImportStep);
     }
 

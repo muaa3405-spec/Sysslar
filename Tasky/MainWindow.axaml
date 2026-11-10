@@ -13,6 +13,51 @@
     <!-- Sizes are the inside (client) area: the original 620×720 window minus the Windows frame -->
 
     <Window.Resources>
+        <!-- Workspace switcher next to the logo, and the rows of its drop-down -->
+        <ControlTheme x:Key="WorkspacePill" TargetType="Button">
+            <Setter Property="Background"      Value="{DynamicResource TagBackground}"/>
+            <Setter Property="BorderBrush"     Value="{DynamicResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding"         Value="9,4"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="Bd" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="12" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover /template/ Border#Bd">
+                <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBlue}"/>
+            </Style>
+            <Style Selector="^:pressed"><Setter Property="Opacity" Value="0.75"/></Style>
+        </ControlTheme>
+        <ControlTheme x:Key="WorkspaceMenuItem" TargetType="Button">
+            <Setter Property="Background"      Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding"         Value="10,7"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="HorizontalAlignment"        Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="Bd" Background="{TemplateBinding Background}" CornerRadius="6"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover /template/ Border#Bd">
+                <Setter Property="Background" Value="{DynamicResource TagBackground}"/>
+            </Style>
+            <Style Selector="^:pressed"><Setter Property="Opacity" Value="0.75"/></Style>
+        </ControlTheme>
         <!-- "Empty Bin" text link in the sub-page header -->
         <ControlTheme x:Key="EmptyBinLink" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
@@ -167,6 +212,15 @@
             <Setter Property="BorderBrush"     Value="{DynamicResource PrimaryBlue}"/>
             <Setter Property="BorderThickness" Value="2"/>
         </Style>
+
+        <!-- The workspace drop-down draws its own card, so the flyout itself is bare -->
+        <Style Selector="FlyoutPresenter.workspaceMenu">
+            <Setter Property="Background"      Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding"         Value="0"/>
+            <Setter Property="CornerRadius"    Value="10"/>
+            <Setter Property="MinWidth"        Value="0"/>
+        </Style>
     </Window.Styles>
 
     <!-- Zooms everything for Settings → Text size -->
@@ -193,6 +247,20 @@
                            RenderOptions.BitmapInterpolationMode="HighQuality"
                            Margin="0,0,10,0" VerticalAlignment="Center"/>
                     <TextBlock Text="Tasky" Theme="{StaticResource HeadingText}" VerticalAlignment="Center"/>
+                    <!-- Workspace switcher: each workspace (e.g. Personal, Office) has completely separate data -->
+                    <Button x:Name="WorkspaceButton" Theme="{StaticResource WorkspacePill}"
+                            Margin="10,2,0,0" VerticalAlignment="Center"
+                            ToolTip.Tip="Switch workspace" Click="WorkspaceButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse x:Name="WorkspaceDot" Width="8" Height="8" Fill="#3B82F6"
+                                     VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <TextBlock x:Name="WorkspaceNameText" FontSize="12" FontWeight="SemiBold"
+                                       MaxWidth="140" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center"/>
+                            <TextBlock Text="&#x25BE;" FontSize="11" Margin="5,0,0,0"
+                                       Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                     <!-- 🔔 Reminders — position 1 with missed-count badge -->

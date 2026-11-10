@@ -137,6 +137,7 @@ public partial class MainWindow : Window
             ? "avares://Tasky/Assets/icon.ico"
             : "avares://Tasky/Assets/tasky-logo.png")));
         ApplyPlatformTexts();
+        RefreshWorkspaceHeader();
         PopulateSoundPicker();
         InitTrayIcon();
         RegisterKeyboardShortcuts();
@@ -342,7 +343,7 @@ public partial class MainWindow : Window
     {
         _trayIcon = PlatformServices.CreateTray();
         _trayIcon.OpenRequested += ShowFromTray;
-        _trayIcon.Show("Tasky - Task Manager",
+        _trayIcon.Show(Workspaces.HasSeveral ? $"Tasky - {Workspaces.Active.Name}" : "Tasky - Task Manager",
         [
             new TrayMenuItem("Open Tasky", ShowFromTray),
             new TrayMenuItem("Quick Add",  OpenQuickAdd),

@@ -16,9 +16,10 @@ public sealed class SingleInstanceService : IDisposable
     private const string ActivateEventBaseName = "Tasky_SingleInstance_Activate_v1";
 
     // A sandboxed copy (TASKY_DATA_ROOT set) is a separate "profile" and may run alongside the real one.
+    // Workspaces are not: one Tasky runs at a time, whichever workspace it has open.
     private static string Scope => Environment.GetEnvironmentVariable(AppPaths.DataRootOverrideVariable) is { Length: > 0 }
         ? "_" + Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(
-              System.Text.Encoding.UTF8.GetBytes(AppPaths.DataFolder.ToLowerInvariant())))[..16]
+              System.Text.Encoding.UTF8.GetBytes(AppPaths.DefaultDataFolder.ToLowerInvariant())))[..16]
         : string.Empty;
 
     private static string MutexName         => MutexBaseName + Scope;

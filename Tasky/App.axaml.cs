@@ -62,7 +62,7 @@ public partial class App : Application
 
         try
         {
-            StartTasky();
+            StartTasky(args);
         }
         catch (Exception ex)
         {
@@ -74,7 +74,7 @@ public partial class App : Application
         base.OnFrameworkInitializationCompleted();
     }
 
-    private void StartTasky()
+    private void StartTasky(string[] args)
     {
         // Both must run before anything opens the data files.
         var importResult  = ApplyPendingImport();
@@ -147,6 +147,7 @@ public partial class App : Application
             SmokeTest.ShowReminderIfRequested();
             SmokeTest.VisitAllPagesIfRequested(mainWindow);
             mainWindow.ShowWelcomeTipsOnFirstStart();
+            if (args.Contains(Workspaces.OpenImportArg)) mainWindow.OpenImportForNewWorkspace();
             _ = mainWindow.CheckForUpdatesIfDueAsync();
         }
         mainWindow.Opened += OnFirstOpened;
