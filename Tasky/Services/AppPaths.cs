@@ -63,6 +63,14 @@ public static class AppPaths
         ? DefaultLocalFolder
         : Path.Combine(WorkspacesLocalFolder, workspaceId);
 
+    /// <summary>Where a confirmed import waits until that workspace next opens.</summary>
+    public static string PendingImportFolderFor(string workspaceId) => Path.Combine(LocalFolderFor(workspaceId), "pending-import");
+
+    /// <summary>Safety copies of a workspace's data from before an import replaced it.</summary>
+    public static string ImportBackupsFolderFor(string workspaceId) => Path.Combine(LocalFolderFor(workspaceId), "before-import");
+
+    public static string DatabaseFileFor(string workspaceId) => Path.Combine(DataFolderFor(workspaceId), DatabaseFileName);
+
     // ── The open workspace ────────────────────────────────────────────────
 
     /// <summary>User data of the open workspace: database, settings, attachments.</summary>
@@ -84,8 +92,8 @@ public static class AppPaths
     public static string LocalFolder => LocalFolderFor(Workspaces.Active.Id);
 
     public static string LogsFolder          => Path.Combine(LocalFolder, "logs");
-    public static string PendingImportFolder => Path.Combine(LocalFolder, "pending-import");
-    public static string ImportBackupsFolder => Path.Combine(LocalFolder, "before-import");
+    public static string PendingImportFolder => PendingImportFolderFor(Workspaces.Active.Id);
+    public static string ImportBackupsFolder => ImportBackupsFolderFor(Workspaces.Active.Id);
     public static string TempFolder          => Path.Combine(LocalFolder, "temp");
     public static string BackupsFolder       => Path.Combine(LocalFolder, "backups");
     public static string PendingRestoreFile  => Path.Combine(LocalFolder, "pending-restore.txt");

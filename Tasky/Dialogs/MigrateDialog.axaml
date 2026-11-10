@@ -85,16 +85,58 @@
             <TextBox x:Name="ExportPassword" Theme="{StaticResource PasswordInput}" Margin="0,0,0,10"
                      TextChanged="ExportPassword_Changed"/>
             <TextBlock Text="CONFIRM PASSWORD" Theme="{StaticResource LabelText}"/>
+            <!-- Pasting is blocked here so the password is really typed twice -->
             <TextBox x:Name="ExportPasswordConfirm" Theme="{StaticResource PasswordInput}" Margin="0,0,0,6"
                      TextChanged="ExportPassword_Changed"/>
-            <TextBlock x:Name="ExportPasswordHint" Theme="{StaticResource SubText}" TextWrapping="Wrap"
-                       Margin="0,0,0,12"/>
+            <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+                <TextBlock x:Name="ExportPasswordHint" Theme="{StaticResource SubText}" TextWrapping="Wrap"
+                           VerticalAlignment="Center"/>
+                <CheckBox x:Name="ExportShowPassword" Grid.Column="1" Margin="10,0,0,0" FontSize="12"
+                          IsCheckedChanged="ExportShowPassword_Changed">
+                    <TextBlock Text="Show password" Foreground="{DynamicResource TextPrimary}"/>
+                </CheckBox>
+            </Grid>
+
+            <!-- Optional recovery key -->
+            <Border Background="{DynamicResource CardBackground}" BorderBrush="{DynamicResource BorderColor}"
+                    BorderThickness="1" CornerRadius="8" Padding="14,10" Margin="0,0,0,12">
+                <StackPanel>
+                    <CheckBox x:Name="RecoveryKeyCheck" IsCheckedChanged="RecoveryKeyCheck_Changed">
+                        <StackPanel>
+                            <TextBlock Text="Also create a recovery key (optional)" FontSize="13"
+                                       Foreground="{DynamicResource TextPrimary}"/>
+                            <TextBlock Theme="{StaticResource SubText}" TextWrapping="Wrap"
+                                       Text="A second key that opens the file if you forget the password."/>
+                        </StackPanel>
+                    </CheckBox>
+                    <StackPanel x:Name="RecoveryKeyPanel" IsVisible="False" Margin="0,10,0,0">
+                        <TextBlock Text="YOUR RECOVERY KEY" Theme="{StaticResource LabelText}"/>
+                        <Border Background="{DynamicResource InputBackground}" BorderBrush="{DynamicResource BorderColor}"
+                                BorderThickness="1" CornerRadius="6" Padding="10,8" Margin="0,0,0,8">
+                            <SelectableTextBlock x:Name="RecoveryKeyText" FontFamily="{StaticResource MonoFont}"
+                                                 FontSize="15" HorizontalAlignment="Center"
+                                                 Foreground="{DynamicResource TextPrimary}"/>
+                        </Border>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <Button Content="Copy" Theme="{StaticResource SecondaryButton}" Margin="0,0,8,0"
+                                    Click="CopyRecoveryKey_Click"/>
+                            <Button Content="Save as text file…" Theme="{StaticResource SecondaryButton}"
+                                    Click="SaveRecoveryKey_Click"/>
+                        </StackPanel>
+                        <TextBlock Theme="{StaticResource SubText}" TextWrapping="Wrap"
+                                   Text="Print it, write it down or keep it in a password manager. Don't keep it next to the migration file: anyone with both can open it."/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
 
             <Border Background="#1AF59E0B" BorderBrush="#F59E0B" BorderThickness="1"
-                    CornerRadius="6" Padding="12,8" Margin="0,0,0,8">
-                <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource TextPrimary}"
-                           Text="⚠  Remember this password. The file is encrypted with it and cannot be opened without it — there is no way to recover a forgotten password."/>
+                    CornerRadius="6" Padding="12,8" Margin="0,0,0,10">
+                <TextBlock x:Name="ExportWarning" TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource TextPrimary}"/>
             </Border>
+            <CheckBox x:Name="ExportAcknowledge" IsCheckedChanged="ExportAcknowledge_Changed">
+                <TextBlock x:Name="ExportAcknowledgeText" TextWrapping="Wrap" FontSize="12"
+                           Foreground="{DynamicResource TextPrimary}"/>
+            </CheckBox>
             <TextBlock x:Name="ExportError" Foreground="#EF4444" FontSize="12" TextWrapping="Wrap"
                        IsVisible="False" Margin="0,4,0,0"/>
 
@@ -124,6 +166,14 @@
             <TextBlock Text="PASSWORD" Theme="{StaticResource LabelText}"/>
             <TextBox x:Name="ImportPassword" Theme="{StaticResource PasswordInput}" Margin="0,0,0,6"
                      TextChanged="ImportInput_Changed" KeyDown="ImportPassword_KeyDown"/>
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Theme="{StaticResource SubText}" TextWrapping="Wrap" VerticalAlignment="Center"
+                           Text="Forgot it? Type the recovery key instead, if you made one."/>
+                <CheckBox x:Name="ImportShowPassword" Grid.Column="1" Margin="10,0,0,0" FontSize="12"
+                          IsCheckedChanged="ImportShowPassword_Changed">
+                    <TextBlock Text="Show" Foreground="{DynamicResource TextPrimary}"/>
+                </CheckBox>
+            </Grid>
             <TextBlock x:Name="ImportError" Foreground="#EF4444" FontSize="12" TextWrapping="Wrap"
                        IsVisible="False" Margin="0,4,0,0"/>
 
@@ -148,6 +198,19 @@
                 </StackPanel>
             </Border>
 
+            <TextBlock Text="IMPORT INTO WORKSPACE" Theme="{StaticResource LabelText}"/>
+            <!-- HorizontalContentAlignment="Left" keeps dot+name left-aligned in the picker -->
+            <ComboBox x:Name="WorkspacePicker" Theme="{StaticResource ThemedComboBox}"
+                      HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                      Margin="0,0,0,10" SelectionChanged="WorkspacePicker_Changed"/>
+            <StackPanel x:Name="NewWorkspacePanel" IsVisible="False" Margin="0,0,0,10">
+                <TextBlock Text="NEW WORKSPACE NAME" Theme="{StaticResource LabelText}"/>
+                <TextBox x:Name="NewWorkspaceName" Theme="{StaticResource InputBox}"
+                         Watermark="e.g. Office" TextChanged="NewWorkspaceName_Changed"/>
+                <TextBlock x:Name="NewWorkspaceHint" Foreground="#EF4444" FontSize="12" TextWrapping="Wrap"
+                           IsVisible="False" Margin="0,4,0,0"/>
+            </StackPanel>
+
             <Border Background="#1AF59E0B" BorderBrush="#F59E0B" BorderThickness="1"
                     CornerRadius="6" Padding="12,8">
                 <TextBlock x:Name="ReplaceWarning" TextWrapping="Wrap" FontSize="12"
@@ -156,7 +219,7 @@
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
                 <Button Content="Cancel" Theme="{StaticResource SecondaryButton}" Margin="0,0,10,0" Click="CancelImport_Click"/>
-                <Button Content="Import and restart Sysslar" Theme="{StaticResource PrimaryButton}" Click="ConfirmImport_Click"/>
+                <Button x:Name="ConfirmImportButton" Content="Import and restart Sysslar" Theme="{StaticResource PrimaryButton}" Click="ConfirmImport_Click"/>
             </StackPanel>
         </StackPanel>
 
@@ -175,6 +238,9 @@
                        Foreground="{DynamicResource TextPrimary}" Margin="0,0,0,10"/>
             <TextBlock x:Name="DoneLabel" TextWrapping="Wrap" FontSize="13"
                        Foreground="{DynamicResource TextPrimary}" Margin="0,0,0,10"/>
+            <TextBlock x:Name="DoneRecoveryNote" TextWrapping="Wrap" FontSize="13" IsVisible="False"
+                       Foreground="{DynamicResource TextPrimary}" Margin="0,0,0,10"
+                       Text="🔑  If you forget the password, the recovery key opens the file instead. Keep the two apart."/>
             <TextBlock Theme="{StaticResource SubText}" TextWrapping="Wrap"
                        Text="Copy it to the new computer (USB stick, network drive…), install Sysslar there and choose Settings → Migrate to another computer → Import."/>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">

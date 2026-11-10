@@ -29,7 +29,8 @@ public sealed class MigrationService
 
     // ── Export ────────────────────────────────────────────────────────────
 
-    public void Export(string destinationFile, string password)
+    /// <param name="recoveryKey">Optional recovery key that opens the file when the password is forgotten.</param>
+    public void Export(string destinationFile, string password, string? recoveryKey = null)
     {
         var work = NewWorkFolder("export");
         try
@@ -48,7 +49,7 @@ public sealed class MigrationService
             var partial = destinationFile + ".partial";
             using (var input  = File.OpenRead(zip))
             using (var output = new FileStream(partial, FileMode.Create, FileAccess.Write))
-                MigrationCrypto.Encrypt(input, output, password);
+                MigrationCrypto.Encrypt(input, output, password, recoveryKey);
             File.Move(partial, destinationFile, overwrite: true);
         }
         finally
@@ -60,6 +61,7 @@ public sealed class MigrationService
     // ── Import ────────────────────────────────────────────────────────────
 
     /// <summary>Decrypts and checks a migration file. Nothing on this computer is changed yet.</summary>
+    /// <param name="password">The password, or the file's recovery key.</param>
     /// <exception cref="MigrationFileException">Wrong password or unusable file.</exception>
     public MigrationManifest StageImport(string sourceFile, string password)
     {
@@ -88,9 +90,29 @@ public sealed class MigrationService
         }
     }
 
-    /// <summary>Confirms the staged import; it is applied the next time Tasky starts.</summary>
-    public void ConfirmStagedImport()
-        => File.WriteAllText(Path.Combine(AppPaths.PendingImportFolder, ReadyMarker), DateTime.Now.ToString("o"));
+    /// <summary>What a workspace holds now, or null when it has no database yet (a new, never opened one).</summary>
+    public static MigrationCounts? CountsFor(string workspaceId)
+    {
+        var file = AppPaths.DatabaseFileFor(workspaceId);
+        return File.Exists(file) ? DatabaseService.CountRecords(file) : null;
+    }
+
+    /// <summary>
+    /// Confirms the staged import into <paramref name="workspaceId"/>; it is applied the next time
+    /// Tasky starts in that workspace. Staging happens in the open workspace, so for another
+    /// workspace the staged files are moved over to it first.
+    /// </summary>
+    public void ConfirmStagedImport(string workspaceId)
+    {
+        var target = AppPaths.PendingImportFolderFor(workspaceId);
+        if (workspaceId != Workspaces.Active.Id)
+        {
+            TryDeleteFolder(target);
+            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+            MoveFolder(AppPaths.PendingImportFolder, target);
+        }
+        File.WriteAllText(Path.Combine(target, ReadyMarker), DateTime.Now.ToString("o"));
+    }
 
     public void CancelStagedImport() => TryDeleteFolder(AppPaths.PendingImportFolder);
 

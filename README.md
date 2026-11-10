@@ -202,16 +202,23 @@ Both stay in the local database above and never leave your computer.
 ## Moving to a new computer
 
 1. On the old PC: **Settings → Migrate to another computer → Open → Export from this computer**.
-2. Create a password (at least 8 characters) and choose where to save the file
-   (for example a USB stick). It is named like `Sysslar-migration-2026-10-21.taskymigration`.
+2. Create a password (at least 8 characters, typed twice — pasting into the confirm field is
+   turned off, and **Show password** lets you check it). Optionally tick **Also create a recovery key**
+   and save the key it shows. Then choose where to save the file (for example a USB stick).
+   It is named like `Sysslar-migration-2026-10-21.taskymigration`.
 3. Install Sysslar on the new PC and open **Settings → Migrate to another computer → Import on this computer**.
-4. Pick the file, enter the password, review what's inside and click **Import and restart Sysslar**.
+4. Pick the file, enter the password (or the recovery key), review what's inside and click
+   **Import and restart Sysslar**.
 
 Good to know:
 
 - **The password can't be recovered.** The file is encrypted with it (AES-256-GCM, key
   derived with PBKDF2-SHA256, 600,000 rounds), and nothing about the password is stored.
   A wrong password or a damaged or edited file is refused.
+- **A recovery key is your only fallback.** If you made one at export, type it in the password
+  field instead (dashes and capitals don't matter). Keep it away from the file: anyone with both
+  can open it. Files with a recovery key need this Sysslar version or newer to open; files
+  without one still open in older versions.
 - **Importing replaces the data of the open workspace.** Whatever it had before is kept as a
   safety copy in `%LocalAppData%\Tasky\before-import\`. Your other workspaces are not touched.
   To keep the imported data apart, choose **New workspace…** next to the logo and tick
