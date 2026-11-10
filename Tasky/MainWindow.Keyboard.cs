@@ -37,6 +37,15 @@ public partial class MainWindow
             case Key.F:
                 FocusTaskSearch();
                 return true;
+            case Key.OemPlus or Key.Add:
+                StepZoom(+1);
+                return true;
+            case Key.OemMinus or Key.Subtract:
+                StepZoom(-1);
+                return true;
+            case Key.D0 or Key.NumPad0:
+                SetZoom(TextSizes.Default);
+                return true;
             case Key.OemComma:
                 NavigateTo(AppPage.Settings);
                 return true;

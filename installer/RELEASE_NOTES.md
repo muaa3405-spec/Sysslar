@@ -16,6 +16,14 @@ Install it over your current Sysslar: your tasks, notes and attachments are kept
 
 [Code signing policy](https://github.com/muaa3405-spec/tasky#code-signing-policy) · [Privacy policy](https://github.com/muaa3405-spec/tasky#privacy-policy)
 
+### New in 1.4.1
+- **Fits small screens.** The window now always fits the screen it opens on, so its title bar can't end up off-screen on a small laptop display.
+- **Zoom.** Settings → Appearance → **Zoom** makes everything smaller or larger (80–130 %), also with **Ctrl/⌘ −**, **+** and **0**. On Windows, Sysslar now starts a little smaller (90 %).
+- **Remembers your choices.** Window size and position, zoom, All / Today / This Week, the group filter, the Completed sort order and the Stats filters are kept between launches.
+- **Shorter task cards.** The attachment and reminder counts sit under the action buttons instead of on a line of their own.
+- **Narrow windows.** All / Today / This Week stays next to **New Task** and shrinks to fit.
+- **Tidier Settings.** The Data section is one clean card: Recycle Bin, Backups, Move to another computer, and Export & import.
+
 ### A fresh new look
 - **Modern design.** A new navy dark theme and a clean light theme, with one design language across every page and dialog: rounded cards, pill buttons and a single set of line icons in place of emoji.
 - **Calmer task cards.** Action buttons are grey until you point at them, then show their colour. Cards brighten slightly on hover.

@@ -31,10 +31,7 @@ public partial class MainWindow
     /// <summary>Called by <see cref="LoadSettingsPage"/>.</summary>
     private void LoadDataToolsSettings()
     {
-        var scale = TextSizes.Clamp(App.Settings.Current.TextScale);
-        TextSizeNormal.IsChecked = scale == TextSizes.Normal;
-        TextSizeLarge.IsChecked  = scale == TextSizes.Large;
-        TextSizeLarger.IsChecked = scale == TextSizes.Larger;
+        UpdateZoomControls();
 
         CheckUpdatesToggle.IsChecked = App.Settings.Current.CheckForUpdates;
         ShowUpdateStatus();
@@ -46,12 +43,31 @@ public partial class MainWindow
     private const double BaseMinWidth  = 444;
     private const double BaseMinHeight = 421;
 
-    private void TextSize_Click(object? sender, RoutedEventArgs e)
+    private void ZoomOut_Click(object? sender, RoutedEventArgs e)   => StepZoom(-1);
+    private void ZoomIn_Click(object? sender, RoutedEventArgs e)    => StepZoom(+1);
+    private void ZoomReset_Click(object? sender, RoutedEventArgs e) => SetZoom(TextSizes.Default);
+
+    /// <summary>One step smaller (−1) or larger (+1): Settings buttons and Ctrl/⌘ − and +.</summary>
+    private void StepZoom(int direction) => SetZoom(TextSizes.Step(App.Settings.Current.EffectiveZoom, direction));
+
+    /// <summary>Applies and remembers a zoom.</summary>
+    private void SetZoom(double scale)
     {
-        if ((sender as RadioButton)?.Tag is not double scale) return;
-        App.Settings.Current.TextScale = scale;
+        scale = TextSizes.Clamp(scale);
+        App.Settings.Current.Zoom = scale;
         App.Settings.Save();
         ApplyTextScale(scale);
+        FitToScreen();
+        UpdateZoomControls();
+    }
+
+    private void UpdateZoomControls()
+    {
+        double zoom = App.Settings.Current.EffectiveZoom;
+        ZoomLabel.Text        = TextSizes.Label(zoom);
+        ZoomOutBtn.IsEnabled  = zoom > TextSizes.Min + 0.001;
+        ZoomInBtn.IsEnabled   = zoom < TextSizes.Max - 0.001;
+        ZoomResetBtn.IsVisible = Math.Abs(zoom - TextSizes.Default) > 0.001;
     }
 
     /// <summary>Zooms the whole window so text, icons and spacing grow together.</summary>
@@ -90,9 +106,8 @@ public partial class MainWindow
         BackupPicker.DisplayMemberBinding = new Avalonia.Data.Binding(nameof(BackupService.BackupInfo.Label));
         BackupPicker.SelectedIndex     = backups.Count > 0 ? 0 : -1;
         BackupStatusText.Text = backups.Count == 0
-            ? $"Sysslar saves a copy of your tasks and settings every day and keeps the last {BackupService.KeepCount}."
-            : $"Every day, the last {BackupService.KeepCount} are kept. Newest: {backups[0].Label}. " +
-              "Attachment files stay in place and are not copied.";
+            ? $"Daily, last {BackupService.KeepCount} kept"
+            : $"Daily, last {BackupService.KeepCount} kept · newest {backups[0].Label}";
     }
 
     private async void BackUpNow_Click(object? sender, RoutedEventArgs e)

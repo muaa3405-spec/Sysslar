@@ -249,17 +249,26 @@
             <Setter Property="IsVisible" Value="True"/>
         </Style>
         <Style Selector="ctrl|SegmentedBar#FilterBar">
-            <Setter Property="Grid.Column"         Value="2"/>
+            <Setter Property="Grid.Column"         Value="1"/>
             <Setter Property="Margin"              Value="12,0,0,0"/>
             <Setter Property="HorizontalAlignment" Value="Right"/>
         </Style>
+        <!-- Narrow: the view switch stays on the toolbar row and shrinks to fit -->
         <Style Selector="Grid#RootGrid.compact ctrl|SegmentedBar#FilterBar">
-            <Setter Property="Grid.Row"        Value="1"/>
-            <Setter Property="Grid.Column"     Value="0"/>
-            <Setter Property="Grid.ColumnSpan" Value="4"/>
-            <Setter Property="Margin"          Value="0,12,0,0"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="Margin"              Value="10,0,0,0"/>
         </Style>
+        <Style Selector="Grid#RootGrid.compact ctrl|SegmentedBar#FilterBar > RadioButton">
+            <Setter Property="Padding"  Value="4,0"/>
+            <Setter Property="FontSize" Value="12.5"/>
+        </Style>
+        <Style Selector="Button#AddToggleBtn">
+            <Setter Property="Padding" Value="16,9"/>
+        </Style>
+        <Style Selector="Grid#RootGrid.compact Button#AddToggleBtn">
+            <Setter Property="Padding" Value="12,9"/>
+        </Style>
+
         <!-- Stats: 4 tiles in a row, 2×2 when narrow; card filters under the title; charts stacked -->
         <Style Selector="UniformGrid.statTiles"><Setter Property="Columns" Value="4"/></Style>
         <Style Selector="Grid#RootGrid.compact UniformGrid.statTiles"><Setter Property="Columns" Value="2"/></Style>
@@ -295,6 +304,47 @@
         <Style Selector="Grid#RootGrid.compact :is(Control).appCard">
             <Setter Property="Grid.Column" Value="0"/>
             <Setter Property="Grid.Row"    Value="3"/>
+        </Style>
+
+        <!-- Settings rows: icon tile · title · one line · action, separated by thin dividers -->
+        <Style Selector=":is(Panel).settingsRow"><Setter Property="Margin" Value="16,12"/></Style>
+        <Style Selector="Border.iconTile">
+            <Setter Property="Width"        Value="36"/>
+            <Setter Property="Height"       Value="36"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Background"   Value="{DynamicResource AccentSoft}"/>
+            <Setter Property="Margin"       Value="0,0,12,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Border.iconTile > ctrl|LineIcon">
+            <Setter Property="Foreground"          Value="{DynamicResource PrimaryBlue}"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment"   Value="Center"/>
+        </Style>
+        <Style Selector="StackPanel.rowText">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin"            Value="0,0,12,0"/>
+        </Style>
+        <Style Selector="TextBlock.rowTitle">
+            <Setter Property="FontSize"     Value="13"/>
+            <Setter Property="FontWeight"   Value="SemiBold"/>
+            <Setter Property="Foreground"   Value="{DynamicResource TextPrimary}"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+        </Style>
+        <Style Selector="TextBlock.rowSub">
+            <Setter Property="FontSize"     Value="12"/>
+            <Setter Property="Foreground"   Value="{DynamicResource TextSecondary}"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+            <Setter Property="Margin"       Value="0,2,0,0"/>
+        </Style>
+        <Style Selector="Border.rowDivider">
+            <Setter Property="Height"     Value="1"/>
+            <Setter Property="Margin"     Value="64,0,0,0"/>
+            <Setter Property="Background" Value="{DynamicResource BorderColor}"/>
+        </Style>
+        <Style Selector="Button.small">
+            <Setter Property="Padding"  Value="14,6"/>
+            <Setter Property="FontSize" Value="12"/>
         </Style>
 
         <Style Selector="Grid#RootGrid.narrow TextBlock#BrandText">
@@ -414,9 +464,9 @@
         <!-- TOOLBAR + ADD FORM -->
         <Border x:Name="AddPanelBorder" Grid.Row="1" Padding="16,16,16,0">
             <StackPanel>
-                <Grid x:Name="ToolbarGrid" ColumnDefinitions="Auto,*,Auto,Auto" RowDefinitions="Auto,Auto">
+                <Grid x:Name="ToolbarGrid" ColumnDefinitions="Auto,*,Auto">
                     <Button Grid.Column="0" x:Name="AddToggleBtn" VerticalAlignment="Center"
-                            Theme="{StaticResource PrimaryButton}" Padding="16,9" Click="AddToggle_Click">
+                            Theme="{StaticResource PrimaryButton}" Click="AddToggle_Click">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <ctrl:LineIcon x:Name="AddToggleIcon" Data="{StaticResource Icon.Plus}" Size="16" StrokeThickness="2.2"
                                            VerticalAlignment="Center"/>
@@ -436,7 +486,7 @@
                                      IsChecked="{Binding FilterThisWeek, Mode=OneWay}"
                                      Click="Filter_ThisWeek_Click" GroupName="TF"/>
                     </ctrl:SegmentedBar>
-                    <Button Grid.Column="3" Theme="{StaticResource IconButton}" Classes="timer"
+                    <Button Grid.Column="2" Theme="{StaticResource IconButton}" Classes="timer"
                             ToolTip.Tip="Completed Tasks" Click="Completed_Click"
                             VerticalAlignment="Center" Margin="6,0,0,0">
                         <ctrl:LineIcon Data="{StaticResource Icon.Done}" Size="20"/>
@@ -596,7 +646,7 @@
                                                 Background="{Binding GroupBrush}"
                                                 ToolTip.Tip="{Binding GroupBadge}"/>
 
-                                        <Grid Margin="16,14,10,14" ColumnDefinitions="Auto,Auto,*,Auto" RowDefinitions="Auto,Auto">
+                                        <Grid Margin="16,14,10,14" ColumnDefinitions="Auto,Auto,*,Auto">
                                             <CheckBox Grid.Column="0" IsChecked="{Binding IsCompleted, Mode=OneWay}"
                                                       Theme="{StaticResource CheckmarkBox}"
                                                       VerticalAlignment="Top" Margin="0,2,12,0"
@@ -607,7 +657,7 @@
                                                           Click="ActiveToggle_Click"
                                                           ToolTip.Tip="{Binding IsActive, Converter={x:Static helpers:TimerTips.Converter}}"
                                                           VerticalAlignment="Top" Margin="0,0,12,0"/>
-                                            <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,8,0">
+                                            <StackPanel Grid.Column="2" VerticalAlignment="Top" Margin="0,3,8,0">
                                                 <WrapPanel ItemSpacing="8" LineSpacing="4">
                                                     <TextBlock Text="{Binding TaskNumberDisplay}"
                                                                FontSize="14" VerticalAlignment="Center"
@@ -668,9 +718,10 @@
                                                 </StackPanel>
                                             </StackPanel>
 
+                                            <!-- Right column: actions, then the attachment / reminder counts -->
+                                            <StackPanel Grid.Column="3" VerticalAlignment="Top">
                                             <!-- Actions: grey, coloured on hover -->
-                                            <StackPanel Grid.Column="3" Classes="cardActions" Orientation="Horizontal"
-                                                        VerticalAlignment="Top" Spacing="2">
+                                            <StackPanel Classes="cardActions" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="2">
                                                 <Button Theme="{StaticResource IconButton}" Classes="timer" ToolTip.Tip="Pause / Resume"
                                                         Click="Pause_Click" IsVisible="{Binding IsActive}">
                                                     <ctrl:LineIcon Classes="pauseIcon" Classes.paused="{Binding IsPaused}"/>
@@ -697,16 +748,14 @@
                                                 </Button>
                                             </StackPanel>
                                             <!-- Narrow window: the same actions behind ⋯ -->
-                                            <Button Grid.Column="3" Theme="{StaticResource IconButton}" Classes="cardMore"
-                                                    VerticalAlignment="Top" ToolTip.Tip="Actions"
+                                            <Button Theme="{StaticResource IconButton}" Classes="cardMore" HorizontalAlignment="Right" ToolTip.Tip="Actions"
                                                     Click="CardMore_Click">
                                                 <ctrl:LineIcon Data="{StaticResource Icon.Dots}" IsFilled="True"/>
                                             </Button>
 
-                                            <!-- Attachment + reminder counts, bottom right -->
-                                            <StackPanel Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2"
-                                                        Orientation="Horizontal" HorizontalAlignment="Right"
-                                                        Margin="0,8,6,0" Spacing="14">
+                                            <!-- Attachment + reminder counts, right under the actions (no extra line) -->
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
+                                                        Margin="0,2,6,0" Spacing="12">
                                                 <StackPanel.IsVisible>
                                                     <MultiBinding Converter="{x:Static BoolConverters.Or}">
                                                         <Binding Path="HasAttachments"/>
@@ -727,6 +776,7 @@
                                                     <TextBlock Text="{Binding ReminderCountDisplay}" FontSize="12"
                                                                Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center"/>
                                                 </StackPanel>
+                                            </StackPanel>
                                             </StackPanel>
                                         </Grid>
                                     </Grid>
@@ -1443,18 +1493,27 @@
                                                  Theme="{StaticResource FilterChip}" Content="Auto"
                                                  Margin="0,0,6,6" Click="ThemeSetting_Click" Tag="{x:Static helpers:ThemePreferences.Auto}"/>
                                 </WrapPanel>
-                                <TextBlock Text="Text size" FontSize="11"
+                                <TextBlock Text="Zoom" FontSize="11"
                                            Foreground="{DynamicResource TextSecondary}" Margin="0,4,0,6"/>
-                                <WrapPanel Margin="0,0,0,-6">
-                                    <RadioButton x:Name="TextSizeNormal" GroupName="TextSize"
-                                                 Theme="{StaticResource FilterChip}" Content="Normal"
-                                                 Margin="0,0,6,6" Click="TextSize_Click" Tag="{x:Static helpers:TextSizes.Normal}"/>
-                                    <RadioButton x:Name="TextSizeLarge" GroupName="TextSize"
-                                                 Theme="{StaticResource FilterChip}" Content="Large"
-                                                 Margin="0,0,6,6" Click="TextSize_Click" Tag="{x:Static helpers:TextSizes.Large}"/>
-                                    <RadioButton x:Name="TextSizeLarger" GroupName="TextSize"
-                                                 Theme="{StaticResource FilterChip}" Content="Larger"
-                                                 Margin="0,0,6,6" Click="TextSize_Click" Tag="{x:Static helpers:TextSizes.Larger}"/>
+                                <!-- − 90 % + : makes the whole window smaller or larger (Ctrl/⌘ − + 0) -->
+                                <WrapPanel ItemSpacing="8" LineSpacing="6">
+                                    <Border Background="{DynamicResource InputBackground}" CornerRadius="999" Padding="4">
+                                        <StackPanel Orientation="Horizontal" Spacing="2">
+                                            <Button x:Name="ZoomOutBtn" Theme="{StaticResource IconButton}" Classes="accent"
+                                                    CornerRadius="999" ToolTip.Tip="Smaller (Ctrl/⌘ −)" Click="ZoomOut_Click">
+                                                <ctrl:LineIcon Data="{StaticResource Icon.Minus}" Size="16"/>
+                                            </Button>
+                                            <TextBlock x:Name="ZoomLabel" Width="56" TextAlignment="Center" VerticalAlignment="Center"
+                                                       FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimary}"/>
+                                            <Button x:Name="ZoomInBtn" Theme="{StaticResource IconButton}" Classes="accent"
+                                                    ToolTip.Tip="Larger (Ctrl/⌘ +)" Click="ZoomIn_Click">
+                                                <ctrl:LineIcon Data="{StaticResource Icon.Plus}" Size="16"/>
+                                            </Button>
+                                        </StackPanel>
+                                    </Border>
+                                    <Button x:Name="ZoomResetBtn" Theme="{StaticResource GhostButton}" Content="Reset"
+                                            VerticalAlignment="Center" ToolTip.Tip="Back to the default size (Ctrl/⌘ 0)"
+                                            Click="ZoomReset_Click"/>
                                 </WrapPanel>
                             </StackPanel>
                         </Border>
@@ -1586,7 +1645,6 @@
                     </Border>
 
                     <!-- ROW 4: Keyboard shortcuts (same list as the "?" sheet), collapsed until opened -->
-                    <TextBlock Text="KEYBOARD SHORTCUTS" Theme="{StaticResource LabelText}" Margin="0,0,0,6"/>
                     <Border Theme="{StaticResource SectionCard}" Padding="0" Margin="0,0,0,14">
                         <StackPanel>
                             <ToggleButton x:Name="ShortcutsToggle" Theme="{StaticResource CollapsibleHeader}"
@@ -1609,132 +1667,114 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- ROW 5: Data / Recycle Bin + Meeting History -->
+                    <!-- ROW 5: Data: one grouped card, a row per tool (icon tile · title · one line · action) -->
                     <TextBlock Text="DATA" Theme="{StaticResource LabelText}" Margin="0,0,0,6"/>
-                    <Button Click="OpenTrash_Click" Theme="{StaticResource RecycleBinCardButton}"/>
-
-                    <!-- Clear meeting history -->
-                    <Border x:Name="MeetingHistoryCard" Theme="{StaticResource SectionCard}" Padding="16,14" Margin="0,8,0,0">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <ctrl:LineIcon Grid.Column="0" Data="{StaticResource Icon.Video}" Size="20" Foreground="{DynamicResource IconMuted}"
-                                       VerticalAlignment="Center" Margin="0,0,12,0"/>
-                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                <TextBlock Text="Meeting History" FontSize="13" FontWeight="SemiBold"
-                                           Foreground="{DynamicResource TextPrimary}"/>
-                                <TextBlock Text="Clear all auto-detected meeting sessions"
-                                           Theme="{StaticResource SubText}" Margin="0,1,0,0"/>
-                            </StackPanel>
-                            <Button Grid.Column="2" x:Name="ClearMeetingHistoryBtn"
-                                    Theme="{StaticResource SecondaryButton}"
-                                    Padding="12,6" Click="ClearMeetingHistory_Click"
-                                    VerticalAlignment="Center">
-                                <TextBlock Text="Clear" FontSize="12"/>
-                            </Button>
-                        </Grid>
-                    </Border>
-
-                    <!-- Migrate to another computer (encrypted export / import) -->
-                    <Border Theme="{StaticResource SectionCard}" Padding="16,14" Margin="0,8,0,0">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <ctrl:LineIcon Grid.Column="0" Data="{StaticResource Icon.Monitor}" Size="20" Foreground="{DynamicResource IconMuted}"
-                                       VerticalAlignment="Center" Margin="0,0,12,0"/>
-                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                <TextBlock Text="Migrate to another computer" FontSize="13" FontWeight="SemiBold"
-                                           Foreground="{DynamicResource TextPrimary}"/>
-                                <TextBlock x:Name="MigrateSubtitle"
-                                           Text="Export everything to one password-protected file, or import it on a new PC"
-                                           Theme="{StaticResource SubText}" TextWrapping="Wrap" Margin="0,1,0,0"/>
-                            </StackPanel>
-                            <Button Grid.Column="2" Theme="{StaticResource PrimaryButton}"
-                                    Padding="12,6" Click="Migrate_Click"
-                                    VerticalAlignment="Center" Margin="10,0,0,0">
-                                <TextBlock Text="Open" FontSize="12"/>
-                            </Button>
-                        </Grid>
-                    </Border>
-
-                    <!-- Automatic daily backups -->
-                    <Border Theme="{StaticResource SectionCard}" Padding="16,14" Margin="0,8,0,0">
+                    <Border Theme="{StaticResource SectionCard}" Padding="0" Margin="0,0,0,14" ClipToBounds="True">
                         <StackPanel>
-                            <Grid ColumnDefinitions="Auto,*">
-                                <ctrl:LineIcon Grid.Column="0" Data="{StaticResource Icon.Lifebuoy}" Size="20" Foreground="{DynamicResource IconMuted}"
-                                           VerticalAlignment="Center" Margin="0,0,12,0"/>
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                    <TextBlock Text="Backups" FontSize="13" FontWeight="SemiBold"
-                                               Foreground="{DynamicResource TextPrimary}"/>
-                                    <TextBlock x:Name="BackupStatusText" Theme="{StaticResource SubText}"
-                                               TextWrapping="Wrap" Margin="0,1,0,0"/>
+                            <!-- Recycle Bin: the whole row opens it -->
+                            <Button Theme="{StaticResource SettingsRowButton}" Click="OpenTrash_Click">
+                                <Grid ColumnDefinitions="Auto,*,Auto">
+                                    <Border Classes="iconTile"><ctrl:LineIcon Data="{StaticResource Icon.Trash}"/></Border>
+                                    <StackPanel Grid.Column="1" Classes="rowText">
+                                        <TextBlock Classes="rowTitle" Text="Recycle Bin"/>
+                                        <TextBlock Classes="rowSub" Text="Deleted tasks, kept for 30 days"/>
+                                    </StackPanel>
+                                    <ctrl:LineIcon Grid.Column="2" Data="{StaticResource Icon.ChevronRight}" Size="18"
+                                                   Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Button>
+                            <Border Classes="rowDivider"/>
+
+                            <!-- Backups -->
+                            <StackPanel Classes="settingsRow">
+                                <Grid ColumnDefinitions="Auto,*,Auto">
+                                    <Border Classes="iconTile"><ctrl:LineIcon Data="{StaticResource Icon.Lifebuoy}"/></Border>
+                                    <StackPanel Grid.Column="1" Classes="rowText">
+                                        <TextBlock Classes="rowTitle" Text="Backups"/>
+                                        <TextBlock x:Name="BackupStatusText" Classes="rowSub"
+                                                   ToolTip.Tip="A copy of your tasks and settings is saved every day. Attachment files stay where they are and are not copied."/>
+                                    </StackPanel>
+                                    <Button Grid.Column="2" Theme="{StaticResource SecondaryButton}" Classes="small"
+                                            Content="Back up now" Click="BackUpNow_Click" VerticalAlignment="Center"/>
+                                </Grid>
+                                <Grid ColumnDefinitions="*,Auto,Auto" Margin="48,12,0,0">
+                                    <ComboBox x:Name="BackupPicker" Grid.Column="0" Theme="{StaticResource ThemedComboBox}"
+                                              HorizontalAlignment="Stretch" PlaceholderText="No backups yet"/>
+                                    <Button Grid.Column="1" Theme="{StaticResource SecondaryButton}" Classes="small"
+                                            Content="Restore…" Margin="8,0,0,0" Click="RestoreBackup_Click"
+                                            VerticalAlignment="Center"
+                                            IsEnabled="{Binding #BackupPicker.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                                    <Button Grid.Column="2" Theme="{StaticResource IconButton}" Classes="accent"
+                                            Margin="4,0,0,0" ToolTip.Tip="Open backup folder" Click="OpenBackupFolder_Click"
+                                            VerticalAlignment="Center">
+                                        <ctrl:LineIcon Data="{StaticResource Icon.Folder}"/>
+                                    </Button>
+                                </Grid>
+                            </StackPanel>
+                            <Border Classes="rowDivider"/>
+
+                            <!-- Migrate to another computer (encrypted export / import) -->
+                            <Grid Classes="settingsRow" ColumnDefinitions="Auto,*,Auto">
+                                <Border Classes="iconTile"><ctrl:LineIcon Data="{StaticResource Icon.Monitor}"/></Border>
+                                <StackPanel Grid.Column="1" Classes="rowText">
+                                    <TextBlock Classes="rowTitle" Text="Move to another computer"/>
+                                    <TextBlock x:Name="MigrateSubtitle" Classes="rowSub" Text="Everything in one password-protected file"/>
+                                </StackPanel>
+                                <Button Grid.Column="2" Theme="{StaticResource SecondaryButton}" Classes="small"
+                                        Content="Open" Click="Migrate_Click" VerticalAlignment="Center"/>
+                            </Grid>
+                            <Border Classes="rowDivider"/>
+
+                            <!-- Export / import for spreadsheets and other apps -->
+                            <Grid Classes="settingsRow" ColumnDefinitions="Auto,*,Auto">
+                                <Border Classes="iconTile"><ctrl:LineIcon Data="{StaticResource Icon.Upload}"/></Border>
+                                <StackPanel Grid.Column="1" Classes="rowText">
+                                    <TextBlock Classes="rowTitle" Text="Export &amp; import"/>
+                                    <TextBlock Classes="rowSub" Text="CSV, Markdown or a printable list"
+                                               ToolTip.Tip="CSV opens in Excel, Numbers or Google Sheets. Print or save as PDF. Importing a CSV needs a Title column."/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                    <Button Theme="{StaticResource SecondaryButton}" Classes="small">
+                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                            <TextBlock Text="Export" VerticalAlignment="Center"/>
+                                            <ctrl:LineIcon Data="{StaticResource Icon.ChevronDown}" Size="14" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <Button.Flyout>
+                                            <MenuFlyout Placement="BottomEdgeAlignedRight">
+                                                <MenuItem Header="Tasks as CSV…" Click="ExportCsv_Click"/>
+                                                <MenuItem Header="Tasks and notes as Markdown…" Click="ExportMarkdown_Click"/>
+                                                <Separator/>
+                                                <MenuItem Header="Print or save as PDF">
+                                                    <MenuItem Header="Today" Click="Print_Click" Tag="{x:Static vm:TaskFilter.Today}"/>
+                                                    <MenuItem Header="This week" Click="Print_Click" Tag="{x:Static vm:TaskFilter.ThisWeek}"/>
+                                                    <MenuItem Header="All open tasks" Click="Print_Click" Tag="{x:Static vm:TaskFilter.All}"/>
+                                                </MenuItem>
+                                            </MenuFlyout>
+                                        </Button.Flyout>
+                                    </Button>
+                                    <Button Theme="{StaticResource SecondaryButton}" Classes="small"
+                                            Content="Import" Click="ImportCsv_Click" ToolTip.Tip="Import tasks from a CSV file"/>
                                 </StackPanel>
                             </Grid>
-                            <Grid ColumnDefinitions="*,Auto" Margin="0,10,0,0">
-                                <ComboBox x:Name="BackupPicker" Grid.Column="0" Theme="{StaticResource ThemedComboBox}"
-                                          HorizontalAlignment="Stretch" FontSize="12"
-                                          PlaceholderText="No backups yet"/>
-                                <Button Grid.Column="1" Theme="{StaticResource SecondaryButton}"
-                                        Padding="12,6" Margin="8,0,0,0" Click="RestoreBackup_Click"
-                                        IsEnabled="{Binding #BackupPicker.SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}">
-                                    <TextBlock Text="Restore…" FontSize="12"/>
-                                </Button>
-                            </Grid>
-                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                                <Button Theme="{StaticResource SecondaryButton}" Padding="12,6" Margin="0,0,8,0"
-                                        Click="BackUpNow_Click">
-                                    <TextBlock Text="Back up now" FontSize="12"/>
-                                </Button>
-                                <Button Theme="{StaticResource SecondaryButton}" Padding="12,6"
-                                        Click="OpenBackupFolder_Click">
-                                    <TextBlock Text="Open backup folder" FontSize="12"/>
-                                </Button>
+
+                            <!-- Clear meeting history (Windows only) -->
+                            <StackPanel x:Name="MeetingHistoryCard">
+                                <Border Classes="rowDivider"/>
+                                <Grid Classes="settingsRow" ColumnDefinitions="Auto,*,Auto">
+                                    <Border Classes="iconTile"><ctrl:LineIcon Data="{StaticResource Icon.Video}"/></Border>
+                                    <StackPanel Grid.Column="1" Classes="rowText">
+                                        <TextBlock Classes="rowTitle" Text="Meeting history"/>
+                                        <TextBlock Classes="rowSub" Text="Auto-detected meeting sessions"/>
+                                    </StackPanel>
+                                    <Button Grid.Column="2" x:Name="ClearMeetingHistoryBtn" Theme="{StaticResource SecondaryButton}"
+                                            Classes="small" Content="Clear" Click="ClearMeetingHistory_Click" VerticalAlignment="Center"/>
+                                </Grid>
                             </StackPanel>
                         </StackPanel>
                     </Border>
 
-                    <!-- Export / import for spreadsheets and other apps -->
-                    <Border Theme="{StaticResource SectionCard}" Padding="16,14" Margin="0,8,0,0">
-                        <Grid ColumnDefinitions="Auto,*,Auto">
-                            <ctrl:LineIcon Grid.Column="0" Data="{StaticResource Icon.Upload}" Size="20" Foreground="{DynamicResource IconMuted}"
-                                       VerticalAlignment="Center" Margin="0,0,12,0"/>
-                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
-                                <TextBlock Text="Export, import and print" FontSize="13" FontWeight="SemiBold"
-                                           Foreground="{DynamicResource TextPrimary}"/>
-                                <TextBlock Theme="{StaticResource SubText}" TextWrapping="Wrap" Margin="0,1,0,0"
-                                           Text="CSV for Excel, Numbers or Google Sheets, Markdown, or a printable list (print or save as PDF). Importing a CSV needs a Title column."/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                <Button Theme="{StaticResource SecondaryButton}" Padding="12,6" Margin="0,0,8,0">
-                                    <TextBlock Text="Export ▾" FontSize="12"/>
-                                    <Button.Flyout>
-                                        <MenuFlyout Placement="BottomEdgeAlignedRight">
-                                            <MenuItem Header="Tasks as CSV…" Click="ExportCsv_Click"/>
-                                            <MenuItem Header="Tasks and notes as Markdown…" Click="ExportMarkdown_Click"/>
-                                            <Separator/>
-                                            <MenuItem Header="Print or save as PDF">
-                                                <MenuItem Header="Today" Click="Print_Click" Tag="{x:Static vm:TaskFilter.Today}"/>
-                                                <MenuItem Header="This week" Click="Print_Click" Tag="{x:Static vm:TaskFilter.ThisWeek}"/>
-                                                <MenuItem Header="All open tasks" Click="Print_Click" Tag="{x:Static vm:TaskFilter.All}"/>
-                                            </MenuItem>
-                                        </MenuFlyout>
-                                    </Button.Flyout>
-                                </Button>
-                                <Button Theme="{StaticResource SecondaryButton}" Padding="12,6" Click="ImportCsv_Click">
-                                    <TextBlock Text="Import CSV…" FontSize="12"/>
-                                </Button>
-                            </StackPanel>
-                        </Grid>
-                    </Border>
-
                     <!-- ROW 6: Updates (off unless the user turns it on) -->
-                    <TextBlock Text="UPDATES" Theme="{StaticResource LabelText}" Margin="0,14,0,6"/>
+                    <TextBlock Text="UPDATES" Theme="{StaticResource LabelText}" Margin="0,0,0,6"/>
                     <Border Theme="{StaticResource SectionCard}" Padding="16,14" Margin="0,0,0,4">
                         <StackPanel>
                             <Grid ColumnDefinitions="*,Auto">
@@ -1743,7 +1783,7 @@
                                                FontSize="13" FontWeight="SemiBold"
                                                Foreground="{DynamicResource TextPrimary}"/>
                                     <TextBlock Theme="{StaticResource SubText}" TextWrapping="Wrap" Margin="0,2,0,0"
-                                               Text="Asks GitHub for the newest version number. Nothing about you or your tasks is sent. Off: Sysslar never goes online."/>
+                                               Text="Only the version number is checked; nothing about you is sent. Off means Sysslar never goes online."/>
                                 </StackPanel>
                                 <ToggleButton Grid.Column="1" x:Name="CheckUpdatesToggle"
                                               AutomationProperties.Name="Check for updates once a day"

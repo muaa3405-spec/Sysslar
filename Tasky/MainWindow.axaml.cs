@@ -158,7 +158,8 @@ public partial class MainWindow : Window
         PopulateSoundPicker();
         InitTrayIcon();
         RegisterKeyboardShortcuts();
-        ApplyTextScale(App.Settings.Current.TextScale);
+        ApplyTextScale(App.Settings.Current.EffectiveZoom);
+        RestoreWindowPlacement();
         SetUpResponsiveLayout();
         SetUpMotion();
 
@@ -187,6 +188,7 @@ public partial class MainWindow : Window
                         RefreshNotesEmpty();
                 };
                 vm.LoadGroups();
+                RestoreViewChoices(vm);
                 BuildGroupChips();
                 PopulateNewTaskGroupPicker();
                 vm.RefreshMissedNotifCount();
@@ -208,7 +210,6 @@ public partial class MainWindow : Window
         MeetingHistoryCard.IsVisible = PlatformServices.SupportsMeetingDetection;
         if (!OperatingSystem.IsMacOS()) return;
         AppUsageSubtitle.Text = "Time spent in each Mac application  ·  top 10";
-        MigrateSubtitle.Text  = "Export everything to one password-protected file, or import it on a new computer";
     }
 
     private void PopulateSoundPicker()
@@ -1118,6 +1119,8 @@ public partial class MainWindow : Window
 
     private void Sort_Changed(object? sender, SelectionChangedEventArgs e)
     {
+        if (_viewChoicesRestored && SortBox.SelectedItem is ComboBoxItem { Tag: string sort })
+            RememberChoice(s => s.CompletedSort = sort);
         if (DataContext is MainViewModel) RefreshCompletedList();
     }
 
@@ -1466,6 +1469,7 @@ public partial class MainWindow : Window
     private void TopFilter_Click(object? sender, RoutedEventArgs e)
     {
         _topTasksFilter = (sender as RadioButton)?.Tag?.ToString() ?? "overall";
+        RememberChoice(s => s.TopTasksFilter = _topTasksFilter);
         BuildStatsUI();
     }
 
@@ -1497,6 +1501,7 @@ public partial class MainWindow : Window
     private void MeetingFilter_Click(object? sender, RoutedEventArgs e)
     {
         _meetingFilter = (sender as RadioButton)?.Tag?.ToString() ?? "week";
+        RememberChoice(s => s.MeetingFilter = _meetingFilter);
         // Re-query the DB for fresh data each time the chip changes
         Vm.RefreshStats(_statsWeekOffset);
         UpdateMeetingDisplay();
@@ -1592,6 +1597,7 @@ public partial class MainWindow : Window
     private void AppUsageFilter_Click(object? sender, RoutedEventArgs e)
     {
         _appUsageFilter = (sender as RadioButton)?.Tag?.ToString() ?? "today";
+        RememberChoice(s => s.AppUsageFilter = _appUsageFilter);
         RefreshAndBuildAppUsage();
     }
 

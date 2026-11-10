@@ -21,8 +21,32 @@ public class AppSettings
     /// <summary>The "Good to know" tips are shown once, on the first start.</summary>
     public bool    HasSeenWelcomeTips { get; set; }
 
-    /// <summary>Main-window zoom for easier reading: 1 = normal (see <see cref="Helpers.TextSizes"/>).</summary>
+    /// <summary>Old "Text size" setting (1, 1.15 or 1.3); only read to carry it over to <see cref="Zoom"/>.</summary>
     public double  TextScale { get; set; } = 1.0;
+
+    /// <summary>Main-window zoom (see <see cref="Helpers.TextSizes"/>). Null until the user picks one.</summary>
+    public double? Zoom { get; set; }
+
+    /// <summary>The zoom to use: the user's choice, the old text size, or the platform default.</summary>
+    public double EffectiveZoom => Helpers.TextSizes.Clamp(
+        Zoom ?? (TextScale > Helpers.TextSizes.Normal ? TextScale : Helpers.TextSizes.Default));
+
+    // ── Remembered between launches ──────────────────────────────────────
+
+    /// <summary>Main window size and position (device-independent units); 0 / null = not saved yet.</summary>
+    public double  WindowWidth  { get; set; }
+    public double  WindowHeight { get; set; }
+    public double? WindowLeft   { get; set; }
+    public double? WindowTop    { get; set; }
+    public bool    WindowMaximized { get; set; }
+
+    /// <summary>Task list view: All, Today or ThisWeek.</summary>
+    public string  TaskView         { get; set; } = "Today";
+    public int?    GroupFilter      { get; set; }
+    public string  CompletedSort    { get; set; } = "newest";
+    public string  TopTasksFilter   { get; set; } = "overall";
+    public string  MeetingFilter    { get; set; } = "week";
+    public string  AppUsageFilter   { get; set; } = "today";
 }
 
 public class SettingsService

@@ -362,6 +362,28 @@
         <Style Selector="^:checked /template/ ctrl|LineIcon#Chevron"><Setter Property="RenderTransform" Value="rotate(180deg)"/></Style>
     </ControlTheme>
 
+    <!-- A whole settings row that is one button (e.g. Recycle Bin) -->
+    <ControlTheme x:Key="SettingsRowButton" TargetType="Button">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Cursor"     Value="Hand"/>
+        <Setter Property="Padding"    Value="16,12"/>
+        <Setter Property="HorizontalAlignment"        Value="Stretch"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                    <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}"
+                                      HorizontalAlignment="Stretch"/>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+        <Setter Property="Transitions">
+            <Transitions><BrushTransition Property="Background" Duration="0:0:0.15"/></Transitions>
+        </Setter>
+        <Style Selector="^:pointerover"><Setter Property="Background" Value="{DynamicResource IconHoverBackground}"/></Style>
+        <Style Selector="^:pressed"><Setter Property="Opacity" Value="0.8"/></Style>
+    </ControlTheme>
+
     <!-- Text button without chrome until hover (Back, inline links) -->
     <ControlTheme x:Key="GhostButton" TargetType="Button">
         <Setter Property="Background"      Value="Transparent"/>

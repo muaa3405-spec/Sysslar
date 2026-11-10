@@ -1,7 +1,9 @@
 using System.IO;
 using Avalonia;
 using Avalonia.Media.Imaging;
+using Avalonia.Controls;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 
 namespace Tasky;
 
@@ -35,7 +37,19 @@ public partial class MainWindow
         timer.Tick += (_, _) =>
         {
             if (snapshotDir is not null && shown is { } last)
-                SaveSnapshot(snapshotDir, $"{last.Page}-{(int)last.Width}-{(last.Dark ? "dark" : "light")}");
+            {
+                string name = $"{last.Page}-{(int)last.Width}-{(last.Dark ? "dark" : "light")}";
+                SaveSnapshot(snapshotDir, name);
+                // Long pages: also the bottom
+                if (last.Page == AppPage.Settings &&
+                    SettingsPage.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault() is { } scroller)
+                {
+                    scroller.ScrollToEnd();
+                    scroller.UpdateLayout();
+                    SaveSnapshot(snapshotDir, name + "-bottom");
+                    scroller.ScrollToHome();
+                }
+            }
 
             if (next < steps.Count)
             {

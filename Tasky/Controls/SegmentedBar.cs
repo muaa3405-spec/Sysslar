@@ -109,7 +109,10 @@ public sealed class SegmentedBar : Panel
         }
         _track.Measure(availableSize);
         _highlight.Measure(availableSize);
-        return new Size(widest * segments.Count + 2 * Inset, Math.Max(32, tallest) + 2 * Inset);
+        // Never ask for more than there is: the segments share whatever width the bar gets
+        double width = widest * segments.Count + 2 * Inset;
+        if (!double.IsInfinity(availableSize.Width)) width = Math.Min(width, availableSize.Width);
+        return new Size(width, Math.Max(32, tallest) + 2 * Inset);
     }
 
     protected override Size ArrangeOverride(Size finalSize)
