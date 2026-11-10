@@ -30,4 +30,4 @@ Install it over your current Sysslar: your tasks, notes and attachments are kept
 - Your existing tasks become the first workspace, **Personal** (rename it any time). Nothing about them changes or moves.
 
 ### Changed
-- **Clicking a task opens it for editing.** Press **Enter** on a selected task to see its read-only details.
+- **Click anywhere on a task to edit it.** The card lifts slightly when you point at it and presses in when you click. Its buttons (done, timer, postpone, delete…) still do their own thing, and **Enter** on a selected task shows its read-only details.
