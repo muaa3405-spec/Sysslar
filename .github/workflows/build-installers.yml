@@ -102,7 +102,7 @@ jobs:
 
   macos:
     name: macOS dmg (${{ matrix.arch }})
-    runs-on: macos-14
+    runs-on: macos-15
     env:
       HAS_MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE != '' }}
     strategy:
