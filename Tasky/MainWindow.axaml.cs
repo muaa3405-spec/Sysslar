@@ -963,7 +963,9 @@ public partial class MainWindow : Window
         Dispatcher.UIThread.Post(() =>
         {
             int index = Vm.VisibleTasks.IndexOf(task);
-            if (index < 0 || TaskListControl.ContainerFromIndex(index) is not { } container) return;
+            if (index < 0) return;
+            TaskListControl.ScrollIntoView(index);   // builds the card if it was off screen
+            if (TaskListControl.ContainerFromIndex(index) is not { } container) return;
             container.BringIntoView();
             if (container.GetVisualDescendants().OfType<Border>().FirstOrDefault(b => b.Classes.Contains("taskTile")) is not { } card)
                 return;

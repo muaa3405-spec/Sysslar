@@ -43,6 +43,7 @@ public partial class ReminderToastWindow : Window
         _taskId    = taskId;
         _taskTitle = taskTitle;
         InitializeComponent();
+        Helpers.DialogZoom.Apply(this);
         TitleText.Text = displayTitle;
 
         // Bottom-right, above the taskbar / Dock. The height is only final once SizeToContent has

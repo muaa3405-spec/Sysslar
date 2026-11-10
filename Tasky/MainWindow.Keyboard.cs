@@ -173,6 +173,8 @@ public partial class MainWindow
 
         foreach (var task in Vm.Tasks) task.IsSelected = false;
         tasks[next].IsSelected = true;
+        // The list only builds the cards on screen: scroll to the card first, so it exists
+        TaskListControl.ScrollIntoView(next);
         TaskListControl.ContainerFromItem(tasks[next])?.BringIntoView();
     }
 }

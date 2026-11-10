@@ -20,6 +20,9 @@ public static class SmokeTest
     public const string ShowReminderVariable = "TASKY_SMOKE_REMINDER";
     public const string FullRunVariable      = "TASKY_SMOKE_FULL";
 
+    /// <summary>Optional: this many extra open tasks in the sample data, to try a long list.</summary>
+    public const string ExtraTasksVariable   = "TASKY_SMOKE_EXTRA_TASKS";
+
     /// <summary>Written when every page has been shown; CI checks for it.</summary>
     public static string PassedMarkerFile => Path.Combine(AppPaths.LocalFolder, "smoke-test-passed");
 
@@ -47,7 +50,10 @@ public static class SmokeTest
         var personal = db.InsertGroup(new TaskGroup { Name = "Personal", Color = "#22C55E" });
         var today    = DateTime.Today;
 
-        db.InsertTask(new TaskItem { Title = "Plan the week", Description = LongText, GroupId = work.Id, DueDate = today });
+        var plan = db.InsertTask(new TaskItem { Title = "Plan the week", Description = LongText, GroupId = work.Id, DueDate = today });
+        // One attachment and one reminder, so the cards show their count chips
+        db.InsertAttachment(new TaskAttachment { TaskId = plan.Id, FileName = "brief.pdf", FilePath = Path.Combine(AppPaths.LocalFolder, "brief.pdf") });
+        db.InsertReminder(new ReminderItem { TaskId = plan.Id, TaskTitle = plan.Title, NextFireTime = DateTime.Now.AddDays(1) });
         db.InsertTask(new TaskItem { Title = "Overdue invoice", Description = "Short note", GroupId = work.Id, DueDate = today.AddDays(-3) });
         db.InsertTask(new TaskItem { Title = "Water the plants", GroupId = personal.Id, DueDate = today,
                                      Recurrence = RecurrenceType.Daily, RecurrenceEndDate = today.AddDays(30) });
@@ -56,6 +62,16 @@ public static class SmokeTest
         db.InsertTask(new TaskItem { Title = "No due date", DueDate = null });
         db.InsertTask(new TaskItem { Title = "Finished report", Description = LongText, GroupId = work.Id, DueDate = today.AddDays(-1),
                                      IsCompleted = true, CompletedAt = DateTime.Now.AddHours(-2), AccumulatedSeconds = 5400 });
+
+        if (int.TryParse(Environment.GetEnvironmentVariable(ExtraTasksVariable), out int extra))
+            for (int i = 1; i <= Math.Min(extra, 5000); i++)
+                db.InsertTask(new TaskItem
+                {
+                    Title       = $"Sample task {i}",
+                    Description = i % 3 == 0 ? LongText : string.Empty,
+                    GroupId     = i % 2 == 0 ? work.Id : personal.Id,
+                    DueDate     = today.AddDays(i % 5 - 2),
+                });
 
         db.InsertNote(new Note { Title = "Long note", Description = LongText + "\n\n" + LongText, Tags = "ideas, work" });
         db.InsertNote(new Note { Title = "Short note", Description = "One line." });

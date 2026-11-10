@@ -9,6 +9,7 @@ public static class ThemeHelper
     public static void Attach(Window window)
     {
         window.Classes.Set("reduceMotion", !Motion.Enabled);
+        DialogZoom.Apply(window);
         window.Opened += (_, _) => PlatformServices.Chrome.ApplyTheme(window, App.Instance.IsDarkTheme);
     }
 }

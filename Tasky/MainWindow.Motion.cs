@@ -22,6 +22,10 @@ public partial class MainWindow
     private const int MaxStaggeredCards = 10;
 
     private DateTime _lastCardPrepared = DateTime.MinValue;
+
+    /// <summary>When the list last changed (filter, search, add): only then do cards animate in, not while scrolling.</summary>
+    private DateTime _lastListChange = DateTime.UtcNow;
+    private static readonly TimeSpan ListChangeWindow = TimeSpan.FromMilliseconds(400);
     private int _cardsInBatch;
     private int _lastBadgeCount;
 
@@ -32,6 +36,7 @@ public partial class MainWindow
         Loaded += (_, _) =>
         {
             if (DataContext is not MainViewModel vm) return;
+            vm.VisibleTasks.CollectionChanged += (_, _) => _lastListChange = DateTime.UtcNow;
             _lastBadgeCount = vm.MissedNotifCount;
             vm.PropertyChanged += (_, e) =>
             {
@@ -48,8 +53,12 @@ public partial class MainWindow
     /// </summary>
     private void StaggerCardIn(Control container)
     {
-        if (!Motion.Enabled) return;
         var now = DateTime.UtcNow;
+        // Containers are reused while scrolling: reset any half-finished animation first
+        container.Opacity = 1;
+        container.RenderTransform = null;
+        if (!Motion.Enabled || now - _lastListChange > ListChangeWindow) return;
+
         _cardsInBatch = now - _lastCardPrepared < BatchWindow ? _cardsInBatch + 1 : 0;
         _lastCardPrepared = now;
 

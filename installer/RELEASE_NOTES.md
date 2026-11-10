@@ -16,6 +16,12 @@ Install it over your current Sysslar: your tasks, notes and attachments are kept
 
 [Code signing policy](https://github.com/muaa3405-spec/tasky#code-signing-policy) · [Privacy policy](https://github.com/muaa3405-spec/tasky#privacy-policy)
 
+### New in 1.4.2
+- **Cleaner task cards.** Attachment and reminder counts are small chips next to the date (📎 1, 🔔 1), so the title and description keep their full width on narrow windows.
+- **Smoother scrolling** in the task list.
+- **Popups follow your zoom** (Settings → Appearance → Zoom), just like the main window.
+- **Descriptions** that are cut off always end in "…".
+
 ### New in 1.4.1
 - **Fits small screens.** The window now always fits the screen it opens on, so its title bar can't end up off-screen on a small laptop display.
 - **Zoom.** Settings → Appearance → **Zoom** makes everything smaller or larger (80–130 %), also with **Ctrl/⌘ −**, **+** and **0**. On Windows, Sysslar now starts a little smaller (90 %).

@@ -135,12 +135,13 @@
 
     <Window.Styles>
         <!-- Description: two lines, or everything when expanded -->
+        <!-- Two lines then "…" (a height limit: MaxLines cut the second line without the "…") -->
         <Style Selector="TextBlock.taskDescription">
-            <Setter Property="MaxLines"     Value="2"/>
-            <Setter Property="TextTrimming" Value="WordEllipsis"/>
+            <Setter Property="MaxHeight"    Value="36"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
         </Style>
         <Style Selector="TextBlock.taskDescription.expanded">
-            <Setter Property="MaxLines"     Value="0"/>
+            <Setter Property="MaxHeight"    Value="99999"/>
             <Setter Property="TextTrimming" Value="None"/>
         </Style>
 
@@ -680,6 +681,27 @@
                                                                        Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center"/>
                                                         </StackPanel>
                                                     </Border>
+                                                    <!-- Attachment / reminder counts: small chips in the tag row, so they cost no space -->
+                                                    <Border Theme="{StaticResource Tag}" Classes="dueTag"
+                                                            IsVisible="{Binding HasAttachments}"
+                                                            ToolTip.Tip="{Binding AttachmentCountDisplay}">
+                                                        <StackPanel Orientation="Horizontal" Spacing="3">
+                                                            <ctrl:LineIcon Data="{StaticResource Icon.Clip}" Size="12"
+                                                                           Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center"/>
+                                                            <TextBlock Text="{Binding AttachmentCount}" FontSize="12" FontWeight="Medium"
+                                                                       Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center"/>
+                                                        </StackPanel>
+                                                    </Border>
+                                                    <Border Theme="{StaticResource Tag}" Classes="dueTag"
+                                                            IsVisible="{Binding HasReminders}"
+                                                            ToolTip.Tip="{Binding ReminderCountDisplay}">
+                                                        <StackPanel Orientation="Horizontal" Spacing="3">
+                                                            <ctrl:LineIcon Data="{StaticResource Icon.Bell}" Size="12"
+                                                                           Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center"/>
+                                                            <TextBlock Text="{Binding ReminderCount}" FontSize="12" FontWeight="Medium"
+                                                                       Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center"/>
+                                                        </StackPanel>
+                                                    </Border>
                                                     <TextBlock Text="{Binding Title}"
                                                                FontSize="15" FontWeight="Medium"
                                                                Foreground="{DynamicResource TextPrimary}"
@@ -718,7 +740,7 @@
                                                 </StackPanel>
                                             </StackPanel>
 
-                                            <!-- Right column: actions, then the attachment / reminder counts -->
+                                            <!-- Right column: the actions (or ⋯ when narrow) -->
                                             <StackPanel Grid.Column="3" VerticalAlignment="Top">
                                             <!-- Actions: grey, coloured on hover -->
                                             <StackPanel Classes="cardActions" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="2">
@@ -753,30 +775,6 @@
                                                 <ctrl:LineIcon Data="{StaticResource Icon.Dots}" IsFilled="True"/>
                                             </Button>
 
-                                            <!-- Attachment + reminder counts, right under the actions (no extra line) -->
-                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
-                                                        Margin="0,2,6,0" Spacing="12">
-                                                <StackPanel.IsVisible>
-                                                    <MultiBinding Converter="{x:Static BoolConverters.Or}">
-                                                        <Binding Path="HasAttachments"/>
-                                                        <Binding Path="HasReminders"/>
-                                                    </MultiBinding>
-                                                </StackPanel.IsVisible>
-                                                <StackPanel Orientation="Horizontal" Spacing="4"
-                                                            IsVisible="{Binding HasAttachments}">
-                                                    <ctrl:LineIcon Data="{StaticResource Icon.Clip}" Size="14"
-                                                                   Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center"/>
-                                                    <TextBlock Text="{Binding AttachmentCountDisplay}" FontSize="12"
-                                                               Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center"/>
-                                                </StackPanel>
-                                                <StackPanel Orientation="Horizontal" Spacing="4"
-                                                            IsVisible="{Binding HasReminders}">
-                                                    <ctrl:LineIcon Data="{StaticResource Icon.Bell}" Size="14"
-                                                                   Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center"/>
-                                                    <TextBlock Text="{Binding ReminderCountDisplay}" FontSize="12"
-                                                               Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center"/>
-                                                </StackPanel>
-                                            </StackPanel>
                                             </StackPanel>
                                         </Grid>
                                     </Grid>
