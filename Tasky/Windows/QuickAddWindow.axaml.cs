@@ -20,7 +20,7 @@ public partial class QuickAddWindow : Window
     {
         _vm = vm;
         InitializeComponent();
-        Helpers.DialogZoom.Apply(this);
+        Helpers.DialogLayoutHelper.Prepare(this);
         Loaded += (_, _) =>
         {
             TitleBox.Focus();
@@ -44,5 +44,21 @@ public partial class QuickAddWindow : Window
         Close();
     }
 
-    private void Window_Deactivated(object? sender, EventArgs e) => Close();
+    /// <summary>Set once the window starts closing; it must not be closed again.</summary>
+    private bool _closing;
+
+    protected override void OnClosing(WindowClosingEventArgs e)
+    {
+        base.OnClosing(e);
+        if (!e.Cancel) _closing = true;
+    }
+
+    /// <summary>
+    /// Clicking elsewhere closes Quick Add. macOS also deactivates a window while it closes (after
+    /// Enter, Esc or Add), and closing it a second time then crashes, so only close it once.
+    /// </summary>
+    private void Window_Deactivated(object? sender, EventArgs e)
+    {
+        if (!_closing) Close();
+    }
 }

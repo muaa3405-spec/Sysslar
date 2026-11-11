@@ -16,6 +16,10 @@ public static class DialogZoom
         if (Math.Abs(zoom - TextSizes.Normal) < 0.001 || window.Content is not Control content
             || content is LayoutTransformControl { Tag: "dialogZoom" }) return;
 
+        // Detach the content first: a control can only have one parent, and wrapping it while the
+        // window still holds it throws "The Control already has a parent" (every dialog at 90 % zoom,
+        // the Windows default).
+        window.Content = null;
         window.Content = new LayoutTransformControl
         {
             Tag             = "dialogZoom",

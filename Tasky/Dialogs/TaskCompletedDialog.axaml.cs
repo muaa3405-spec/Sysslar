@@ -29,8 +29,7 @@ public partial class TaskCompletedDialog : Window
     {
         _vm = vm;
         InitializeComponent();
-        Helpers.DialogZoom.Apply(this);
-        DialogLayoutHelper.FitToWorkArea(this);
+        Helpers.DialogLayoutHelper.Prepare(this);
         Loaded += OnLoaded;
     }
 

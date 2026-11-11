@@ -16,6 +16,13 @@ Install it over your current Sysslar: your tasks, notes and attachments are kept
 
 [Code signing policy](https://github.com/muaa3405-spec/tasky#code-signing-policy) · [Privacy policy](https://github.com/muaa3405-spec/tasky#privacy-policy)
 
+### New in 1.4.4
+- **Workspaces, groups and every popup work on Windows again.** In 1.4.2 and 1.4.3, popups such as Manage groups, Workspaces, Set reminder and Attachments didn't open at Windows' default 90 % zoom.
+- **Deleting a workspace on Windows removes all of its data.** Before, its folder could stay behind.
+- **Quick Add no longer closes Sysslar on macOS** after you add a task or press Esc.
+- **Popups open in the middle of Sysslar.** They always fit inside the window and scroll when their content is longer, so long ones like Export are readable on small windows.
+- **Attachment and reminder counts sit in the card's bottom-right corner**, on the "Show more" line or under the title, so the title starts right after its tags.
+
 ### New in 1.4.3
 - **Switch workspaces instantly.** Sysslar no longer restarts: a short "Switching to …" screen covers the change while your tasks, notes, settings and reminders for the other workspace load. A running timer is paused and saved first, as before.
 

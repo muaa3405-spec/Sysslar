@@ -55,8 +55,10 @@ public static class SmokeTest
         db.InsertAttachment(new TaskAttachment { TaskId = plan.Id, FileName = "brief.pdf", FilePath = Path.Combine(AppPaths.LocalFolder, "brief.pdf") });
         db.InsertReminder(new ReminderItem { TaskId = plan.Id, TaskTitle = plan.Title, NextFireTime = DateTime.Now.AddDays(1) });
         db.InsertTask(new TaskItem { Title = "Overdue invoice", Description = "Short note", GroupId = work.Id, DueDate = today.AddDays(-3) });
-        db.InsertTask(new TaskItem { Title = "Water the plants", GroupId = personal.Id, DueDate = today,
+        // No description, but a reminder: its count chip sits on the line under the title
+        var plants = db.InsertTask(new TaskItem { Title = "Water the plants", GroupId = personal.Id, DueDate = today,
                                      Recurrence = RecurrenceType.Daily, RecurrenceEndDate = today.AddDays(30) });
+        db.InsertReminder(new ReminderItem { TaskId = plants.Id, TaskTitle = plants.Title, NextFireTime = DateTime.Now.AddDays(1) });
         db.InsertTask(new TaskItem { Title = "A very long task title that keeps going so it has to wrap onto a second line in the card",
                                      DueDate = today.AddDays(2), Recurrence = RecurrenceType.Weekly });
         db.InsertTask(new TaskItem { Title = "No due date", DueDate = null });

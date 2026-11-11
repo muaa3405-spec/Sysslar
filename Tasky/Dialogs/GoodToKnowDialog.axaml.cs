@@ -9,7 +9,7 @@ namespace Tasky.Dialogs;
 /// "Good to know": a few tips on the first start, followed by the keyboard shortcuts.
 /// Pressing "?" opens the same dialog with the shortcuts only.
 /// </summary>
-public partial class GoodToKnowDialog : Window
+public partial class GoodToKnowDialog : Window, IScrollsOwnContent
 {
     private static IReadOnlyList<string> Tips =>
     [

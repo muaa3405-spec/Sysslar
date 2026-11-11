@@ -662,7 +662,9 @@
                                                 Background="{Binding GroupBrush}"
                                                 ToolTip.Tip="{Binding GroupBadge}"/>
 
-                                        <Grid Margin="16,14,10,14" ColumnDefinitions="Auto,Auto,*,Auto">
+                                        <!-- Rows: title + description + actions / "Show more" + counts (full width, so the
+                                             counts reach the card's bottom-right corner) / running timer -->
+                                        <Grid Margin="16,14,10,14" ColumnDefinitions="Auto,Auto,*,Auto" RowDefinitions="Auto,Auto,Auto">
                                             <CheckBox Grid.Column="0" IsChecked="{Binding IsCompleted, Mode=OneWay}"
                                                       Theme="{StaticResource CheckmarkBox}"
                                                       VerticalAlignment="Top" Margin="0,2,12,0"
@@ -696,27 +698,6 @@
                                                                        Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center"/>
                                                         </StackPanel>
                                                     </Border>
-                                                    <!-- Attachment / reminder counts: small chips in the tag row, so they cost no space -->
-                                                    <Border Theme="{StaticResource Tag}" Classes="dueTag"
-                                                            IsVisible="{Binding HasAttachments}"
-                                                            ToolTip.Tip="{Binding AttachmentCountDisplay}">
-                                                        <StackPanel Orientation="Horizontal" Spacing="3">
-                                                            <ctrl:LineIcon Data="{StaticResource Icon.Clip}" Size="12"
-                                                                           Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center"/>
-                                                            <TextBlock Text="{Binding AttachmentCount}" FontSize="12" FontWeight="Medium"
-                                                                       Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center"/>
-                                                        </StackPanel>
-                                                    </Border>
-                                                    <Border Theme="{StaticResource Tag}" Classes="dueTag"
-                                                            IsVisible="{Binding HasReminders}"
-                                                            ToolTip.Tip="{Binding ReminderCountDisplay}">
-                                                        <StackPanel Orientation="Horizontal" Spacing="3">
-                                                            <ctrl:LineIcon Data="{StaticResource Icon.Bell}" Size="12"
-                                                                           Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center"/>
-                                                            <TextBlock Text="{Binding ReminderCount}" FontSize="12" FontWeight="Medium"
-                                                                       Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center"/>
-                                                        </StackPanel>
-                                                    </Border>
                                                     <TextBlock Text="{Binding Title}"
                                                                FontSize="15" FontWeight="Medium"
                                                                Foreground="{DynamicResource TextPrimary}"
@@ -730,22 +711,55 @@
                                                                Classes="taskDescription"
                                                                Classes.expanded="{Binding IsDescriptionExpanded}"
                                                                beh:TextOverflow.Detect="True"/>
+                                                </StackPanel>
+                                            </StackPanel>
+
+                                            <!-- Bottom row: "Show more" on the left, attachment / reminder counts in the bottom-right corner.
+                                                 Without a description it sits straight under the title; with nothing to show it takes no space. -->
+                                            <Grid Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2" ColumnDefinitions="*,Auto">
                                                     <!-- Only when the description is cut off, or to collapse it again -->
-                                                    <Button Content="{Binding ShowMoreLabel}" HorizontalAlignment="Left"
+                                                    <Button Grid.Column="0" Content="{Binding ShowMoreLabel}" HorizontalAlignment="Left"
+                                                            VerticalAlignment="Center"
                                                             Theme="{StaticResource BareButton}"
                                                             Click="ShowMore_Click"
                                                             Padding="0,4,0,0"
                                                             Foreground="{DynamicResource PrimaryBlue}"
                                                             FontSize="12" FontWeight="Medium">
                                                         <Button.IsVisible>
-                                                            <MultiBinding Converter="{x:Static BoolConverters.Or}">
-                                                                <Binding Path="IsDescriptionExpanded"/>
-                                                                <CompiledBinding Path="#TaskDescriptionText.(beh:TextOverflow.IsTrimmed)"/>
+                                                            <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                                                <Binding Path="Description" Converter="{StaticResource HasText}"/>
+                                                                <MultiBinding Converter="{x:Static BoolConverters.Or}">
+                                                                    <Binding Path="IsDescriptionExpanded"/>
+                                                                    <CompiledBinding Path="#TaskDescriptionText.(beh:TextOverflow.IsTrimmed)"/>
+                                                                </MultiBinding>
                                                             </MultiBinding>
                                                         </Button.IsVisible>
                                                     </Button>
-                                                </StackPanel>
-                                                <StackPanel Orientation="Horizontal" Margin="0,6,0,0" Spacing="6"
+                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6"
+                                                                VerticalAlignment="Center" HorizontalAlignment="Right">
+                                                        <Border Theme="{StaticResource Tag}" Classes="dueTag" Margin="0,6,0,0"
+                                                                IsVisible="{Binding HasAttachments}"
+                                                                ToolTip.Tip="{Binding AttachmentCountDisplay}">
+                                                            <StackPanel Orientation="Horizontal" Spacing="3">
+                                                                <ctrl:LineIcon Data="{StaticResource Icon.Clip}" Size="12"
+                                                                               Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center"/>
+                                                                <TextBlock Text="{Binding AttachmentCount}" FontSize="12" FontWeight="Medium"
+                                                                           Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center"/>
+                                                            </StackPanel>
+                                                        </Border>
+                                                        <Border Theme="{StaticResource Tag}" Classes="dueTag" Margin="0,6,0,0"
+                                                                IsVisible="{Binding HasReminders}"
+                                                                ToolTip.Tip="{Binding ReminderCountDisplay}">
+                                                            <StackPanel Orientation="Horizontal" Spacing="3">
+                                                                <ctrl:LineIcon Data="{StaticResource Icon.Bell}" Size="12"
+                                                                               Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center"/>
+                                                                <TextBlock Text="{Binding ReminderCount}" FontSize="12" FontWeight="Medium"
+                                                                           Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center"/>
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </StackPanel>
+                                                </Grid>
+                                                <StackPanel Grid.Row="2" Grid.Column="2" Orientation="Horizontal" Margin="0,6,0,0" Spacing="6"
                                                             IsVisible="{Binding IsActive}">
                                                     <ctrl:LineIcon Size="14" VerticalAlignment="Center"
                                                                    Classes="timerIcon" Classes.paused="{Binding IsPaused}"/>
@@ -753,7 +767,6 @@
                                                                FontSize="12" FontFamily="{StaticResource MonoFont}" FontWeight="SemiBold"
                                                                Classes="timerText" Classes.paused="{Binding IsPaused}"/>
                                                 </StackPanel>
-                                            </StackPanel>
 
                                             <!-- Right column: the actions (or ⋯ when narrow) -->
                                             <StackPanel Grid.Column="3" VerticalAlignment="Top">
