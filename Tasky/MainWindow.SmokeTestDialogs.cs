@@ -62,6 +62,7 @@ public partial class MainWindow
         yield return ("Shortcuts", () => new GoodToKnowDialog(showTips: false));
         yield return ("Manual time", () => new ManualTimeDialog());
         yield return ("Quick add", () => new Windows.QuickAddWindow(Vm));
+        yield return ("Sync", () => new SyncDialog());
         if (App.Database is { } db)
         {
             yield return ("Migrate", () => new MigrateDialog(new MigrationService(db)));

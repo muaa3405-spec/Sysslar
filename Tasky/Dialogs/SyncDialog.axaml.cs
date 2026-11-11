@@ -35,7 +35,6 @@ public partial class SyncDialog : Window
     {
         InitializeComponent();
         ThemeHelper.Attach(this);
-        DialogLayoutHelper.FitToWorkArea(this);
         OffSecurity.Child = SecurityNote();
         OnSecurity.Child  = SecurityNote();
         if (_sync is { IsOn: true }) _ = ShowOnAsync();
