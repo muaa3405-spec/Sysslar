@@ -17,7 +17,7 @@
                    Foreground="{DynamicResource TextPrimary}" Margin="0,0,0,6"/>
 
         <TextBlock Grid.Row="1" Theme="{StaticResource SubText}" TextWrapping="Wrap" Margin="0,0,0,14"
-                   Text="Each workspace has its own tasks, notes, groups, reminders, time history, settings and backups. Nothing is shared between them. Switching restarts Sysslar in the other workspace."/>
+                   Text="Each workspace has its own tasks, notes, groups, reminders, time history, settings and backups. Nothing is shared between them."/>
 
         <!-- New workspace / rename form -->
         <Border Grid.Row="2"

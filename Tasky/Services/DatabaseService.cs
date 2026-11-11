@@ -302,6 +302,13 @@ public class DatabaseService
         return conn;
     }
 
+    /// <summary>
+    /// Closes the pooled connections that keep database files open after use. Windows can't delete or
+    /// replace an open file (macOS can), so call this when a workspace closes, before its files may be
+    /// deleted or swapped.
+    /// </summary>
+    public static void ReleaseOpenFiles() => SqliteConnection.ClearAllPools();
+
     // Tasks
 
     public List<TaskItem> GetAllTasks()

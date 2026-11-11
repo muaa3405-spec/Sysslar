@@ -184,6 +184,7 @@ public partial class App : Application
         ReminderScheduler?.Stop();
         if (ViewModel is { } old)
             foreach (var task in old.Tasks) task.Detach();   // stop their one-second display timers
+        DatabaseService.ReleaseOpenFiles();   // so the closed workspace can be deleted (Windows)
     }
 
     /// <summary>

@@ -62,9 +62,15 @@ public partial class MainWindow
             }
             timer.Stop();
             if (App.Instance.IsDarkTheme != startDark) App.Instance.ApplyTheme(startDark);
-            _ = SmokeTestWorkspaceSwitchAsync(snapshotDir, onFinished);
+            _ = SmokeTestDialogsThenWorkspacesAsync(snapshotDir, onFinished);
         };
         timer.Start();
+    }
+
+    private async Task SmokeTestDialogsThenWorkspacesAsync(string? snapshotDir, Action onFinished)
+    {
+        await SmokeTestDialogsAsync();
+        await SmokeTestWorkspaceSwitchAsync(snapshotDir, onFinished);
     }
 
     /// <summary>
@@ -88,6 +94,8 @@ public partial class MainWindow
                 throw new InvalidOperationException($"Expected {home} with {homeTasks} tasks back, got {Services.Workspaces.Active.Id} with {Vm.Tasks.Count}");
             if (snapshotDir is not null) SaveSnapshot(snapshotDir, "Switch-back");
             Services.Workspaces.Delete(temp.Id);
+            if (Directory.Exists(Services.AppPaths.DataFolderFor(temp.Id)))
+                throw new InvalidOperationException("The deleted workspace's data folder is still there (a file was left open)");
         }
         catch (Exception ex)
         {

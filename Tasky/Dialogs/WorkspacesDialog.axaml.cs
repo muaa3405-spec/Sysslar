@@ -197,7 +197,7 @@ public partial class WorkspacesDialog : Window
                 VerticalAlignment = VerticalAlignment.Center,
                 Theme = UiResources.Theme("SecondaryButton"),
             };
-            ToolTip.SetTip(open, $"Restart Sysslar in \"{workspace.Name}\"");
+            ToolTip.SetTip(open, $"Switch to \"{workspace.Name}\"");
             open.Click += (_, _) =>
             {
                 OpenWorkspaceId = workspace.Id;
