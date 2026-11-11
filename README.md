@@ -108,6 +108,19 @@ they hold your data. Sysslar takes the opposite approach:
   tasks from another computer in without touching your personal ones
 - Rename, recolour or delete workspaces under **Manage workspaces…** in the same menu
 
+### 🔄 Sync between your computers
+- Keep workspaces **the same on all your computers**, Mac and Windows mixed, through **Google Drive,
+  iCloud Drive, OneDrive, Dropbox** or any shared folder. No account, and Sysslar itself still never goes online:
+  it writes encrypted files into the folder and your cloud app moves them
+- **True sync:** new tasks, notes, groups, reminders and attachments are added on every computer, and changes
+  are updated everywhere (the newest change wins). Something is removed only when it was deleted on one of them.
+  Time tracked on each computer adds up
+- **Choose which workspaces sync**, separately on each computer
+- **Encrypted before it leaves your computer** (AES-256). The encryption key is kept only on the computers
+  where you turn on sync (Windows DPAPI, macOS Keychain). Change it any time: the other computers pause until
+  you type the new key, and nothing is lost meanwhile
+- Settings → Sync → **Turn on sync**, pick the folder, and type the key on your other computers. That's all
+
 ### 💻 Migrate to another computer
 - Move **everything** to a new PC in **one password-protected file**: open and completed
   tasks, groups, notes, reminders, task and note attachments, reports history, recycle bin and settings
@@ -182,6 +195,9 @@ The table shows your first workspace. Every other workspace has the same files i
 `%AppData%\Tasky Workspaces\<workspace id>\` and `%LocalAppData%\Tasky Workspaces\<workspace id>\`
 (macOS: `~/Library/Application Support/Tasky Workspaces/` and `~/Library/Application Support/Tasky Local Workspaces/`).
 The list of workspaces is `%AppData%\Tasky Workspaces\workspaces.json`.
+Sync settings of this computer (its id, the sync folder, which workspaces sync) are in `%LocalAppData%\Tasky Sync\`
+(macOS: `~/Library/Application Support/Tasky Sync/`). The sync key is not there: it's in DPAPI (Windows) or the
+login keychain as "Sysslar Sync" (macOS).
 
 These folders are readable only by your user account (and administrators).
 Uninstalling Sysslar does not remove them. **Remove all data** by deleting `%AppData%\Tasky`,
@@ -256,6 +272,10 @@ Changes from anyone outside the team arrive as pull requests and are reviewed be
 
 This program will not transfer any information to other networked systems unless specifically
 requested by the user or the person installing or operating it.
+
+**Sync** (Settings → Sync, off until you turn it on) doesn't go online either: Sysslar writes
+encrypted files into a folder you pick, and your own Google Drive, iCloud, OneDrive or Dropbox app
+moves them. The files can't be read without the key, which stays on your computers.
 
 The one feature that goes online is the **update check**, which is off until you switch it on in
 Settings → Updates. It then asks GitHub's public API for the latest release number once a day; the

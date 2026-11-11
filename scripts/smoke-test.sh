@@ -14,6 +14,7 @@ TIMEOUT_SECONDS=90
 ROOT="$(mktemp -d)/tasky-smoke"
 export TASKY_DATA_ROOT="$ROOT"
 export TASKY_SMOKE_FULL=1
+export TASKY_SYNC_TEST_FOLDER="$ROOT/cloud"   # sync is turned on, run and off again against this folder
 export TASKY_SMOKE_REMINDER=1   # also shows a sample reminder, which should sit at the bottom right
 MARKER="$ROOT/Local/Tasky/smoke-test-passed"
 LOGS="$ROOT/Local/Tasky/logs"

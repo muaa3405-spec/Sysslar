@@ -407,6 +407,29 @@ public class TaskItemViewModel : INotifyPropertyChanged
 
     // Model access
 
+    /// <summary>
+    /// Takes the synced values from a fresh copy of this task (after a sync changed it), keeping this
+    /// object, so open dialogs and the widget stay attached. A running timer's state stays as it is.
+    /// </summary>
+    public void RefreshFrom(TaskItem fresh)
+    {
+        _model.TaskNumber        = fresh.TaskNumber;
+        _model.Title             = fresh.Title;
+        _model.Description       = fresh.Description;
+        _model.IsCompleted       = fresh.IsCompleted;
+        _model.SortOrder         = fresh.SortOrder;
+        _model.CreatedAt         = fresh.CreatedAt;
+        _model.ManualTimeMinutes = fresh.ManualTimeMinutes;
+        _model.DueDate           = fresh.DueDate;
+        _model.CompletedAt       = fresh.CompletedAt;
+        _model.GroupId           = fresh.GroupId;
+        _model.Recurrence        = fresh.Recurrence;
+        _model.RecurrenceEndDate = fresh.RecurrenceEndDate;
+        _model.DeletedAt         = fresh.DeletedAt;
+        if (!IsRunning) _model.AccumulatedSeconds = fresh.AccumulatedSeconds;
+        OnPropertyChanged(string.Empty);   // every property may have changed
+    }
+
     public TaskItem Model => _model;
 
     /// <summary>

@@ -1,0 +1,164 @@
+<Window xmlns:ctrl="using:Tasky.Controls" x:Class="Tasky.Dialogs.SyncDialog"
+        Classes="toolWindow"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Sync"
+        Background="{DynamicResource AppBackground}"
+        Width="500" SizeToContent="Height"
+        CanResize="False"
+        ShowInTaskbar="False">
+
+    <Window.Resources>
+        <!-- A folder choice on the "where" step -->
+        <ControlTheme x:Key="FolderOption" TargetType="RadioButton">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="Bd" Background="{DynamicResource CardBackground}"
+                            BorderBrush="{DynamicResource BorderColor}" BorderThickness="1"
+                            CornerRadius="8" Padding="14,10">
+                        <ContentPresenter Content="{TemplateBinding Content}"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover /template/ Border#Bd">
+                <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBlue}"/>
+            </Style>
+            <Style Selector="^:checked /template/ Border#Bd">
+                <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBlue}"/>
+                <Setter Property="BorderThickness" Value="2"/>
+            </Style>
+        </ControlTheme>
+    </Window.Resources>
+
+    <Border Theme="{StaticResource DialogFrame}">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24,20">
+    <Grid>
+
+        <!-- ── Off ──────────────────────────────────────────────────────── -->
+        <StackPanel x:Name="OffStep">
+            <TextBlock Text="Sync" FontSize="17" FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextPrimary}" Margin="0,0,0,6"/>
+            <TextBlock Theme="{StaticResource SubText}" TextWrapping="Wrap" Margin="0,0,0,16"
+                       Text="Keep your workspaces the same on your other computers, Mac and Windows, through Google Drive, iCloud, OneDrive, Dropbox or any shared folder. No account needed."/>
+            <Border x:Name="OffSecurity" Background="{DynamicResource CardBackground}" BorderBrush="{DynamicResource BorderColor}"
+                    BorderThickness="1" CornerRadius="8" Padding="14,12" Margin="0,0,0,18"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                <Button Content="Close" Theme="{StaticResource SecondaryButton}" Click="Close_Click"/>
+                <Button Content="Turn on sync…" Theme="{StaticResource PrimaryButton}" Click="TurnOn_Click"/>
+            </StackPanel>
+        </StackPanel>
+
+        <!-- ── Where ────────────────────────────────────────────────────── -->
+        <StackPanel x:Name="FolderStep" IsVisible="False">
+            <TextBlock Text="Where should Sysslar keep the sync files?" FontSize="17" FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextPrimary}" Margin="0,0,0,6"/>
+            <TextBlock Theme="{StaticResource SubText}" TextWrapping="Wrap" Margin="0,0,0,14"
+                       Text="Pick the same place on each computer. Sysslar only writes encrypted files there; your Google Drive, iCloud, OneDrive or Dropbox app moves them."/>
+            <StackPanel x:Name="FolderOptions"/>
+            <TextBlock x:Name="NoCloudFolders" Theme="{StaticResource SubText}" TextWrapping="Wrap" IsVisible="False" Margin="0,0,0,10"
+                       Text="No Google Drive, iCloud, OneDrive or Dropbox folder was found on this computer. Install one of them on each computer, or pick any shared folder."/>
+            <Button Content="Choose another folder…" Theme="{StaticResource SecondaryButton}" Click="ChooseFolder_Click" Margin="0,2,0,0"/>
+            <TextBlock x:Name="FolderError" Foreground="{DynamicResource Danger}" FontSize="12" TextWrapping="Wrap"
+                       IsVisible="False" Margin="0,10,0,0"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,20,0,0">
+                <Button Content="Cancel" Theme="{StaticResource SecondaryButton}" Click="CancelSetup_Click"/>
+                <Button x:Name="FolderContinue" Content="Continue" Theme="{StaticResource PrimaryButton}"
+                        Click="FolderContinue_Click" IsEnabled="False"/>
+            </StackPanel>
+        </StackPanel>
+
+        <!-- ── New key (first computer, or after changing the key) ──────── -->
+        <StackPanel x:Name="NewKeyStep" IsVisible="False">
+            <TextBlock x:Name="NewKeyTitle" Text="Your encryption key" FontSize="17" FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextPrimary}" Margin="0,0,0,6"/>
+            <TextBlock x:Name="NewKeyIntro" Theme="{StaticResource SubText}" TextWrapping="Wrap" Margin="0,0,0,14"
+                       Text="Type this key on your other computers to sync with this one. Save it in a password manager: without it a new computer can't join, and nobody can recover it."/>
+            <Border Background="{DynamicResource InputBackground}" BorderBrush="{DynamicResource BorderColor}"
+                    BorderThickness="1" CornerRadius="6" Padding="10,10" Margin="0,0,0,10">
+                <SelectableTextBlock x:Name="NewKeyText" FontFamily="{StaticResource MonoFont}" FontSize="15"
+                                     TextWrapping="Wrap" HorizontalAlignment="Center" TextAlignment="Center"
+                                     Foreground="{DynamicResource TextPrimary}"/>
+            </Border>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="Copy" Theme="{StaticResource SecondaryButton}" Click="CopyKey_Click"/>
+                <TextBlock x:Name="CopiedText" Text="Copied" Theme="{StaticResource SubText}" VerticalAlignment="Center" IsVisible="False"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+                <Button Content="Done" Theme="{StaticResource PrimaryButton}" Click="NewKeyDone_Click"/>
+            </StackPanel>
+        </StackPanel>
+
+        <!-- ── Enter a key (another computer, or the key was changed) ───── -->
+        <StackPanel x:Name="EnterKeyStep" IsVisible="False">
+            <TextBlock x:Name="EnterKeyTitle" Text="Enter your encryption key" FontSize="17" FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextPrimary}" Margin="0,0,0,6"/>
+            <TextBlock x:Name="EnterKeyIntro" Theme="{StaticResource SubText}" TextWrapping="Wrap" Margin="0,0,0,14"
+                       Text="This folder already has Sysslar sync files. Find the key on any computer that syncs: Settings → Sync → Show key."/>
+            <TextBox x:Name="KeyInput" Theme="{StaticResource InputBox}" FontFamily="{StaticResource MonoFont}"
+                     Watermark="XXXXXX-XXXXXX-XXXXXX-…" TextWrapping="Wrap" AcceptsReturn="False"
+                     AutomationProperties.Name="Encryption key"/>
+            <TextBlock x:Name="KeyError" Foreground="{DynamicResource Danger}" FontSize="12" TextWrapping="Wrap"
+                       IsVisible="False" Margin="0,8,0,0"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,20,0,0">
+                <Button Content="Cancel" Theme="{StaticResource SecondaryButton}" Click="CancelKey_Click"/>
+                <Button Content="Continue" Theme="{StaticResource PrimaryButton}" Click="KeyContinue_Click"/>
+            </StackPanel>
+        </StackPanel>
+
+        <!-- ── On ───────────────────────────────────────────────────────── -->
+        <StackPanel x:Name="OnStep" IsVisible="False">
+            <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,4">
+                <TextBlock Text="Sync" FontSize="17" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimary}"/>
+                <TextBlock x:Name="StatusText" Grid.Column="1" Theme="{StaticResource SubText}" VerticalAlignment="Center"/>
+            </Grid>
+
+            <!-- Paused: the only thing that needs the user -->
+            <Border x:Name="PausedCard" IsVisible="False" Background="{DynamicResource WarningSoft}" BorderBrush="{DynamicResource Warning}"
+                    BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,8,0,4">
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock x:Name="PausedText" TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center"/>
+                    <Button Grid.Column="1" Content="Enter new key" Theme="{StaticResource PrimaryButton}" Classes="small"
+                            Margin="10,0,0,0" Click="EnterNewKey_Click" VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+
+            <TextBlock Text="FOLDER" Theme="{StaticResource LabelText}" Margin="0,14,0,0"/>
+            <Grid ColumnDefinitions="*,Auto">
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock x:Name="FolderName" FontSize="13" Foreground="{DynamicResource TextPrimary}"/>
+                    <TextBlock x:Name="FolderPath" Theme="{StaticResource SubText}" TextTrimming="CharacterEllipsis"/>
+                </StackPanel>
+                <Button Grid.Column="1" Content="Change" Theme="{StaticResource SecondaryButton}" Classes="small"
+                        Click="ChangeFolder_Click" VerticalAlignment="Center"/>
+            </Grid>
+
+            <TextBlock Text="WORKSPACES" Theme="{StaticResource LabelText}" Margin="0,16,0,0"/>
+            <StackPanel x:Name="WorkspaceRows"/>
+
+            <TextBlock Text="ENCRYPTION KEY" Theme="{StaticResource LabelText}" Margin="0,16,0,0"/>
+            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,10">
+                <Button Content="Show key" Theme="{StaticResource SecondaryButton}" Classes="small" Click="ShowKey_Click"/>
+                <Button Content="Change key…" Theme="{StaticResource SecondaryButton}" Classes="small" Click="ChangeKey_Click"/>
+            </StackPanel>
+            <Border x:Name="OnSecurity" Background="{DynamicResource CardBackground}" BorderBrush="{DynamicResource BorderColor}"
+                    BorderThickness="1" CornerRadius="8" Padding="14,12"/>
+
+            <StackPanel x:Name="ComputersSection" IsVisible="False">
+                <TextBlock Text="OTHER COMPUTERS" Theme="{StaticResource LabelText}" Margin="0,16,0,0"/>
+                <StackPanel x:Name="ComputerRows"/>
+            </StackPanel>
+
+            <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,20,0,0">
+                <Button x:Name="SyncNowButton" Content="Sync now" Theme="{StaticResource SecondaryButton}" Click="SyncNow_Click"/>
+                <Button Grid.Column="1" Content="Turn off on this computer" Theme="{StaticResource GhostButton}"
+                        HorizontalAlignment="Center" Click="TurnOff_Click"/>
+                <Button Grid.Column="2" Content="Close" Theme="{StaticResource PrimaryButton}" Click="Close_Click"/>
+            </Grid>
+        </StackPanel>
+
+    </Grid>
+    </ScrollViewer>
+    </Border>
+</Window>
