@@ -180,6 +180,7 @@ internal static class NativeMethods
     // ── Title bar (DWM) ───────────────────────────────────────────────────
     public const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
     public const int DWMWA_CAPTION_COLOR           = 35;  // Windows 11+
+    public const int DWMWA_TEXT_COLOR              = 36;  // Windows 11+
 
     [DllImport("dwmapi.dll", PreserveSig = true)]
     public static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int value, int size);

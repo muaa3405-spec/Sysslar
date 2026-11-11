@@ -83,6 +83,7 @@ public partial class MainWindow : Window
         };
 
         if (page == AppPage.Trash)     RefreshTrashList();
+        if (page == AppPage.Settings)  UpdateSyncIndicators();
         if (page == AppPage.Completed) RefreshCompletedList();
         if (page == AppPage.Notes)     { Vm.LoadNotes(); RefreshNotesEmpty(); }
         if (page == AppPage.Stats)     { Vm.RefreshStats(_statsWeekOffset); BuildStatsUI(); }
@@ -136,7 +137,7 @@ public partial class MainWindow : Window
         NavigateTo(AppPage.Main);
     }
 
-    // Title bar theme (Windows draws it to match the header; macOS follows the app theme)
+    // Title bar theme: Windows and macOS both colour the native title bar like the header
 
     private void ApplyTitleBarTheme(bool dark) => PlatformServices.Chrome.ApplyThemeWithCaption(this, dark);
 
@@ -169,6 +170,7 @@ public partial class MainWindow : Window
         // A drag-to-reorder swallows the release, so the card would stay pressed in: always let it pop back up.
         TaskListControl.AddHandler(PointerReleasedEvent, (_, _) => ReleasePressedCard(), RoutingStrategies.Bubble, handledEventsToo: true);
         Closing += Window_Closing;
+        Services.Sync.AppSync.StatusChanged += UpdateSyncIndicators;
 
         Opened += (_, _) =>
         {
@@ -223,6 +225,19 @@ public partial class MainWindow : Window
             SettingTune.Items.Add(new ComboBoxItem { Content = sound.Label, Tag = sound.Tag });
         SettingTune.SelectedIndex = PlatformServices.Sounds.Options.ToList()
             .FindIndex(s => s.Tag == SoundTags.Default);
+    }
+
+    /// <summary>After a sync changed the open workspace: the view model is up to date, refresh the pages that copy from it.</summary>
+    public void RefreshAfterSync()
+    {
+        if (DataContext is not MainViewModel vm) return;
+        BuildGroupChips();
+        PopulateNewTaskGroupPicker();
+        RefreshNotesEmpty();
+        if (TrashPage.IsVisible)     RefreshTrashList();
+        if (CompletedPage.IsVisible) RefreshCompletedList();
+        if (StatsPage.IsVisible)     { vm.RefreshStats(_statsWeekOffset); BuildStatsUI(); }
+        if (RemindersPage.IsVisible) RefreshRemindersPage();
     }
 
     // ─── Auto-refresh (every 10 min) ─────────────────────────────────────────

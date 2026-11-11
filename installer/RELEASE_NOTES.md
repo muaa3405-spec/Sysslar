@@ -16,6 +16,13 @@ Install it over your current Sysslar: your tasks, notes and attachments are kept
 
 [Code signing policy](https://github.com/muaa3405-spec/tasky#code-signing-policy) · [Privacy policy](https://github.com/muaa3405-spec/tasky#privacy-policy)
 
+### New in 1.5.0
+- **Sync between your computers.** Settings → Sync keeps your workspaces the same on your Macs and PCs through **Google Drive, iCloud Drive, OneDrive, Dropbox** or any shared folder. No account, and Sysslar still never goes online: it writes encrypted files into the folder, and your cloud app moves them.
+- **True sync.** New tasks, completed tasks, notes, groups, reminders and attachments are added on every computer, and changes reach all of them (the newest change wins). Something is removed only when you delete it on one of them. Time tracked on each computer adds up.
+- **Choose which workspaces sync**, separately on each computer. A workspace from another computer can be added with one switch.
+- **Encrypted before it leaves your computer** (AES-256). Stolen sync files can't be read. The encryption key is kept only on the computers where you turn on sync. Change it any time: your other computers pause until you type the new key, and nothing is lost meanwhile.
+- **The title bar matches Sysslar's colours** on macOS and Windows 11, in dark and light.
+
 ### New in 1.4.4
 - **Workspaces, groups and every popup work on Windows again.** In 1.4.2 and 1.4.3, popups such as Manage groups, Workspaces, Set reminder and Attachments didn't open at Windows' default 90 % zoom.
 - **Deleting a workspace on Windows removes all of its data.** Before, its folder could stay behind.

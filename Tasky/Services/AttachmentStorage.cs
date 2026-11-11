@@ -28,6 +28,33 @@ public sealed class AttachmentStorage
         return dest;
     }
 
+    /// <summary>Copies a file (a synced attachment) into the owner's folder under <paramref name="fileName"/>.</summary>
+    /// <param name="ownerFolder">From <see cref="AttachmentFolders"/>.</param>
+    public string SaveCopyAs(string ownerFolder, string sourcePath, string fileName)
+    {
+        var safe = SafeFileName(fileName);
+        var dest = UniquePath(EnsureFolder(ownerFolder), Path.GetFileNameWithoutExtension(safe), Path.GetExtension(safe));
+        File.Copy(sourcePath, dest, overwrite: false);
+        return dest;
+    }
+
+    /// <summary>
+    /// A file name that works on both Windows and macOS: no path parts, no characters Windows rejects,
+    /// no trailing dots or spaces, and not a reserved device name such as CON.
+    /// </summary>
+    public static string SafeFileName(string name)
+    {
+        var file = (name ?? string.Empty).Replace('\\', '/');
+        file = file[(file.LastIndexOf('/') + 1)..];
+        var chars = file.Select(c => c < 32 || "<>:\"|?*".Contains(c) ? '_' : c).ToArray();
+        file = new string(chars).TrimEnd('.', ' ').Trim();
+        if (file.Length == 0) file = "attachment";
+        var stem = Path.GetFileNameWithoutExtension(file).ToUpperInvariant();
+        if (stem is "CON" or "PRN" or "AUX" or "NUL" || (stem.Length == 4 && (stem.StartsWith("COM") || stem.StartsWith("LPT")) && char.IsDigit(stem[3])))
+            file = "_" + file;
+        return file.Length > 120 ? file[..100] + Path.GetExtension(file) : file;
+    }
+
     /// <summary>Writes pasted image bytes to a new, uniquely named file.</summary>
     /// <param name="ownerFolder">From <see cref="AttachmentFolders"/>.</param>
     public string SaveBytes(string ownerFolder, byte[] data, string extension)

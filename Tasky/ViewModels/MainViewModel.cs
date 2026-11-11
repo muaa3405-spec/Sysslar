@@ -514,6 +514,54 @@ public class MainViewModel : INotifyPropertyChanged
         RefreshVisibleTasks();
     }
 
+    /// <summary>
+    /// After a sync changed this workspace: brings the lists up to date in place. Existing task objects
+    /// are kept and refreshed (open dialogs, the widget and a running timer keep working on them);
+    /// new tasks are added and removed ones dropped.
+    /// </summary>
+    public void ApplySyncedChanges()
+    {
+        var existing = Tasks.Concat(CompletedTasks).ToDictionary(v => v.Id);
+        var open = new List<TaskItemViewModel>();
+        var done = new List<TaskItemViewModel>();
+        foreach (var t in _db.GetAllTasks())
+        {
+            if (existing.Remove(t.Id, out var vm))
+            {
+                vm.RefreshFrom(t);
+                vm.ReminderCount   = _db.GetReminderCountForTask(vm.Id);
+                vm.AttachmentCount = _db.GetAttachments(vm.Id).Count;
+            }
+            else
+            {
+                vm = new TaskItemViewModel(t);
+                WireViewModel(vm);
+            }
+            (vm.IsCompleted ? done : open).Add(vm);
+        }
+        foreach (var gone in existing.Values) gone.Detach();
+
+        // Completed on another computer while its timer ran here: stop the timer (this saves it)
+        foreach (var vm in done.Where(v => v.IsActive)) vm.IsActive = false;
+
+        ReplaceContents(Tasks, open);
+        ReplaceContents(CompletedTasks, done.OrderByDescending(v => v.CompletedAt ?? DateTime.MinValue));
+        LoadDeletedTasks();
+        LoadGroups();
+        LoadNotes();
+        RefreshFilteredCompleted();
+        RefreshVisibleTasks();
+        OnPropertyChanged(nameof(ActiveTask));
+    }
+
+    private static void ReplaceContents(ObservableCollection<TaskItemViewModel> list, IEnumerable<TaskItemViewModel> items)
+    {
+        var wanted = items.ToList();
+        if (list.SequenceEqual(wanted)) return;
+        list.Clear();
+        foreach (var vm in wanted) list.Add(vm);
+    }
+
     // Add
 
     public void AddTask()

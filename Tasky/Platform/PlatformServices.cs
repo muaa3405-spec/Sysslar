@@ -32,7 +32,7 @@ public static class PlatformServices
             Sounds    = new MacSoundPlayer();
             Clipboard = new MacClipboard();
             AppIcons  = new MacAppIconProvider();
-            Chrome    = new NoWindowChrome();
+            Chrome    = new MacWindowChrome();
         }
         else
         {
@@ -82,11 +82,4 @@ public static class PlatformServices
 
     [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     private static Win32MessageWindow MessageWindow() => _messageWindow ??= new Win32MessageWindow();
-
-    /// <summary>macOS draws its title bars to match the app theme on its own.</summary>
-    private sealed class NoWindowChrome : IWindowChrome
-    {
-        public void ApplyTheme(Window window, bool dark) { }
-        public void ApplyThemeWithCaption(Window window, bool dark) { }
-    }
 }

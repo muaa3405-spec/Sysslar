@@ -11,14 +11,21 @@ public class DatabaseService
     private readonly string _connectionString;
     public readonly string AttachmentsRoot;
 
-    public DatabaseService()
+    public DatabaseService() : this(AppPaths.DataFolder) { }
+
+    /// <summary>The database of the workspace whose data lives in <paramref name="dataFolder"/>
+    /// (sync opens workspaces that aren't the open one this way).</summary>
+    public DatabaseService(string dataFolder)
     {
-        Directory.CreateDirectory(AppPaths.DataFolder);
-        _dbPath = AppPaths.DatabaseFile;
+        Directory.CreateDirectory(dataFolder);
+        _dbPath = Path.Combine(dataFolder, AppPaths.DatabaseFileName);
         _connectionString = $"Data Source={_dbPath}";
-        AttachmentsRoot = AppPaths.AttachmentsFolder;
+        AttachmentsRoot = Path.Combine(dataFolder, AppPaths.AttachmentsFolderName);
         Directory.CreateDirectory(AttachmentsRoot);
     }
+
+    /// <summary>The database file (sync reads and writes it directly).</summary>
+    public string DatabasePath => _dbPath;
 
     public void Initialize()
     {
@@ -130,6 +137,7 @@ public class DatabaseService
 
         DeleteOrphanedChildRows(conn);
         RepairAttachmentPaths(conn);
+        Sync.SyncSchema.Ensure(conn);
     }
 
     // ── MissedNotifications ────────────────────────────────────────────────

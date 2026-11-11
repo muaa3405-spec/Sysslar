@@ -114,6 +114,7 @@ public partial class App : Application
             Task.Run(Platform.MacOS.MacLegacyAppCleanup.MoveOldTaskyAppToTrash);   // renamed app: drop the old Tasky.app
         }
         mainWindow.Opened += OnFirstOpened;
+        Services.Sync.AppSync.Start();
 
         // Workspace switch: open on the "Opening …" screen, where the old window was
         mainWindow.BeginArrival(args);
@@ -202,6 +203,7 @@ public partial class App : Application
             ApplyPendingImport()?.Notify();
             ApplyPendingRestore()?.Notify();
             StartWorkspaceServices();
+            Services.Sync.AppSync.OnWorkspaceSwitched();
             return true;
         }
         catch (Exception ex)
@@ -365,6 +367,7 @@ public partial class App : Application
     private static void OnExit()
     {
         StopServices();
+        Services.Sync.AppSync.FlushOnExit();
         MainAppWindow?.DisposeTray();
         _singleInstance?.Dispose();
     }

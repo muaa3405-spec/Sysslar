@@ -101,7 +101,31 @@ public partial class MainWindow
         {
             Services.CrashLog.Write("Fatal error: switching workspace without a restart failed in the smoke test", ex);
         }
+        await SmokeTestSyncAsync(snapshotDir);
         onFinished();
+    }
+
+    /// <summary>
+    /// Opens Settings → Sync and, when a test folder is given (TASKY_SYNC_TEST_FOLDER), turns sync on
+    /// with a new key, syncs and turns it off again. A failure is logged as a fatal error.
+    /// </summary>
+    private async Task SmokeTestSyncAsync(string? snapshotDir)
+    {
+        var dialog = new Dialogs.SyncDialog();
+        dialog.Show(this);
+        try
+        {
+            await dialog.RunSmokeTestAsync(async name =>
+            {
+                await Task.Delay(SmokePageDelay);
+                if (snapshotDir is not null) SaveSnapshot(snapshotDir, name, dialog);
+            });
+        }
+        catch (Exception ex)
+        {
+            Services.CrashLog.Write("Fatal error: the Sync settings failed in the smoke test", ex);
+        }
+        finally { dialog.Close(); }
     }
 
     private void ShowPageForSmokeTest(AppPage page)
@@ -121,15 +145,16 @@ public partial class MainWindow
         NavigateTo(page);
     }
 
-    private void SaveSnapshot(string folder, string name)
+    private void SaveSnapshot(string folder, string name, Window? window = null)
     {
+        window ??= this;
         try
         {
             Directory.CreateDirectory(folder);
             const double scale = 2;
-            var size = new PixelSize((int)(Bounds.Width * scale), (int)(Bounds.Height * scale));
+            var size = new PixelSize((int)(window.Bounds.Width * scale), (int)(window.Bounds.Height * scale));
             using var bitmap = new RenderTargetBitmap(size, new Vector(96 * scale, 96 * scale));
-            bitmap.Render(this);
+            bitmap.Render(window);
             bitmap.Save(Path.Combine(folder, name + ".png"));
         }
         catch (Exception ex)

@@ -13,6 +13,7 @@ $ErrorActionPreference = 'Stop'
 $root = Join-Path ([IO.Path]::GetTempPath()) "tasky-smoke-$([guid]::NewGuid().ToString('N'))"
 $env:TASKY_DATA_ROOT  = $root
 $env:TASKY_SMOKE_FULL = '1'
+$env:TASKY_SYNC_TEST_FOLDER = Join-Path $root 'cloud'   # sync is turned on, run and off again against this folder
 $marker = Join-Path $root 'Local\Tasky\smoke-test-passed'
 $logs   = Join-Path $root 'Local\Tasky\logs'
 

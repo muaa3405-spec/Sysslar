@@ -14,6 +14,9 @@ public static class AppPaths
     private static readonly string? OverrideRoot =
         Environment.GetEnvironmentVariable(DataRootOverrideVariable) is { Length: > 0 } root ? root : null;
 
+    /// <summary>True when Tasky runs against sandbox data (<see cref="DataRootOverrideVariable"/>), as in tests.</summary>
+    public static bool IsSandboxed => OverrideRoot is not null;
+
     /// <summary>Where the OS keeps per-user application data.</summary>
     private static string UserDataRoot => OperatingSystem.IsMacOS()
         ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library", "Application Support")
@@ -51,6 +54,20 @@ public static class AppPaths
         : OperatingSystem.IsMacOS()
             ? Path.Combine(UserDataRoot, "Tasky Local Workspaces")
             : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Tasky Workspaces");
+
+    /// <summary>
+    /// Sync settings of this computer: its device id, the sync folder and which workspaces sync
+    /// (%LocalAppData%\Tasky Sync on Windows, ~/Library/Application Support/Tasky Sync on macOS).
+    /// Local, not roaming: each computer is its own device.
+    /// </summary>
+    public static string SyncFolder => OverrideRoot is not null
+        ? Path.Combine(OverrideRoot, "Local", "Tasky Sync")
+        : OperatingSystem.IsMacOS()
+            ? Path.Combine(UserDataRoot, "Tasky Sync")
+            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Tasky Sync");
+
+    /// <summary>Attachment files received through sync, decrypted, waiting to be added to a workspace.</summary>
+    public static string SyncCacheFolderFor(string workspaceId) => Path.Combine(LocalFolderFor(workspaceId), "sync-cache");
 
     /// <summary>The list of workspaces and which one Tasky opens.</summary>
     public static string WorkspaceRegistryFile => Path.Combine(WorkspacesFolder, "workspaces.json");

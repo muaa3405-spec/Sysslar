@@ -58,6 +58,20 @@ dotnet run --project Tasky/Tasky.csproj
 
 Or open `Tasky.sln` in Visual Studio / Rider and press **F5**.
 
+### Tests
+
+```bash
+dotnet test Tasky.Tests
+```
+
+The tests cover sync: the merge rules (add, update, newest wins, delete markers, tracked time, twins,
+task numbers, attachments), the encryption and key codes, and two simulated computers syncing through a
+real folder, including a key change. CI runs them on Windows; they also pass on macOS.
+
+Sandboxed runs (`TASKY_DATA_ROOT`) keep the sync key in a plain file in the sandbox instead of the
+keychain, and offer only the folder in `TASKY_SYNC_TEST_FOLDER` (never your real cloud folders).
+The smoke test uses this to turn sync on, sync and turn it off again.
+
 ### First-run notes
 - The database is created automatically (see [Data Location](#data-location)).
 - A tray icon appears (Windows notification area / macOS menu bar).
