@@ -20,7 +20,7 @@ public partial class QuickAddWindow : Window
     {
         _vm = vm;
         InitializeComponent();
-        Helpers.DialogZoom.Apply(this);
+        Helpers.DialogLayoutHelper.Prepare(this);
         Loaded += (_, _) =>
         {
             TitleBox.Focus();

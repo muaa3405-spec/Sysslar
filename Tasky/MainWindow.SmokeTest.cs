@@ -69,7 +69,7 @@ public partial class MainWindow
 
     private async Task SmokeTestDialogsThenWorkspacesAsync(string? snapshotDir, Action onFinished)
     {
-        await SmokeTestDialogsAsync();
+        await SmokeTestDialogsAsync(snapshotDir);
         await SmokeTestWorkspaceSwitchAsync(snapshotDir, onFinished);
     }
 

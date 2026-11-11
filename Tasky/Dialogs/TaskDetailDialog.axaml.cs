@@ -12,7 +12,7 @@ using Tasky.ViewModels;
 
 namespace Tasky.Dialogs;
 
-public partial class TaskDetailDialog : Window
+public partial class TaskDetailDialog : Window, IScrollsOwnContent
 {
     // Named transforms get no generated field in Avalonia; reach it through its owner.
     private TranslateTransform SlideTransform => (TranslateTransform)DialogRoot.RenderTransform!;
@@ -34,7 +34,6 @@ public partial class TaskDetailDialog : Window
         _taskTitle = vm.Title;
         InitializeComponent();
         ThemeHelper.Attach(this);
-        DialogLayoutHelper.FitToWorkArea(this);
 
         // ID + title
         TaskNumberLabel.Text = vm.TaskNumberDisplay;

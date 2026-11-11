@@ -23,7 +23,7 @@ namespace Tasky.Dialogs;
 /// Import: choose file → password → review and pick the workspace → Tasky restarts in that
 /// workspace with the imported data.
 /// </summary>
-public partial class MigrateDialog : Window
+public partial class MigrateDialog : Window, IScrollsOwnContent
 {
     private static readonly FilePickerFileType TextFileType = new("Text file") { Patterns = ["*.txt"] };
 
@@ -64,7 +64,6 @@ public partial class MigrateDialog : Window
         // The confirm field must be typed, so a pasted typo can't slip through twice.
         ExportPasswordConfirm.AddHandler(TextBox.PastingFromClipboardEvent, BlockPaste, RoutingStrategies.Bubble);
         ThemeHelper.Attach(this);
-        DialogLayoutHelper.FitToWorkArea(this);
         if (OperatingSystem.IsMacOS()) IntroText.Text = MacIntroText;
         if (startWithImport) ChooseImport_Click(this, new RoutedEventArgs());
     }
@@ -83,6 +82,9 @@ public partial class MigrateDialog : Window
         WorkingLabel.Text = message;
         ShowStep(WorkingStep);
     }
+
+    /// <summary>Smoke test: open straight on the export step, the longest one.</summary>
+    internal void ShowExportStep() => ChooseExport_Click(this, new RoutedEventArgs());
 
     private void ChooseExport_Click(object? sender, RoutedEventArgs e)
     {

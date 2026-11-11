@@ -20,11 +20,12 @@
             <DropShadowDirectionEffect BlurRadius="24" ShadowDepth="6" Opacity="0.3" Color="#000"/>
         </Border.Effect>
 
-        <StackPanel>
-            <TextBlock x:Name="TitleLabel" FontSize="17" FontWeight="SemiBold"
+        <!-- The list shrinks and scrolls when the popup is capped to the window; the button stays in view -->
+        <Grid RowDefinitions="Auto,*,Auto,Auto">
+            <TextBlock Grid.Row="0" x:Name="TitleLabel" FontSize="17" FontWeight="SemiBold"
                        Foreground="{DynamicResource TextPrimary}" Margin="0,0,0,12"/>
 
-            <ScrollViewer MaxHeight="520" VerticalScrollBarVisibility="Auto">
+            <ScrollViewer Grid.Row="1" MaxHeight="520" VerticalScrollBarVisibility="Auto">
                 <StackPanel>
                     <!-- Tips: only on the first start -->
                     <ItemsControl x:Name="TipsList" Margin="0,0,0,10">
@@ -45,13 +46,13 @@
                 </StackPanel>
             </ScrollViewer>
 
-            <TextBlock Text="You can find this list any time in Settings, or by pressing ?"
+            <TextBlock Grid.Row="2" Text="You can find this list any time in Settings, or by pressing ?"
                        Theme="{StaticResource SubText}" TextWrapping="Wrap" Margin="0,12,0,16"/>
 
-            <Button Content="Got it" Theme="{StaticResource PrimaryButton}"
+            <Button Grid.Row="3" Content="Got it" Theme="{StaticResource PrimaryButton}"
                     HorizontalAlignment="Right" MinWidth="100"
                     IsDefault="True" IsCancel="True"
                     Click="Close_Click"/>
-        </StackPanel>
+        </Grid>
     </Border>
 </Window>

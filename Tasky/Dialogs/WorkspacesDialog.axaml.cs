@@ -32,7 +32,6 @@ public partial class WorkspacesDialog : Window
     {
         InitializeComponent();
         ThemeHelper.Attach(this);
-        DialogLayoutHelper.FitToWorkArea(this);
         BuildSwatches();
         RefreshList();
         if (startWithNew) Opened += (_, _) => NameBox.Focus();
