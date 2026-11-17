@@ -27,6 +27,7 @@ public partial class ReminderToastWindow : Window
     private readonly int _taskId;
     private readonly string _taskTitle;
     private readonly DispatcherTimer _autoDismiss;
+    private bool _closing;
 
     [Obsolete("XAML previewer only")]
     public ReminderToastWindow()
@@ -50,7 +51,10 @@ public partial class ReminderToastWindow : Window
         // measured the content, which can be after Opened, so place it again whenever the size changes.
         PlaceAtBottomRight();
         SizeChanged += (_, _) => PlaceAtBottomRight();
-        Opacity = 0;
+
+        // Fade the card, never the window: a window shown at opacity 0 is not painted on Windows,
+        // which left an invisible, always-on-top toast that still took clicks.
+        RootBorder.Opacity = 0;
 
         Opened += (_, _) =>
         {
@@ -63,7 +67,7 @@ public partial class ReminderToastWindow : Window
             // Slide in: X 360→0 + fade in
             _ = Animator.Animate(SlideTransform, TranslateTransform.XProperty,
                                  SlideDistance, 0, SlideInDuration, new CubicEaseOut());
-            _ = Animator.Fade(this, 0, 1, FadeInDuration, new CubicEaseOut());
+            _ = Animator.Fade(RootBorder, 0, 1, FadeInDuration, new CubicEaseOut());
         };
 
         // Auto-dismiss — use setting (0 = permanent, else N seconds)
@@ -116,13 +120,24 @@ public partial class ReminderToastWindow : Window
 
     private async void SlideClose()
     {
+        // Snooze, Dismiss, Open Task and the auto-dismiss timer can all ask to close: run it once
+        if (_closing) return;
+        _closing = true;
         _autoDismiss.Stop();
+        IsHitTestVisible = false;   // a toast on its way out no longer takes clicks
 
-        // Slide out: X 0→360 (exits to the right) + fade out
-        var slide = Animator.Animate(SlideTransform, TranslateTransform.XProperty,
-                                     0, SlideDistance, SlideOutDuration, new CubicEaseIn());
-        var fade  = Animator.Fade(this, 1, 0, SlideOutDuration, new CubicEaseIn());
-        await Task.WhenAll(slide, fade);
-        Close();
+        try
+        {
+            // Slide out: X 0→360 (exits to the right) + fade out
+            var slide = Animator.Animate(SlideTransform, TranslateTransform.XProperty,
+                                         0, SlideDistance, SlideOutDuration, new CubicEaseIn());
+            var fade  = Animator.Fade(RootBorder, 1, 0, SlideOutDuration, new CubicEaseIn());
+            await Task.WhenAll(slide, fade);
+        }
+        finally
+        {
+            // Always close, even if the animation fails, so no invisible topmost window stays behind
+            Close();
+        }
     }
 }
