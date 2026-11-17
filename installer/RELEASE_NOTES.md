@@ -16,6 +16,9 @@ Install it over your current Sysslar: your tasks, notes and attachments are kept
 
 [Code signing policy](https://github.com/muaa3405-spec/tasky#code-signing-policy) · [Privacy policy](https://github.com/muaa3405-spec/tasky#privacy-policy)
 
+### New in 1.5.2
+- **Links in task descriptions are clickable.** Web addresses show under the description as short, one-line links (for example *github.com/owner/repo/issues/12*). Click one to open it in your browser; point at it to see the full address. The long address no longer fills the card.
+
 ### New in 1.5.1
 - **Reminders on Windows show properly again.** A reminder could leave an invisible box at the bottom right of the screen that still caught clicks (the Snooze list opened from nowhere). The reminder card now fades in and always closes.
 

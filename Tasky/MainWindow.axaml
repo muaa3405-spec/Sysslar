@@ -703,15 +703,44 @@
                                                                Foreground="{DynamicResource TextPrimary}"
                                                                TextWrapping="Wrap" VerticalAlignment="Center"/>
                                                 </WrapPanel>
-                                                <StackPanel IsVisible="{Binding Description, Converter={StaticResource HasText}}"
+                                                <StackPanel IsVisible="{Binding DescriptionText, Converter={StaticResource HasText}}"
                                                             Margin="0,6,0,0">
                                                     <TextBlock x:Name="TaskDescriptionText"
-                                                               Text="{Binding Description}" TextWrapping="Wrap"
+                                                               Text="{Binding DescriptionText}" TextWrapping="Wrap"
                                                                FontSize="13" Foreground="{DynamicResource TextSecondary}"
                                                                Classes="taskDescription"
                                                                Classes.expanded="{Binding IsDescriptionExpanded}"
                                                                beh:TextOverflow.Detect="True"/>
                                                 </StackPanel>
+                                                <!-- Web addresses from the description: one line each, click opens the browser -->
+                                                <ItemsControl ItemsSource="{Binding DescriptionLinks}"
+                                                              IsVisible="{Binding HasDescriptionLinks}"
+                                                              Margin="0,6,0,0">
+                                                    <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate>
+                                                            <WrapPanel Orientation="Horizontal"/>
+                                                        </ItemsPanelTemplate>
+                                                    </ItemsControl.ItemsPanel>
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate DataType="helpers:DescriptionLink">
+                                                            <Button Theme="{StaticResource BareButton}" Classes="descriptionLink"
+                                                                    Click="DescriptionLink_Click"
+                                                                    Margin="0,0,6,4"
+                                                                    ToolTip.Tip="{Binding Url}"
+                                                                    AutomationProperties.Name="{Binding Url, StringFormat='Open link {0}'}">
+                                                                <Border Theme="{StaticResource Tag}" Classes="dueTag" Padding="7,3">
+                                                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                                                        <ctrl:LineIcon Data="{StaticResource Icon.Link}" Size="12"
+                                                                                       Foreground="{DynamicResource PrimaryBlue}" VerticalAlignment="Center"/>
+                                                                        <TextBlock Text="{Binding Label}" FontSize="12" FontWeight="Medium"
+                                                                                   MaxWidth="260" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"
+                                                                                   Foreground="{DynamicResource PrimaryBlue}" VerticalAlignment="Center"/>
+                                                                    </StackPanel>
+                                                                </Border>
+                                                            </Button>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
                                             </StackPanel>
 
                                             <!-- Bottom row: "Show more" on the left, attachment / reminder counts in the bottom-right corner.
@@ -727,7 +756,7 @@
                                                             FontSize="12" FontWeight="Medium">
                                                         <Button.IsVisible>
                                                             <MultiBinding Converter="{x:Static BoolConverters.And}">
-                                                                <Binding Path="Description" Converter="{StaticResource HasText}"/>
+                                                                <Binding Path="DescriptionText" Converter="{StaticResource HasText}"/>
                                                                 <MultiBinding Converter="{x:Static BoolConverters.Or}">
                                                                     <Binding Path="IsDescriptionExpanded"/>
                                                                     <CompiledBinding Path="#TaskDescriptionText.(beh:TextOverflow.IsTrimmed)"/>

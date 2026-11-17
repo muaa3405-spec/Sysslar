@@ -6,7 +6,7 @@
 #define AppName      "Sysslar"
 ; The build passes the project version with /DAppVersion=...; this is the fallback
 #ifndef AppVersion
-  #define AppVersion "1.5.1"
+  #define AppVersion "1.5.2"
 #endif
 #define AppPublisher "Muhammad Aadil"
 #define AppURL       "https://github.com/muaa3405-spec/tasky"

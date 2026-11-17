@@ -54,7 +54,7 @@ public static class SmokeTest
         // One attachment and one reminder, so the cards show their count chips
         db.InsertAttachment(new TaskAttachment { TaskId = plan.Id, FileName = "brief.pdf", FilePath = Path.Combine(AppPaths.LocalFolder, "brief.pdf") });
         db.InsertReminder(new ReminderItem { TaskId = plan.Id, TaskTitle = plan.Title, NextFireTime = DateTime.Now.AddDays(1) });
-        db.InsertTask(new TaskItem { Title = "Overdue invoice", Description = "Short note", GroupId = work.Id, DueDate = today.AddDays(-3) });
+        db.InsertTask(new TaskItem { Title = "Overdue invoice", Description = "Short note, see https://github.com/muaa3405-spec/Sysslar/issues/42?tab=comments#issuecomment-123456789 and www.example.com/billing/invoices/2026/november/very-long-invoice-name.pdf", GroupId = work.Id, DueDate = today.AddDays(-3) });
         // No description, but a reminder: its count chip sits on the line under the title
         var plants = db.InsertTask(new TaskItem { Title = "Water the plants", GroupId = personal.Id, DueDate = today,
                                      Recurrence = RecurrenceType.Daily, RecurrenceEndDate = today.AddDays(30) });

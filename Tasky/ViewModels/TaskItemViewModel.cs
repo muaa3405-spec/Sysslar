@@ -139,8 +139,23 @@ public class TaskItemViewModel : INotifyPropertyChanged
     public string Description
     {
         get => _model.Description;
-        set { _model.Description = value; OnPropertyChanged(); }
+        set
+        {
+            _model.Description = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(DescriptionText));
+            OnPropertyChanged(nameof(DescriptionLinks));
+            OnPropertyChanged(nameof(HasDescriptionLinks));
+        }
     }
+
+    /// <summary>The description without its web addresses; those show as link chips (<see cref="DescriptionLinks"/>).</summary>
+    public string DescriptionText => Helpers.DescriptionLinks.WithoutLinks(_model.Description);
+
+    /// <summary>Web addresses in the description, shown on the card as one-line clickable chips.</summary>
+    public IReadOnlyList<Helpers.DescriptionLink> DescriptionLinks => Helpers.DescriptionLinks.Find(_model.Description);
+
+    public bool HasDescriptionLinks => DescriptionLinks.Count > 0;
 
     private bool _isDescriptionExpanded;
     public bool IsDescriptionExpanded

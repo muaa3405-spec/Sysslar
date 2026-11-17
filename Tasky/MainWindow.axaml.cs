@@ -918,6 +918,13 @@ public partial class MainWindow : Window
         RefreshCompletedList();
     }
 
+    /// <summary>A link chip on a task card: opens the address in the default browser.</summary>
+    private void DescriptionLink_Click(object? sender, RoutedEventArgs e)
+    {
+        if ((sender as StyledElement)?.DataContext is DescriptionLink link) FileLauncher.OpenUrl(link.Url);
+        e.Handled = true;
+    }
+
     private void ShowMore_Click(object? sender, RoutedEventArgs e)
     {
         if (GetTaskVm(sender) is { } vm) vm.IsDescriptionExpanded = !vm.IsDescriptionExpanded;
