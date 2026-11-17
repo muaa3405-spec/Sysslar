@@ -16,6 +16,9 @@ Install it over your current Sysslar: your tasks, notes and attachments are kept
 
 [Code signing policy](https://github.com/muaa3405-spec/tasky#code-signing-policy) · [Privacy policy](https://github.com/muaa3405-spec/tasky#privacy-policy)
 
+### New in 1.5.1
+- **Reminders on Windows show properly again.** A reminder could leave an invisible box at the bottom right of the screen that still caught clicks (the Snooze list opened from nowhere). The reminder card now fades in and always closes.
+
 ### New in 1.5.0
 - **Sync between your computers.** Settings → Sync keeps your workspaces the same on your Macs and PCs through **Google Drive, iCloud Drive, OneDrive, Dropbox** or any shared folder. No account, and Sysslar still never goes online: it writes encrypted files into the folder, and your cloud app moves them.
 - **True sync.** New tasks, completed tasks, notes, groups, reminders and attachments are added on every computer, and changes reach all of them (the newest change wins). Something is removed only when you delete it on one of them. Time tracked on each computer adds up.
