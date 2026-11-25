@@ -139,6 +139,63 @@ APPLE_ID="you@example.com" APPLE_TEAM_ID="<TEAMID>" APPLE_APP_PASSWORD="<app-spe
 
 ---
 
+## Google Drive sync (optional, free)
+
+Sync works with no setup at all through a folder a cloud app keeps in step. The extra
+**Connect Google Drive** option, where Sysslar talks to Drive itself and the user needs no
+Google Drive for desktop, needs a Google client of your own. Without one the option stays
+hidden and everything else is unaffected, so this is only needed for release builds.
+
+It costs nothing: the Drive API has a free quota and no billing account is required. Never
+enable billing or a free trial for this project.
+
+**One-time setup in the Google Cloud console** (use a personal Google account, not a Workspace
+one, so the project can't be removed by someone else's admin):
+
+1. Create a project, then **APIs & Services → Library → Google Drive API → Enable**.
+2. **Google Auth Platform → Get started**: app name, your support email, audience **External**,
+   your contact email, and agree to the Google API Services User Data Policy.
+3. **Branding**: set the app home page and privacy policy links. They have to be on one domain
+   you own; this repository serves both from `docs/` through GitHub Pages:
+   - Home page: `https://muaa3405-spec.github.io/Sysslar/`
+   - Privacy policy: `https://muaa3405-spec.github.io/Sysslar/privacy.html`
+4. **Data Access → Add or remove scopes**: add `.../auth/drive.file` only. It is non-sensitive,
+   so it needs no security assessment, and it lets Sysslar see nothing in a Drive but the files
+   it created itself. Do not add a broader Drive scope: that would put the project into
+   sensitive-scope verification.
+5. **Clients → Create client → Desktop app**. Download the JSON.
+6. **Audience → Publish app** once it has been tested. While the status is *Testing* every
+   sign-in expires after 7 days and only listed test users can sign in at all, so sync would
+   break weekly — add yourself under *Test users* for development and publish before release.
+
+**Putting the client into a build**
+
+Save the downloaded JSON as `Tasky/google-client.json`. It is gitignored and embedded into the
+build only when present:
+
+```json
+{ "installed": { "client_id": "....apps.googleusercontent.com", "client_secret": "...." } }
+```
+
+For a development run you can use environment variables instead:
+
+```bash
+export SYSSLAR_GOOGLE_CLIENT_ID=....apps.googleusercontent.com
+export SYSSLAR_GOOGLE_CLIENT_SECRET=....
+```
+
+For CI, add the file's contents as the repository secret `GOOGLE_CLIENT_JSON` and write it to
+`Tasky/google-client.json` before `dotnet publish`. A client id and secret for an installed app
+are not really secrets — Google's own documentation treats them as public, because they ship inside
+every copy of the app — but keeping them out of the repository avoids strangers spending the
+project's quota.
+
+**What the user is asked for.** Signing in opens their browser, which returns the answer to a
+one-off server on `127.0.0.1`. Only the refresh token is kept, in the Windows or macOS key
+store next to the sync key. They can take the permission back at any time at
+<https://myaccount.google.com/permissions>; Sysslar then shows "needs you to sign in again" and
+keeps every change made meanwhile.
+
 ## Code signing in CI
 
 Unsigned installers work, but Windows SmartScreen and macOS Gatekeeper warn people before

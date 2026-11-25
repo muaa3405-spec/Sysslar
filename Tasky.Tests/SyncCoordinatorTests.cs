@@ -80,10 +80,10 @@ public sealed class SyncCoordinatorTests : IDisposable
 
     private async Task JoinBAsync()
     {
-        var code = _a.TurnOnWithNewKey(_cloud);
+        var code = await _a.TurnOnWithNewKeyAsync(new FolderStore(_cloud));
         await _a.RunCycleAsync();
         Assert.True(SyncCoordinator.CheckFolder(_cloud).HasSyncData);
-        Assert.Null(_b.TurnOnWithKey(_cloud, code));
+        Assert.Null(await _b.TurnOnWithKeyAsync(new FolderStore(_cloud), code));
         _b.SetWorkspaceEnabled("default", true, (await _b.ListWorkspacesAsync()).Single(r => r.LocalId is null).SyncId);
     }
 
@@ -106,11 +106,11 @@ public sealed class SyncCoordinatorTests : IDisposable
     }
 
     [Fact]
-    public void A_wrong_key_is_refused()
+    public async Task A_wrong_key_is_refused()
     {
-        _a.TurnOnWithNewKey(_cloud);
-        Assert.NotNull(_b.TurnOnWithKey(_cloud, SyncKey.Generate().ToCode()));
-        Assert.NotNull(_b.TurnOnWithKey(_cloud, "not a key"));
+        await _a.TurnOnWithNewKeyAsync(new FolderStore(_cloud));
+        Assert.NotNull(await _b.TurnOnWithKeyAsync(new FolderStore(_cloud), SyncKey.Generate().ToCode()));
+        Assert.NotNull(await _b.TurnOnWithKeyAsync(new FolderStore(_cloud), "not a key"));
         Assert.False(_b.IsOn);
     }
 
@@ -147,8 +147,8 @@ public sealed class SyncCoordinatorTests : IDisposable
         Assert.Empty(_hostB.Db().GetAllTasks());
 
         _hostB.Db().InsertTask(new TaskItem { Title = "Made on B while paused" });
-        Assert.NotNull(_b.EnterNewKey(SyncKey.Generate().ToCode()));   // a wrong key is refused
-        Assert.Null(_b.EnterNewKey(newCode));
+        Assert.NotNull(await _b.EnterNewKeyAsync(SyncKey.Generate().ToCode()));   // a wrong key is refused
+        Assert.Null(await _b.EnterNewKeyAsync(newCode));
         await SyncAllAsync();
 
         Assert.Equal(2, _hostA.Db().GetAllTasks().Count);

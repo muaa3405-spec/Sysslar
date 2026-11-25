@@ -27,6 +27,8 @@ public partial class SyncDialog : Window
 
     private readonly SyncCoordinator? _sync = AppSync.Coordinator;
     private string? _pickedFolder;
+    private ISyncStore? _pickedStore;
+    private CancellationTokenSource? _connecting;
     private bool _changingFolder;
     private KeyMode _keyMode;
     private bool _busy;
@@ -40,7 +42,12 @@ public partial class SyncDialog : Window
         if (_sync is { IsOn: true }) _ = ShowOnAsync();
         else ShowStep(OffStep);
         AppSync.StatusChanged += OnStatusChanged;
-        Closed += (_, _) => AppSync.StatusChanged -= OnStatusChanged;
+        Closed += (_, _) =>
+        {
+            AppSync.StatusChanged -= OnStatusChanged;
+            _connecting?.Cancel();   // stop waiting for a browser the user walked away from
+            _connecting?.Dispose();
+        };
     }
 
     private void ShowStep(Control step)
@@ -67,7 +74,7 @@ public partial class SyncDialog : Window
         });
         foreach (var text in new[]
                  {
-                     "Sysslar encrypts every sync file (AES-256) before saving it to the folder. If someone gets the files, " +
+                     "Sysslar encrypts every sync file (AES-256) before it leaves this computer. If someone gets the files, " +
                      "even Google, Apple, Microsoft or Dropbox, they can't read your tasks or notes.",
                      "The encryption key is kept only on the computers where you turn on sync, protected by your account there. " +
                      "You can change it at any time: your other computers then pause syncing until you type the new key, and nothing is lost meanwhile.",
@@ -98,10 +105,16 @@ public partial class SyncDialog : Window
 
     private void ShowFolderStep()
     {
+        StopWaitingForBrowser();
         FolderOptions.Children.Clear();
         _pickedFolder = null;
+        _pickedStore = null;
         FolderContinue.IsEnabled = false;
         FolderError.IsVisible = false;
+        DriveCard.IsVisible = GoogleClientApp.Current is not null && _sync is not null;
+        FolderHeading.IsVisible = DriveCard.IsVisible;
+        DriveWaiting.IsVisible = false;
+        ConnectDriveButton.IsEnabled = true;
         var found = CloudFolders.Detect();
         foreach (var folder in found) AddFolderOption(folder.Service, folder.Path, check: false);
         NoCloudFolders.IsVisible = found.Count == 0;
@@ -139,6 +152,45 @@ public partial class SyncDialog : Window
         if (check) option.IsChecked = true;
     }
 
+    /// <summary>Signs in to Google in the browser, then sets sync up in that Drive.</summary>
+    private async void ConnectDrive_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_sync is null || _busy) return;
+        if (_sync.NewGoogleDriveStore() is not { } store)
+        {
+            ShowFolderError("This copy of Sysslar can't connect to Google Drive. Pick a folder instead.");
+            return;
+        }
+        _busy = true;
+        ConnectDriveButton.IsEnabled = false;
+        DriveWaiting.IsVisible = true;
+        FolderError.IsVisible = false;
+        _connecting?.Dispose();
+        _connecting = new CancellationTokenSource();
+        try
+        {
+            await store.ConnectAsync(cancel: _connecting.Token);
+        }
+        catch (OperationCanceledException ex)
+        {
+            if (!_connecting.IsCancellationRequested) ShowFolderError(ex.Message);
+            return;
+        }
+        catch (Exception ex)
+        {
+            CrashLog.Write("Connecting Google Drive failed", ex);
+            ShowFolderError("Sysslar couldn't connect to Google Drive: " + ex.Message);
+            return;
+        }
+        finally
+        {
+            _busy = false;
+            DriveWaiting.IsVisible = false;
+            ConnectDriveButton.IsEnabled = true;
+        }
+        await ContinueWithStoreAsync(store);
+    }
+
     private async void ChooseFolder_Click(object? sender, RoutedEventArgs e)
     {
         var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
@@ -151,13 +203,23 @@ public partial class SyncDialog : Window
         NoCloudFolders.IsVisible = false;
     }
 
-    private void FolderContinue_Click(object? sender, RoutedEventArgs e)
+    private async void FolderContinue_Click(object? sender, RoutedEventArgs e)
     {
         if (_sync is null || _pickedFolder is not { } folder) return;
-        var check = SyncCoordinator.CheckFolder(folder);
-        if (check.Problem is { } problem) { ShowFolderError(problem); return; }
+        await ContinueWithStoreAsync(new FolderStore(folder));
+    }
+
+    /// <summary>Turns sync on (or moves it) with the store the user just picked: a folder, or Google Drive.</summary>
+    private async Task ContinueWithStoreAsync(ISyncStore store)
+    {
+        if (_sync is null || _busy) return;
+        _busy = true;
+        FolderContinue.IsEnabled = false;
         try
         {
+            var check = await SyncCoordinator.CheckAsync(store);
+            if (check.Problem is { } problem) { ShowFolderError(problem); return; }
+            _pickedStore = store;
             if (check.HasSyncData)
             {
                 ShowEnterKey(_changingFolder ? KeyMode.ChangeFolder : KeyMode.Join);
@@ -165,11 +227,11 @@ public partial class SyncDialog : Window
             }
             if (_changingFolder)
             {
-                _sync.MoveToEmptyFolder(folder);
+                await _sync.MoveToEmptyStoreAsync(store);
                 AfterSetupChange();
                 return;
             }
-            var code = _sync.TurnOnWithNewKey(folder);
+            var code = await _sync.TurnOnWithNewKeyAsync(store);
             ShowNewKey(code, "Your encryption key",
                 "Sync is on. Type this key on your other computers to sync with this one. Save it in a password manager: " +
                 "without it a new computer can't join, and nobody can recover it.");
@@ -178,7 +240,12 @@ public partial class SyncDialog : Window
         catch (Exception ex)
         {
             CrashLog.Write("Turning on sync failed", ex);
-            ShowFolderError("Sysslar couldn't write to this folder: " + ex.Message);
+            ShowFolderError($"Sysslar couldn't write to {store.Describe}: " + ex.Message);
+        }
+        finally
+        {
+            _busy = false;
+            if (FolderStep.IsVisible) FolderContinue.IsEnabled = _pickedFolder is not null;
         }
     }
 
@@ -190,8 +257,25 @@ public partial class SyncDialog : Window
 
     private async void CancelSetup_Click(object? sender, RoutedEventArgs e)
     {
+        StopWaitingForBrowser();
         if (_sync is { IsOn: true }) await ShowOnAsync();
         else ShowStep(OffStep);
+    }
+
+    /// <summary>
+    /// Ends a sign-in the user walked away from (they closed the browser tab instead of allowing it).
+    /// Without this the dialog would wait for an answer that never comes, and ignore its own buttons.
+    /// </summary>
+    private void StopWaitingForBrowser()
+    {
+        if (_connecting is null) return;
+        try { _connecting.Cancel(); } catch (ObjectDisposedException) { /* already gone */ }
+        _connecting.Dispose();
+        _connecting = null;
+        _busy = false;
+        DriveWaiting.IsVisible = false;
+        ConnectDriveButton.IsEnabled = true;
+        SignInAgainButton.IsEnabled = true;
     }
 
     // ── Keys ─────────────────────────────────────────────────────────────
@@ -225,7 +309,7 @@ public partial class SyncDialog : Window
         else
         {
             EnterKeyTitle.Text = "Enter your encryption key";
-            EnterKeyIntro.Text = "This folder already has Sysslar sync files. Find the key on any computer that syncs: Settings → Sync → Show key.";
+            EnterKeyIntro.Text = "There are already Sysslar sync files here. Find the key on any computer that syncs: Settings → Sync → Show key.";
         }
         ShowStep(EnterKeyStep);
         KeyInput.Focus();
@@ -239,8 +323,8 @@ public partial class SyncDialog : Window
         {
             error = _keyMode switch
             {
-                KeyMode.NewKeyAfterChange => _sync.EnterNewKey(KeyInput.Text ?? string.Empty),
-                _                         => _sync.TurnOnWithKey(_pickedFolder!, KeyInput.Text ?? string.Empty),
+                KeyMode.NewKeyAfterChange => await _sync.EnterNewKeyAsync(KeyInput.Text ?? string.Empty),
+                _                         => await _sync.TurnOnWithKeyAsync(_pickedStore!, KeyInput.Text ?? string.Empty),
             };
         }
         catch (Exception ex)
@@ -255,11 +339,11 @@ public partial class SyncDialog : Window
             return;
         }
         AfterSetupChange();
-        await Task.CompletedTask;
     }
 
     private async void CancelKey_Click(object? sender, RoutedEventArgs e)
     {
+        StopWaitingForBrowser();
         if (_keyMode == KeyMode.NewKeyAfterChange || _sync is { IsOn: true }) await ShowOnAsync();
         else ShowFolderStep();
     }
@@ -304,6 +388,39 @@ public partial class SyncDialog : Window
 
     private void EnterNewKey_Click(object? sender, RoutedEventArgs e) => ShowEnterKey(KeyMode.NewKeyAfterChange);
 
+    /// <summary>Renews the Google sign-in in the browser. The key and everything else stay as they are.</summary>
+    private async void SignInAgain_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_sync is null || _busy) return;
+        _busy = true;
+        SignInAgainButton.IsEnabled = false;
+        SignedOutText.Text = "Waiting for your browser… allow Sysslar there, then come back.";
+        _connecting?.Dispose();
+        _connecting = new CancellationTokenSource();
+        string? error = null;
+        try
+        {
+            error = await _sync.SignInAgainAsync(cancel: _connecting.Token);
+        }
+        catch (OperationCanceledException ex)
+        {
+            error = _connecting.IsCancellationRequested ? null : ex.Message;
+        }
+        catch (Exception ex)
+        {
+            CrashLog.Write("Signing in to Google again failed", ex);
+            error = "Sysslar couldn't sign in to Google: " + ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+            SignInAgainButton.IsEnabled = true;
+        }
+        RefreshStatus();
+        if (error is not null) SignedOutText.Text = error;
+        else await RefreshListsAsync();
+    }
+
     private string PausedExplanation()
     {
         var reason = _sync?.PausedReason ?? string.Empty;
@@ -311,7 +428,7 @@ public partial class SyncDialog : Window
             return $"The encryption key was changed on {reason[SyncCoordinator.PauseReasons.KeyChangedPrefix.Length..]}.";
         if (reason == SyncCoordinator.PauseReasons.KeyMissing)
             return "This computer's sync key is missing from its key store.";
-        return "The sync folder now uses a different encryption key.";
+        return "The sync files now use a different encryption key.";
     }
 
     // ── On ───────────────────────────────────────────────────────────────
@@ -330,9 +447,15 @@ public partial class SyncDialog : Window
         StatusText.Text = SyncStatusText.Short(_sync);
         PausedCard.IsVisible = _sync.Status == SyncStatus.Paused;
         PausedText.Text = PausedExplanation() + " Sync is paused here until you enter the new key. Your changes on this computer are kept.";
-        var folder = _sync.Folder ?? string.Empty;
-        FolderName.Text = CloudFolders.ServiceOf(folder) ?? System.IO.Path.GetFileName(folder.TrimEnd(System.IO.Path.DirectorySeparatorChar));
-        FolderPath.Text = folder;
+        SignedOutCard.IsVisible = _sync.Status == SyncStatus.SignedOut;
+        SignedOutText.Text = $"Sysslar is no longer signed in to {_sync.StorageName}. Sign in again to carry on syncing; "
+                           + "your changes on this computer are kept, and your encryption key stays as it is.";
+        StorageHeading.Text = _sync.Folder is null ? "WHERE" : "FOLDER";
+        var folder = _sync.Folder;
+        FolderName.Text = folder is null
+            ? _sync.StorageName
+            : CloudFolders.ServiceOf(folder) ?? System.IO.Path.GetFileName(folder.TrimEnd(System.IO.Path.DirectorySeparatorChar));
+        FolderPath.Text = folder ?? "Signed in — Sysslar keeps its own folder there";
     }
 
     private async Task RefreshListsAsync()
@@ -462,7 +585,7 @@ public partial class SyncDialog : Window
     {
         if (_sync is null) return;
         var ask = new ConfirmDialog("Turn off sync on this computer?",
-            "Nothing is deleted: your data stays here and on your other computers, and the sync files stay in the folder.\n\n" +
+            "Nothing is deleted: your data stays here and on your other computers, and the sync files stay where they are.\n\n" +
             "This computer forgets the key. To sync again later, turn it on and enter the key.",
             "Turn off", ConfirmType.Warning);
         if (await ask.ShowDialog<bool?>(this) != true) return;
@@ -478,10 +601,14 @@ public partial class SyncDialog : Window
         if (_sync is null) throw new InvalidOperationException("Sync didn't start");
         await snapshot("Sync-off");
         ShowFolderStep();
+        // A build with a Google client must offer Google Drive: this is the only check that the
+        // client really was embedded, since the installer is built with it added at the last moment.
+        if (GoogleClientApp.Current is not null && !DriveCard.IsVisible)
+            throw new InvalidOperationException("This build has a Google client, but the Sync dialog didn't offer Google Drive.");
         await snapshot("Sync-folder");
         if (_pickedFolder is null) return;   // no test folder: the steps above are all that can be shown
 
-        FolderContinue_Click(this, new RoutedEventArgs());
+        await ContinueWithStoreAsync(new FolderStore(_pickedFolder));
         if (!_sync.IsOn) throw new InvalidOperationException("Turning sync on failed: " + FolderError.Text);
         if (SyncKey.TryParseCode(NewKeyText.Text) is null) throw new InvalidOperationException("The key shown can't be read back");
         await snapshot("Sync-key");
@@ -501,7 +628,8 @@ public static class SyncStatusText
         SyncStatus.Off           => "Off",
         SyncStatus.Syncing       => "Syncing…",
         SyncStatus.Paused        => "Paused",
-        SyncStatus.FolderMissing => "Can't reach the folder",
+        SyncStatus.FolderMissing => sync.IsGoogleDrive ? "Can't reach Google Drive" : "Can't reach the folder",
+        SyncStatus.SignedOut     => "Needs you to sign in again",
         SyncStatus.Problem       => "Couldn't sync everything",
         _ => sync.LastSync is { } last ? $"Synced {Ago(last)}" : "On",
     };

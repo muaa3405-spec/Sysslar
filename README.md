@@ -35,8 +35,8 @@ they hold your data. Sysslar takes the opposite approach:
 
 - 🔒 **Private by design.** Everything is stored in a local database on your own computer.
   No telemetry, no analytics, no servers.
-- 📴 **No internet needed.** Sysslar never connects to the internet unless you switch on the
-  optional update check. It works on a plane, behind a firewall, anywhere.
+- 📴 **No internet needed.** Sysslar connects to the internet only if you switch on the optional
+  update check, or connect Google Drive for sync. It works on a plane, behind a firewall, anywhere.
 - 🧍 **Not just for projects.** Use it for your own life: daily routines,
   reminders, learning goals, side projects, chores.
 - 📈 **For personal improvement.** Sysslar tracks time spent and tasks completed so you
@@ -109,9 +109,13 @@ they hold your data. Sysslar takes the opposite approach:
 - Rename, recolour or delete workspaces under **Manage workspaces…** in the same menu
 
 ### 🔄 Sync between your computers
-- Keep workspaces **the same on all your computers**, Mac and Windows mixed, through **Google Drive,
-  iCloud Drive, OneDrive, Dropbox** or any shared folder. No account, and Sysslar itself still never goes online:
-  it writes encrypted files into the folder and your cloud app moves them
+- Keep workspaces **the same on all your computers**, Mac and Windows mixed, in either of two ways:
+  - **A folder** your **Google Drive, iCloud Drive, OneDrive or Dropbox** app already keeps in step, or any
+    shared folder. No account and no sign-in: Sysslar writes encrypted files into the folder, your cloud
+    app moves them, and Sysslar itself never goes online
+  - **Connect Google Drive**, and Sysslar puts the same encrypted files in your Drive itself. Nothing to
+    install on the other computer and no folder to pick — sign in, type the key, done. Sysslar asks only
+    for access to *files it creates*, so it can't see anything else in your Drive
 - **True sync:** new tasks, notes, groups, reminders and attachments are added on every computer, and changes
   are updated everywhere (the newest change wins). Something is removed only when it was deleted on one of them.
   Time tracked on each computer adds up
@@ -119,7 +123,8 @@ they hold your data. Sysslar takes the opposite approach:
 - **Encrypted before it leaves your computer** (AES-256). The encryption key is kept only on the computers
   where you turn on sync (Windows DPAPI, macOS Keychain). Change it any time: the other computers pause until
   you type the new key, and nothing is lost meanwhile
-- Settings → Sync → **Turn on sync**, pick the folder, and type the key on your other computers. That's all
+- Settings → Sync → **Turn on sync**, pick a folder or connect Google Drive, and type the key on your
+  other computers. That's all
 
 ### 💻 Migrate to another computer
 - Move **everything** to a new PC in **one password-protected file**: open and completed

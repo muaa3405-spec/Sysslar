@@ -31,3 +31,6 @@ appsettings.*.json
 
 # macOS app bundle and disk images built by scripts/package-macos.sh
 dist/
+
+# The Google client of a release build (client id and secret) — never in the repository
+Tasky/google-client.json

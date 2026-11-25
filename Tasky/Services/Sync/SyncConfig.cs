@@ -25,6 +25,10 @@ public sealed class SyncConfig
     public string DeviceName { get; set; } = DefaultDeviceName();
     /// <summary>The folder the user picked (for example "My Drive"); sync files go in its "Sysslar Sync" folder.</summary>
     public string? Folder     { get; set; }
+    /// <summary>How sync files travel. Absent or <see cref="SyncTransports.Folder"/> = a folder a cloud app syncs.</summary>
+    public string? Transport  { get; set; }
+    /// <summary>Google Drive: the id of the "Sysslar Sync" folder there, so it's found again without searching.</summary>
+    public string? DriveFolderId { get; set; }
     /// <summary>Key fingerprint (hex) of the key in the key store. Null = sync is off.</summary>
     public string? Fingerprint { get; set; }
     /// <summary>Why syncing stopped until the user acts (for example the key was changed elsewhere), or null.</summary>
@@ -36,8 +40,11 @@ public sealed class SyncConfig
     /// <summary>Local workspace id → its sync setting.</summary>
     public Dictionary<string, WorkspaceLink> Workspaces { get; set; } = [];
 
-    [JsonIgnore] public bool IsOn => Folder is not null && Fingerprint is not null;
-    [JsonIgnore] public string? SyncRoot => Folder is null ? null : Path.Combine(Folder, SyncFolderLayout.RootName);
+    /// <summary>True when sync files go to Google Drive rather than to a folder on this computer.</summary>
+    [JsonIgnore] public bool IsGoogleDrive => Transport == SyncTransports.GoogleDrive;
+
+    /// <summary>Sync is set up here: a place for the files, and a key to seal them with.</summary>
+    [JsonIgnore] public bool IsOn => Fingerprint is not null && (IsGoogleDrive || Folder is not null);
 
     /// <summary>A save number that only ever grows, even across restarts and clock changes.</summary>
     public long NextSeq()

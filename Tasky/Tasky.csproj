@@ -19,13 +19,20 @@
     <SelfContained>true</SelfContained>
     <RuntimeIdentifiers>win-x64;osx-x64;osx-arm64</RuntimeIdentifiers>
     <PublishSingleFile>false</PublishSingleFile>
-    <Version>1.5.2</Version>
+    <Version>1.6.0</Version>
     <!-- The app is called Sysslar (it was Tasky). The program file, namespaces and data folders keep
          the old name so updates install over an existing Tasky and keep all its data. -->
     <Product>Sysslar</Product>
     <AssemblyTitle>Sysslar</AssemblyTitle>
     <Company>Muhammad Aadil</Company>
   </PropertyGroup>
+
+  <!-- The Google client of this build (client id and secret), kept out of the repository.
+       Without it the Google Drive option stays hidden and everything else works as before.
+       See BUILD.md. -->
+  <ItemGroup Condition="Exists('google-client.json')">
+    <EmbeddedResource Include="google-client.json" LogicalName="google-client.json" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.22" />

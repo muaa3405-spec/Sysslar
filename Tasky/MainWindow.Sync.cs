@@ -22,7 +22,7 @@ public partial class MainWindow
         if (AppSync.Coordinator is not { } sync) return;
 
         SyncSubtitle.Text = sync.IsOn
-            ? $"{SyncStatusText.Short(sync)} · {CloudFolders.ServiceOf(sync.Folder ?? string.Empty) ?? "your sync folder"}"
+            ? $"{SyncStatusText.Short(sync)} · {sync.StorageName}"
             : "Same tasks on all your computers";
 
         _folderMissingSince = sync.Status == SyncStatus.FolderMissing ? _folderMissingSince ?? DateTime.Now : null;
@@ -35,9 +35,15 @@ public partial class MainWindow
             SyncBannerButton.Content = "Enter new key";
             SyncBanner.IsVisible = true;
         }
+        else if (sync.Status == SyncStatus.SignedOut)
+        {
+            SyncBannerText.Text = $"Sync needs you to sign in to {sync.StorageName} again. Your changes here are kept.";
+            SyncBannerButton.Content = "Sign in again";
+            SyncBanner.IsVisible = true;
+        }
         else if (_folderMissingSince is { } since && DateTime.Now - since > FolderMissingGrace)
         {
-            SyncBannerText.Text = $"Can't reach the sync folder ({CloudFolders.ServiceOf(sync.Folder ?? string.Empty) ?? sync.Folder}). Your changes are saved here and will sync later.";
+            SyncBannerText.Text = $"Can't reach {sync.StorageName}. Your changes are saved here and will sync later.";
             SyncBannerButton.Content = "Open Sync";
             SyncBanner.IsVisible = true;
         }

@@ -14,7 +14,13 @@
 
 Install it over your current Sysslar: your tasks, notes and attachments are kept.
 
-[Code signing policy](https://github.com/muaa3405-spec/tasky#code-signing-policy) · [Privacy policy](https://github.com/muaa3405-spec/tasky#privacy-policy)
+[Code signing policy](https://github.com/muaa3405-spec/Sysslar#code-signing-policy) · [Privacy policy](https://github.com/muaa3405-spec/Sysslar#privacy-policy)
+
+### New in 1.6.0
+- **Sync through Google Drive, with no folder to pick.** Settings → Sync now offers **Connect Google Drive**: sign in to Google in your browser on each computer, and Sysslar keeps its own files in your Drive. Nothing to install, and no cloud app has to be running.
+- **Sysslar can only see its own files.** It asks for the narrowest Google Drive permission there is, so it can read and change only the files it created itself. The rest of your Drive stays invisible to it.
+- **Still encrypted before it leaves your computer** (AES-256), exactly as with a folder. Google stores files it cannot read, and the key never leaves the computers you type it on. File names give nothing away either: no task, note or workspace names appear in them.
+- **The folder route is unchanged.** iCloud Drive, OneDrive, Dropbox or any shared folder works exactly as before, and sync set up that way keeps working untouched.
 
 ### New in 1.5.2
 - **Links in task descriptions are clickable.** Web addresses show under the description as short, one-line links (for example *github.com/owner/repo/issues/12*). Click one to open it in your browser; point at it to see the full address. The long address no longer fills the card.
