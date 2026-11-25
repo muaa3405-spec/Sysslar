@@ -133,5 +133,7 @@ public static class SyncTransports
 public static class SyncStores
 {
     public static ISyncStore? Default(SyncConfig config, ISyncSecretStore secrets)
-        => config.Folder is { } folder ? new FolderStore(folder) : null;
+        => config.IsGoogleDrive
+            ? GoogleClientApp.Current is { } app ? new GoogleDriveStore(app, config, secrets) : null
+            : config.Folder is { } folder ? new FolderStore(folder) : null;
 }

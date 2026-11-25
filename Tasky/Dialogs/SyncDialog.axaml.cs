@@ -28,6 +28,7 @@ public partial class SyncDialog : Window
     private readonly SyncCoordinator? _sync = AppSync.Coordinator;
     private string? _pickedFolder;
     private ISyncStore? _pickedStore;
+    private CancellationTokenSource? _connecting;
     private bool _changingFolder;
     private KeyMode _keyMode;
     private bool _busy;
@@ -41,7 +42,12 @@ public partial class SyncDialog : Window
         if (_sync is { IsOn: true }) _ = ShowOnAsync();
         else ShowStep(OffStep);
         AppSync.StatusChanged += OnStatusChanged;
-        Closed += (_, _) => AppSync.StatusChanged -= OnStatusChanged;
+        Closed += (_, _) =>
+        {
+            AppSync.StatusChanged -= OnStatusChanged;
+            _connecting?.Cancel();   // stop waiting for a browser the user walked away from
+            _connecting?.Dispose();
+        };
     }
 
     private void ShowStep(Control step)
@@ -68,7 +74,7 @@ public partial class SyncDialog : Window
         });
         foreach (var text in new[]
                  {
-                     "Sysslar encrypts every sync file (AES-256) before saving it to the folder. If someone gets the files, " +
+                     "Sysslar encrypts every sync file (AES-256) before it leaves this computer. If someone gets the files, " +
                      "even Google, Apple, Microsoft or Dropbox, they can't read your tasks or notes.",
                      "The encryption key is kept only on the computers where you turn on sync, protected by your account there. " +
                      "You can change it at any time: your other computers then pause syncing until you type the new key, and nothing is lost meanwhile.",
@@ -101,8 +107,13 @@ public partial class SyncDialog : Window
     {
         FolderOptions.Children.Clear();
         _pickedFolder = null;
+        _pickedStore = null;
         FolderContinue.IsEnabled = false;
         FolderError.IsVisible = false;
+        DriveCard.IsVisible = GoogleClientApp.Current is not null && _sync is not null;
+        FolderHeading.IsVisible = DriveCard.IsVisible;
+        DriveWaiting.IsVisible = false;
+        ConnectDriveButton.IsEnabled = true;
         var found = CloudFolders.Detect();
         foreach (var folder in found) AddFolderOption(folder.Service, folder.Path, check: false);
         NoCloudFolders.IsVisible = found.Count == 0;
@@ -138,6 +149,45 @@ public partial class SyncDialog : Window
         };
         FolderOptions.Children.Add(option);
         if (check) option.IsChecked = true;
+    }
+
+    /// <summary>Signs in to Google in the browser, then sets sync up in that Drive.</summary>
+    private async void ConnectDrive_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_sync is null || _busy) return;
+        if (_sync.NewGoogleDriveStore() is not { } store)
+        {
+            ShowFolderError("This copy of Sysslar can't connect to Google Drive. Pick a folder instead.");
+            return;
+        }
+        _busy = true;
+        ConnectDriveButton.IsEnabled = false;
+        DriveWaiting.IsVisible = true;
+        FolderError.IsVisible = false;
+        _connecting?.Dispose();
+        _connecting = new CancellationTokenSource();
+        try
+        {
+            await store.ConnectAsync(cancel: _connecting.Token);
+        }
+        catch (OperationCanceledException ex)
+        {
+            if (!_connecting.IsCancellationRequested) ShowFolderError(ex.Message);
+            return;
+        }
+        catch (Exception ex)
+        {
+            CrashLog.Write("Connecting Google Drive failed", ex);
+            ShowFolderError("Sysslar couldn't connect to Google Drive: " + ex.Message);
+            return;
+        }
+        finally
+        {
+            _busy = false;
+            DriveWaiting.IsVisible = false;
+            ConnectDriveButton.IsEnabled = true;
+        }
+        await ContinueWithStoreAsync(store);
     }
 
     private async void ChooseFolder_Click(object? sender, RoutedEventArgs e)
@@ -194,7 +244,7 @@ public partial class SyncDialog : Window
         finally
         {
             _busy = false;
-            FolderContinue.IsEnabled = _pickedFolder is not null;
+            if (FolderStep.IsVisible) FolderContinue.IsEnabled = _pickedFolder is not null;
         }
     }
 

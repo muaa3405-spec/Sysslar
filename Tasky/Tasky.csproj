@@ -27,6 +27,13 @@
     <Company>Muhammad Aadil</Company>
   </PropertyGroup>
 
+  <!-- The Google client of this build (client id and secret), kept out of the repository.
+       Without it the Google Drive option stays hidden and everything else works as before.
+       See BUILD.md. -->
+  <ItemGroup Condition="Exists('google-client.json')">
+    <EmbeddedResource Include="google-client.json" LogicalName="google-client.json" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.22" />
     <PackageReference Include="Avalonia.Desktop" Version="11.3.22" />

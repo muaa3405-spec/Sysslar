@@ -41,7 +41,7 @@
             <TextBlock Text="Sync" FontSize="17" FontWeight="SemiBold"
                        Foreground="{DynamicResource TextPrimary}" Margin="0,0,0,6"/>
             <TextBlock Theme="{StaticResource SubText}" TextWrapping="Wrap" Margin="0,0,0,16"
-                       Text="Keep your workspaces the same on your other computers, Mac and Windows, through Google Drive, iCloud, OneDrive, Dropbox or any shared folder. No account needed."/>
+                       Text="Keep your workspaces the same on your other computers, Mac and Windows, through Google Drive, iCloud, OneDrive, Dropbox or any shared folder."/>
             <Border x:Name="OffSecurity" Background="{DynamicResource CardBackground}" BorderBrush="{DynamicResource BorderColor}"
                     BorderThickness="1" CornerRadius="8" Padding="14,12" Margin="0,0,0,18"/>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
@@ -55,7 +55,25 @@
             <TextBlock Text="Where should Sysslar keep the sync files?" FontSize="17" FontWeight="SemiBold"
                        Foreground="{DynamicResource TextPrimary}" Margin="0,0,0,6"/>
             <TextBlock Theme="{StaticResource SubText}" TextWrapping="Wrap" Margin="0,0,0,14"
-                       Text="Pick the same place on each computer. Sysslar only writes encrypted files there; your Google Drive, iCloud, OneDrive or Dropbox app moves them."/>
+                       Text="Pick the same place on each computer. Sysslar only ever writes encrypted files there."/>
+
+            <!-- Google Drive, which Sysslar talks to itself. Hidden when this build has no Google client. -->
+            <Border x:Name="DriveCard" Background="{DynamicResource CardBackground}" BorderBrush="{DynamicResource BorderColor}"
+                    BorderThickness="1" CornerRadius="8" Padding="14,12" Margin="0,0,0,16" IsVisible="False">
+                <StackPanel Spacing="6">
+                    <TextBlock Text="Connect Google Drive" FontSize="13" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimary}"/>
+                    <TextBlock Theme="{StaticResource SubText}" TextWrapping="Wrap"
+                               Text="Sign in to Google in your browser, on each computer. Nothing to install and no folder to pick: Sysslar keeps its own encrypted files in your Drive, and can't see anything else there."/>
+                    <Button x:Name="ConnectDriveButton" Content="Connect Google Drive…" Theme="{StaticResource SecondaryButton}"
+                            Click="ConnectDrive_Click" HorizontalAlignment="Left" Margin="0,4,0,0"/>
+                    <TextBlock x:Name="DriveWaiting" Theme="{StaticResource SubText}" TextWrapping="Wrap" IsVisible="False"
+                               Text="Waiting for your browser… allow Sysslar there, then come back."/>
+                </StackPanel>
+            </Border>
+
+            <TextBlock x:Name="FolderHeading" Text="Or a folder your cloud app syncs" FontSize="13" FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextPrimary}" Margin="0,0,0,8" IsVisible="False"/>
             <StackPanel x:Name="FolderOptions"/>
             <TextBlock x:Name="NoCloudFolders" Theme="{StaticResource SubText}" TextWrapping="Wrap" IsVisible="False" Margin="0,0,0,10"
                        Text="No Google Drive, iCloud, OneDrive or Dropbox folder was found on this computer. Install one of them on each computer, or pick any shared folder."/>

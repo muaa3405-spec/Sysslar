@@ -84,7 +84,12 @@ public sealed class SyncCoordinator
             try { _store = _storeFactory(_config, _secrets); }
             catch (Exception ex) { CrashLog.Write("The sync store couldn't be opened", ex); }
         }
-        Status = !_config.IsOn ? SyncStatus.Off : _config.PausedReason is not null ? SyncStatus.Paused : SyncStatus.UpToDate;
+        Status = !_config.IsOn ? SyncStatus.Off
+               : _config.PausedReason is not null ? SyncStatus.Paused
+               : _store is null ? SyncStatus.Problem
+               : SyncStatus.UpToDate;
+        if (_config.IsOn && _store is null)
+            Problem = "This copy of Sysslar can't sync with Google Drive. Install the Sysslar release build, or pick a sync folder instead.";
     }
 
     // ── State shown to the user ──────────────────────────────────────────
@@ -207,6 +212,9 @@ public sealed class SyncCoordinator
     {
         try { _secrets.Delete(_config.DeviceId); }
         catch (Exception ex) { CrashLog.Write("The sync key couldn't be removed from the key store", ex); }
+        // A Google sign-in is no use once sync is off here, so it goes too.
+        try { (_store as GoogleDriveStore)?.Disconnect(); }
+        catch (Exception ex) { CrashLog.Write("The Google sign-in couldn't be ended", ex); }
         try { (_store as IDisposable)?.Dispose(); }
         catch (Exception ex) { CrashLog.Write("Closing the sync store failed", ex); }
         _key   = null;
@@ -225,6 +233,14 @@ public sealed class SyncCoordinator
 
     /// <summary>The key to type on another computer.</summary>
     public string? KeyCode => _key?.ToCode();
+
+    /// <summary>
+    /// A Google Drive store for this computer, ready to be connected and then passed to
+    /// <see cref="TurnOnWithNewKeyAsync"/>. Null when this build has no Google client, in which
+    /// case the option isn't offered.
+    /// </summary>
+    public GoogleDriveStore? NewGoogleDriveStore()
+        => GoogleClientApp.Current is { } app ? new GoogleDriveStore(app, _config, _secrets) : null;
 
     private static string? VerifyKeyAgainstStore(ISyncStore store, SyncKey key)
     {
@@ -422,7 +438,12 @@ public sealed class SyncCoordinator
 
     private async Task RunOnceAsync()
     {
-        if (!_config.IsOn || _store is not { } store) { SetStatus(SyncStatus.Off); return; }
+        if (!_config.IsOn) { SetStatus(SyncStatus.Off); return; }
+        if (_store is not { } store)
+        {
+            SetStatus(SyncStatus.Problem, Problem ?? "Sysslar has nowhere to put the sync files.");
+            return;
+        }
 
         var work = _host.Workspaces
             .Where(w => _config.Workspaces.TryGetValue(w.Id, out var l) && l.Enabled)
