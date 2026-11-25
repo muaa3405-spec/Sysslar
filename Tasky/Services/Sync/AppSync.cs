@@ -65,12 +65,18 @@ internal sealed class AppSyncHost : ISyncHost
 /// 15 seconds after a change on this computer, 5 seconds after another computer's file changes in the
 /// sync folder, right after a workspace switch, every 5 minutes as a fallback (file watchers miss
 /// changes on some cloud and network drives), and once more when Sysslar quits.
+///
+/// Google Drive has no folder on this computer to watch, so there it runs every 45 seconds instead:
+/// that is how fast another computer's changes can arrive, and it stays far inside Drive's free quota
+/// at about two requests a minute.
 /// </summary>
 public static class AppSync
 {
     private static readonly TimeSpan AfterLocalChange  = TimeSpan.FromSeconds(15);
     private static readonly TimeSpan AfterFolderChange = TimeSpan.FromSeconds(5);
     private static readonly TimeSpan Fallback          = TimeSpan.FromMinutes(5);
+    /// <summary>Google Drive has no folder to watch, so the other computers' changes only arrive on this beat.</summary>
+    private static readonly TimeSpan DriveBeat         = TimeSpan.FromSeconds(45);
 
     private static AppSyncHost? _host;
     private static DispatcherTimer? _timer;
@@ -143,7 +149,8 @@ public static class AppSync
     {
         if (Coordinator is not { IsOn: true }) return;
         if (++_ticks % 5 == 0 && LocalDataChanged() && _dueAt is null) Request(AfterLocalChange);
-        if (_dueAt is null && DateTime.Now - _lastRun > Fallback) _dueAt = DateTime.Now;
+        var quiet = Coordinator is { IsGoogleDrive: true } ? DriveBeat : Fallback;
+        if (_dueAt is null && DateTime.Now - _lastRun > quiet) _dueAt = DateTime.Now;
         if (_dueAt is { } due && DateTime.Now >= due)
         {
             _dueAt = null;

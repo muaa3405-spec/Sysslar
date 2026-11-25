@@ -105,6 +105,7 @@ public partial class SyncDialog : Window
 
     private void ShowFolderStep()
     {
+        StopWaitingForBrowser();
         FolderOptions.Children.Clear();
         _pickedFolder = null;
         _pickedStore = null;
@@ -256,8 +257,25 @@ public partial class SyncDialog : Window
 
     private async void CancelSetup_Click(object? sender, RoutedEventArgs e)
     {
+        StopWaitingForBrowser();
         if (_sync is { IsOn: true }) await ShowOnAsync();
         else ShowStep(OffStep);
+    }
+
+    /// <summary>
+    /// Ends a sign-in the user walked away from (they closed the browser tab instead of allowing it).
+    /// Without this the dialog would wait for an answer that never comes, and ignore its own buttons.
+    /// </summary>
+    private void StopWaitingForBrowser()
+    {
+        if (_connecting is null) return;
+        try { _connecting.Cancel(); } catch (ObjectDisposedException) { /* already gone */ }
+        _connecting.Dispose();
+        _connecting = null;
+        _busy = false;
+        DriveWaiting.IsVisible = false;
+        ConnectDriveButton.IsEnabled = true;
+        SignInAgainButton.IsEnabled = true;
     }
 
     // ── Keys ─────────────────────────────────────────────────────────────
@@ -325,6 +343,7 @@ public partial class SyncDialog : Window
 
     private async void CancelKey_Click(object? sender, RoutedEventArgs e)
     {
+        StopWaitingForBrowser();
         if (_keyMode == KeyMode.NewKeyAfterChange || _sync is { IsOn: true }) await ShowOnAsync();
         else ShowFolderStep();
     }
@@ -369,6 +388,39 @@ public partial class SyncDialog : Window
 
     private void EnterNewKey_Click(object? sender, RoutedEventArgs e) => ShowEnterKey(KeyMode.NewKeyAfterChange);
 
+    /// <summary>Renews the Google sign-in in the browser. The key and everything else stay as they are.</summary>
+    private async void SignInAgain_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_sync is null || _busy) return;
+        _busy = true;
+        SignInAgainButton.IsEnabled = false;
+        SignedOutText.Text = "Waiting for your browser… allow Sysslar there, then come back.";
+        _connecting?.Dispose();
+        _connecting = new CancellationTokenSource();
+        string? error = null;
+        try
+        {
+            error = await _sync.SignInAgainAsync(cancel: _connecting.Token);
+        }
+        catch (OperationCanceledException ex)
+        {
+            error = _connecting.IsCancellationRequested ? null : ex.Message;
+        }
+        catch (Exception ex)
+        {
+            CrashLog.Write("Signing in to Google again failed", ex);
+            error = "Sysslar couldn't sign in to Google: " + ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+            SignInAgainButton.IsEnabled = true;
+        }
+        RefreshStatus();
+        if (error is not null) SignedOutText.Text = error;
+        else await RefreshListsAsync();
+    }
+
     private string PausedExplanation()
     {
         var reason = _sync?.PausedReason ?? string.Empty;
@@ -395,6 +447,10 @@ public partial class SyncDialog : Window
         StatusText.Text = SyncStatusText.Short(_sync);
         PausedCard.IsVisible = _sync.Status == SyncStatus.Paused;
         PausedText.Text = PausedExplanation() + " Sync is paused here until you enter the new key. Your changes on this computer are kept.";
+        SignedOutCard.IsVisible = _sync.Status == SyncStatus.SignedOut;
+        SignedOutText.Text = $"Sysslar is no longer signed in to {_sync.StorageName}. Sign in again to carry on syncing; "
+                           + "your changes on this computer are kept, and your encryption key stays as it is.";
+        StorageHeading.Text = _sync.Folder is null ? "WHERE" : "FOLDER";
         var folder = _sync.Folder;
         FolderName.Text = folder is null
             ? _sync.StorageName
@@ -545,6 +601,10 @@ public partial class SyncDialog : Window
         if (_sync is null) throw new InvalidOperationException("Sync didn't start");
         await snapshot("Sync-off");
         ShowFolderStep();
+        // A build with a Google client must offer Google Drive: this is the only check that the
+        // client really was embedded, since the installer is built with it added at the last moment.
+        if (GoogleClientApp.Current is not null && !DriveCard.IsVisible)
+            throw new InvalidOperationException("This build has a Google client, but the Sync dialog didn't offer Google Drive.");
         await snapshot("Sync-folder");
         if (_pickedFolder is null) return;   // no test folder: the steps above are all that can be shown
 

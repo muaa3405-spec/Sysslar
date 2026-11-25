@@ -122,6 +122,23 @@ public sealed class GoogleDriveStore : ISyncStore, IDisposable
 
     private async Task<IReadOnlyList<SyncStoreFile>> ListAsync(CancellationToken cancel = default)
     {
+        try { return await ListOnceAsync(cancel); }
+        catch (IOException ex) when (IsMissing(ex) && _folderId is not null)
+        {
+            // The "Sysslar Sync" folder was deleted or emptied in Drive: find or make it again.
+            _folderId = null;
+            _ids.Clear();
+            return await ListOnceAsync(cancel);
+        }
+    }
+
+    /// <summary>Whether Drive said the thing we named isn't there any more.</summary>
+    private static bool IsMissing(IOException ex)
+        => ex.Message.Contains("not found", StringComparison.OrdinalIgnoreCase)
+        || ex.Message.Contains("no longer in the Drive folder", StringComparison.Ordinal);
+
+    private async Task<IReadOnlyList<SyncStoreFile>> ListOnceAsync(CancellationToken cancel)
+    {
         var folderId = await FolderIdAsync(cancel);
         var files = new List<SyncStoreFile>();
         var seen = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -158,6 +175,9 @@ public sealed class GoogleDriveStore : ISyncStore, IDisposable
             pageToken = page.RootElement.TryGetProperty("nextPageToken", out var next) ? next.GetString() : null;
         } while (pageToken is not null);
 
+        // The listing is the whole truth: a file deleted in Drive, or by "Remove computer", must not
+        // leave a stale id behind for the next read or write to fail on.
+        _ids.Clear();
         foreach (var (name, id) in seen) _ids[name] = id;
         return files;
     }
@@ -188,13 +208,18 @@ public sealed class GoogleDriveStore : ISyncStore, IDisposable
 
     private async Task WriteAsync(string name, byte[] content, CancellationToken cancel = default)
     {
-        var existing = await IdOfAsync(name, cancel);
-        if (existing is { } id)
+        if (await IdOfAsync(name, cancel) is { } id)
         {
             // One upload replaces the whole file at once, so another computer never reads half of it.
-            using var updated = await SendJsonAsync(HttpMethod.Patch, $"{UploadApi}/{id}?uploadType=media&fields=id",
-                                                    Binary(content), cancel);
-            return;
+            using var updated = await SendAsync(() => new HttpRequestMessage(HttpMethod.Patch,
+                $"{UploadApi}/{id}?uploadType=media&fields=id") { Content = Binary(content) }, cancel);
+            if (updated.StatusCode != HttpStatusCode.NotFound)
+            {
+                await ThrowIfFailedAsync(updated, cancel);
+                return;
+            }
+            // Deleted in Drive since we last looked: fall through and make it again.
+            _ids.Remove(name);
         }
 
         var folderId = await FolderIdAsync(cancel);

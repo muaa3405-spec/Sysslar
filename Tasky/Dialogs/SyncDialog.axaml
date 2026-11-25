@@ -142,7 +142,17 @@
                 </Grid>
             </Border>
 
-            <TextBlock Text="FOLDER" Theme="{StaticResource LabelText}" Margin="0,14,0,0"/>
+            <!-- Signed out of the service holding the files: one button puts it right, key and all -->
+            <Border x:Name="SignedOutCard" IsVisible="False" Background="{DynamicResource WarningSoft}" BorderBrush="{DynamicResource Warning}"
+                    BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,8,0,4">
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock x:Name="SignedOutText" TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center"/>
+                    <Button x:Name="SignInAgainButton" Grid.Column="1" Content="Sign in again" Theme="{StaticResource PrimaryButton}" Classes="small"
+                            Margin="10,0,0,0" Click="SignInAgain_Click" VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+
+            <TextBlock x:Name="StorageHeading" Text="FOLDER" Theme="{StaticResource LabelText}" Margin="0,14,0,0"/>
             <Grid ColumnDefinitions="*,Auto">
                 <StackPanel VerticalAlignment="Center">
                     <TextBlock x:Name="FolderName" FontSize="13" Foreground="{DynamicResource TextPrimary}"/>

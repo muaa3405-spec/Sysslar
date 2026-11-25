@@ -242,6 +242,28 @@ public sealed class SyncCoordinator
     public GoogleDriveStore? NewGoogleDriveStore()
         => GoogleClientApp.Current is { } app ? new GoogleDriveStore(app, _config, _secrets) : null;
 
+    /// <summary>
+    /// Signs in to Google again on this computer after the sign-in lapsed or was taken back, keeping
+    /// the key, the workspaces and everything waiting to be synced. Returns an error to show, or null.
+    /// </summary>
+    public async Task<string?> SignInAgainAsync(Action<string>? showUrl = null, CancellationToken cancel = default)
+    {
+        if (_store is not GoogleDriveStore drive) return "This computer doesn't sync through Google Drive.";
+        try
+        {
+            await drive.ConnectAsync(showUrl, cancel);
+        }
+        catch (OperationCanceledException) when (!cancel.IsCancellationRequested) { throw; }
+        catch (Exception ex)
+        {
+            CrashLog.Write("Signing in to Google again failed", ex);
+            return "Sysslar couldn't sign in to Google: " + ex.Message;
+        }
+        SetStatus(SyncStatus.UpToDate);
+        await RunCycleAsync();
+        return null;
+    }
+
     private static string? VerifyKeyAgainstStore(ISyncStore store, SyncKey key)
     {
         try
