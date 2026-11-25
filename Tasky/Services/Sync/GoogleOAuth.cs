@@ -108,8 +108,8 @@ public sealed class GoogleAuth(GoogleClientApp app, ISyncSecretStore secrets, st
         var state     = Base64Url(RandomNumberGenerator.GetBytes(16));
 
         using var listener = new HttpListener();
-        var port = StartOnFreePort(listener);
-        var redirect = $"http://127.0.0.1:{port}/";
+        var (host, port) = StartOnFreePort(listener);
+        var redirect = $"http://{host}:{port}/";
 
         var url = AuthEndpoint
                 + "?client_id=" + Uri.EscapeDataString(app.ClientId)
@@ -228,22 +228,45 @@ public sealed class GoogleAuth(GoogleClientApp app, ISyncSecretStore secrets, st
         return body.Length > 200 ? body[..200] : body;
     }
 
-    private static int StartOnFreePort(HttpListener listener)
+    /// <summary>
+    /// Opens a loopback port to receive Google's answer, and says which name it listens on.
+    /// Windows hands the prefix to HTTP.sys, which keeps most addresses for administrators; an exact
+    /// loopback prefix is normally allowed, but "127.0.0.1" and "localhost" are separate reservations,
+    /// so a refusal on the first is tried again on the second. Google accepts either one from an
+    /// installed app. A refusal is not a port clash, so it must not be retried as one: otherwise
+    /// twenty attempts all fail and the user is told the ports are busy.
+    /// </summary>
+    private static (string Host, int Port) StartOnFreePort(HttpListener listener)
     {
-        // Google lets an installed app use any loopback port, so take whichever one is free.
-        for (int attempt = 0; attempt < 20; attempt++)
+        const int AccessDenied = 5;
+        HttpListenerException? refused = null;
+
+        foreach (var host in new[] { "127.0.0.1", "localhost" })
         {
-            var port = Random.Shared.Next(49152, 65535);
-            try
+            // Google lets an installed app use any loopback port, so take whichever one is free.
+            for (int attempt = 0; attempt < 20; attempt++)
             {
-                listener.Prefixes.Clear();
-                listener.Prefixes.Add($"http://127.0.0.1:{port}/");
-                listener.Start();
-                return port;
+                var port = Random.Shared.Next(49152, 65535);
+                try
+                {
+                    listener.Prefixes.Clear();
+                    listener.Prefixes.Add($"http://{host}:{port}/");
+                    listener.Start();
+                    return (host, port);
+                }
+                catch (HttpListenerException ex) when (ex.ErrorCode == AccessDenied)
+                {
+                    refused = ex;       // this name is barred outright, so no other port will help
+                    break;
+                }
+                catch (HttpListenerException) { /* taken: try another */ }
+                catch (SocketException) { /* taken: try another */ }
             }
-            catch (HttpListenerException) { /* taken: try another */ }
-            catch (SocketException) { /* taken: try another */ }
         }
+
+        if (refused is not null)
+            throw new IOException("Windows didn't let Sysslar listen for Google's answer. Connecting to "
+                                + "Google Drive needs permission to open a port on this computer.", refused);
         throw new IOException("Sysslar couldn't open a port to receive Google's answer.");
     }
 
