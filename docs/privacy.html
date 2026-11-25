@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy policy — Sysslar</title>
+<meta name="description" content="Sysslar's privacy policy: what the app stores, what it sends, and how Google Drive sync works.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <nav><a href="index.html">&larr; Sysslar</a></nav>
+
+  <header>
+    <h1>Privacy policy</h1>
+    <p class="lead">Last updated 25 November 2026</p>
+  </header>
+
+  <p>Sysslar is a desktop application for Windows and macOS, published as free and open-source
+  software. This policy explains what the app stores, what it sends and to whom.</p>
+
+  <div class="card">
+    <p><strong>The short version:</strong> Sysslar has no servers and no accounts. Your tasks,
+    notes, time entries and attachments are stored on your own computer. The developer of Sysslar
+    receives no data about you or your use of the app &mdash; there is nowhere for it to be sent.</p>
+  </div>
+
+  <h2>What Sysslar stores, and where</h2>
+  <p>Everything you enter &mdash; tasks, notes, groups, reminders, attachments, tracked time,
+  reports and settings &mdash; is stored in a database file in your user account on your own
+  computer, together with automatic daily backups. None of it is transmitted anywhere unless you
+  turn on one of the optional features described below.</p>
+
+  <h2>What leaves your computer</h2>
+
+  <h3>Nothing, by default</h3>
+  <p>With no optional feature enabled, Sysslar makes no network connections at all. There is no
+  telemetry, no analytics, no crash reporting, no advertising and no third-party tracking of any
+  kind in the app.</p>
+
+  <h3>Update check (optional)</h3>
+  <p>If you enable the update check, Sysslar asks GitHub&rsquo;s public release API whether a newer
+  version exists. That request identifies the app and its version (for example
+  <code>Sysslar/1.5.2</code>) and, like any web request, reaches GitHub with your IP address. It
+  contains none of your tasks, notes or other content. GitHub&rsquo;s handling of that request is
+  covered by GitHub&rsquo;s own privacy statement. You can leave the update check off and download
+  new versions yourself.</p>
+
+  <h3>Sync between your computers (optional)</h3>
+  <p>If you turn on sync, Sysslar encrypts your data with AES-256 <em>before</em> it leaves your
+  computer and stores the encrypted files in storage that you choose and control: a Google Drive,
+  iCloud Drive, OneDrive or Dropbox folder, any shared or network folder, or &mdash; if you connect
+  it &mdash; your own Google Drive account directly.</p>
+  <p>The encryption key is generated on your computer and stored only on the computers where you
+  turn sync on, protected by your operating system&rsquo;s key store (Windows DPAPI, macOS
+  Keychain). The key is never sent to the developer, to the storage provider, or to anyone else.
+  This means that whoever stores the files &mdash; Google, Apple, Microsoft, Dropbox or your own
+  server &mdash; holds only encrypted data they cannot read.</p>
+  <p>Your storage provider will apply its own privacy policy to the files it stores, and will know
+  the usual facts about the account storing them (file sizes, timestamps, and so on). Sysslar does
+  not send your data anywhere else.</p>
+
+  <h2>Connecting Google Drive</h2>
+  <p>Connecting a Google account is optional and exists only as one of several places Sysslar can
+  keep its encrypted sync files.</p>
+  <ul>
+    <li><strong>What Sysslar asks for.</strong> The <code>drive.file</code> permission, which grants
+    access only to files the app itself creates. Sysslar cannot see, read or modify any other file
+    in your Google Drive, and does not ask for permission to.</li>
+    <li><strong>What it stores there.</strong> Only its own encrypted sync files, inside a folder it
+    creates for the purpose. Their contents are unreadable without your encryption key.</li>
+    <li><strong>Where the sign-in is kept.</strong> The access and refresh tokens Google issues are
+    stored on your computer in the operating system key store, the same place as your encryption
+    key. They are not transmitted to the developer.</li>
+    <li><strong>What is read about you.</strong> Sysslar does not request your name, email address,
+    contacts, profile or any other Google account information, and does not store any.</li>
+    <li><strong>Disconnecting.</strong> You can turn sync off in Sysslar at any time, and you can
+    revoke Sysslar&rsquo;s access to your Google account at any time at
+    <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>.
+    Revoking access stops syncing; the files already in your Drive remain yours to keep or
+    delete.</li>
+  </ul>
+  <p>Sysslar&rsquo;s use and transfer of information received from Google APIs to any other app
+  adheres to the
+  <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services
+  User Data Policy</a>, including the Limited Use requirements. Data obtained through Google APIs is
+  used solely to provide the sync feature you asked for; it is never sold, never transferred to
+  anyone else, never used for advertising, and never read by humans.</p>
+
+  <h2>What the developer receives</h2>
+  <p>Nothing. Sysslar operates no servers, no accounts and no backend of any kind. If you choose to
+  report a problem on GitHub, you decide what to include in that report, and it is public.</p>
+
+  <h2>Children</h2>
+  <p>Sysslar is a general-purpose task manager with no accounts and no data collection. It is not
+  directed at children and collects no information from anyone, including children.</p>
+
+  <h2>Changes to this policy</h2>
+  <p>If this policy changes, the updated version will be published on this page with a new date
+  above. Material changes affecting how the app handles data will also be noted in the release
+  notes of the version that introduces them.</p>
+
+  <h2>Contact</h2>
+  <p>Questions about this policy, or about privacy in Sysslar, can be raised at
+  <a href="https://github.com/muaa3405-spec/Sysslar/issues">github.com/muaa3405-spec/Sysslar/issues</a>.</p>
+
+  <footer>
+    <nav>
+      <a href="index.html">Sysslar</a>
+      <a href="https://github.com/muaa3405-spec/Sysslar">GitHub</a>
+      <a href="https://github.com/muaa3405-spec/Sysslar/issues">Support</a>
+    </nav>
+  </footer>
+
+</div>
+</body>
+</html>
