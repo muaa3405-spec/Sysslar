@@ -14,7 +14,7 @@
 
 Install it over your current Sysslar: your tasks, notes and attachments are kept.
 
-[Code signing policy](https://github.com/muaa3405-spec/tasky#code-signing-policy) · [Privacy policy](https://github.com/muaa3405-spec/tasky#privacy-policy)
+[Code signing policy](https://github.com/muaa3405-spec/Sysslar#code-signing-policy) · [Privacy policy](https://github.com/muaa3405-spec/Sysslar#privacy-policy)
 
 ### New in 1.6.0
 - **Sync through Google Drive, with no folder to pick.** Settings → Sync now offers **Connect Google Drive**: sign in to Google in your browser on each computer, and Sysslar keeps its own files in your Drive. Nothing to install, and no cloud app has to be running.
