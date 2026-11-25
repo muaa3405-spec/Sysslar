@@ -27,39 +27,46 @@ public interface ISyncHost
     string CreateWorkspace(string name, string color);
 }
 
-public enum SyncStatus { Off, UpToDate, Syncing, Paused, FolderMissing, Problem }
+public enum SyncStatus { Off, UpToDate, Syncing, Paused, FolderMissing, SignedOut, Problem }
 
 /// <summary>A row in the Sync settings: a local workspace, or one that so far is only on other computers.</summary>
 public sealed record SyncWorkspaceRow(string? LocalId, string? SyncId, string Name, string Color, bool Enabled,
                                       DateTime? LastSync, IReadOnlyList<string> OtherComputers);
 
-/// <summary>Outcome of checking a folder the user picked.</summary>
+/// <summary>Outcome of checking a place the user picked for sync files.</summary>
 public sealed record FolderCheck(bool HasSyncData, string? Problem);
 
 /// <summary>
-/// Runs sync for this computer: one encrypted file per computer per workspace in a folder the user
-/// picked, merged with <see cref="SyncEngine"/>. A cycle reads the other computers' files (in the
-/// background), syncs each workspace's database (on the caller's thread, the UI thread in the app,
-/// so nothing changes the data meanwhile), then writes this computer's files and moves attachment
-/// files (in the background).
+/// Runs sync for this computer: one encrypted file per computer per workspace in a store the user
+/// picked (a folder a cloud app syncs, or Google Drive), merged with <see cref="SyncEngine"/>.
+/// A cycle reads the other computers' files (in the background), syncs each workspace's database
+/// (on the caller's thread, the UI thread in the app, so nothing changes the data meanwhile), then
+/// writes this computer's files and moves attachment files (in the background).
 /// </summary>
 public sealed class SyncCoordinator
 {
     private readonly ISyncHost _host;
     private readonly ISyncSecretStore _secrets;
     private readonly SyncConfig _config;
+    private readonly Func<SyncConfig, ISyncSecretStore, ISyncStore?> _storeFactory;
+    private ISyncStore? _store;
     private SyncKey? _key;
     private HybridClock _clock;
     private bool _running, _again;
 
-    /// <summary>Decrypted files of other computers, by path, kept while the file doesn't change.</summary>
-    private readonly Dictionary<string, (DateTime Written, long Length, SyncSnapshot Snapshot)> _readCache = [];
+    /// <summary>Every sync file in the store, read once at the start of a cycle.</summary>
+    private Dictionary<string, SyncStoreFile> _listing = [];
 
-    public SyncCoordinator(ISyncHost host, ISyncSecretStore secrets, SyncConfig config)
+    /// <summary>Decrypted files of other computers, by name, kept while the file doesn't change.</summary>
+    private readonly Dictionary<string, (string Tag, SyncSnapshot Snapshot)> _readCache = [];
+
+    public SyncCoordinator(ISyncHost host, ISyncSecretStore secrets, SyncConfig config,
+                           Func<SyncConfig, ISyncSecretStore, ISyncStore?>? storeFactory = null)
     {
         _host    = host;
         _secrets = secrets;
         _config  = config;
+        _storeFactory = storeFactory ?? SyncStores.Default;
         _clock   = new HybridClock(_config.DeviceId);
         if (_config.IsOn)
         {
@@ -74,6 +81,8 @@ public sealed class SyncCoordinator
                 _key = null;
                 _config.PausedReason ??= PauseReasons.KeyMissing;
             }
+            try { _store = _storeFactory(_config, _secrets); }
+            catch (Exception ex) { CrashLog.Write("The sync store couldn't be opened", ex); }
         }
         Status = !_config.IsOn ? SyncStatus.Off : _config.PausedReason is not null ? SyncStatus.Paused : SyncStatus.UpToDate;
     }
@@ -90,7 +99,11 @@ public sealed class SyncCoordinator
     public event Action? DatabasesSynced;
 
     public bool IsOn => _config.IsOn;
-    public string? Folder => _config.Folder;
+    /// <summary>The folder sync files go to, or null when they go to a service instead.</summary>
+    public string? Folder => _config.IsGoogleDrive ? null : _config.Folder;
+    public bool IsGoogleDrive => _config.IsGoogleDrive;
+    /// <summary>Where the sync files are kept, as the user should see it ("Google Drive", a folder path).</summary>
+    public string StorageName => _store?.Describe ?? (_config.IsGoogleDrive ? CloudFolders.GoogleDrive : _config.Folder ?? "your sync folder");
     public string DeviceName => _config.DeviceName;
     public string? PausedReason => _config.PausedReason;
     public bool IsEnabled(string workspaceId) => IsOn && _config.Workspaces.TryGetValue(workspaceId, out var l) && l.Enabled;
@@ -111,104 +124,121 @@ public sealed class SyncCoordinator
 
     // ── Turning sync on and off ──────────────────────────────────────────
 
-    /// <summary>Whether a folder already holds Sysslar sync files (then the user enters the key they have).</summary>
-    public static FolderCheck CheckFolder(string folder)
+    /// <summary>Whether a store already holds Sysslar sync files (then the user enters the key they have).</summary>
+    public static FolderCheck Check(ISyncStore store)
     {
         try
         {
-            if (!Directory.Exists(folder)) return new(false, "This folder doesn't exist.");
-            var root = Path.Combine(folder, SyncFolderLayout.RootName);
-            return new(File.Exists(SyncFolderLayout.KeyFile(root)), null);
+            store.Prepare();
+            return new(store.Read(SyncFolderLayout.KeyName) is not null, null);
         }
+        catch (SyncStoreSignedOutException ex) { return new(false, ex.Message); }
+        catch (SyncStoreUnreachableException ex) { return new(false, ex.Message); }
         catch (Exception ex) { return new(false, ex.Message); }
     }
 
-    /// <summary>First computer: makes a new key, sets up the folder and syncs the open workspace. Returns the key code to show.</summary>
-    public string TurnOnWithNewKey(string folder)
+    /// <summary>Whether a folder already holds Sysslar sync files.</summary>
+    public static FolderCheck CheckFolder(string folder)
+        => Directory.Exists(folder) ? Check(new FolderStore(folder)) : new(false, "This folder doesn't exist.");
+
+    public static Task<FolderCheck> CheckAsync(ISyncStore store) => Task.Run(() => Check(store));
+
+    /// <summary>First computer: makes a new key, sets up the store and syncs the open workspace. Returns the key code to show.</summary>
+    public async Task<string> TurnOnWithNewKeyAsync(ISyncStore store)
     {
-        var key  = SyncKey.Generate();
-        var root = Path.Combine(folder, SyncFolderLayout.RootName);
-        Directory.CreateDirectory(root);
-        SyncFolderLayout.WriteAtomically(SyncFolderLayout.KeyFile(root),
-            SyncCrypto.SealJson(key, SyncFolderLayout.SpaceScope, SyncFileKind.KeyCheck, SyncFolderLayout.KeyContext,
-                                new KeyCheck { MadeBy = _config.DeviceName, At = DateTime.UtcNow }));
-        Activate(folder, key);
+        var key = SyncKey.Generate();
+        await Task.Run(() =>
+        {
+            store.Prepare();
+            store.Write(SyncFolderLayout.KeyName,
+                SyncCrypto.SealJson(key, SyncFolderLayout.SpaceScope, SyncFileKind.KeyCheck, SyncFolderLayout.KeyContext,
+                                    new KeyCheck { MadeBy = _config.DeviceName, At = DateTime.UtcNow }));
+        });
+        Activate(store, key);
         SetWorkspaceEnabled(_host.ActiveWorkspaceId, true, mergeWithSyncId: null);
         return key.ToCode();
     }
 
-    /// <summary>Another computer: checks the typed key against the folder and turns sync on. Returns an error to show, or null.</summary>
-    public string? TurnOnWithKey(string folder, string code)
+    /// <summary>Another computer: checks the typed key against the store and turns sync on. Returns an error to show, or null.</summary>
+    public async Task<string?> TurnOnWithKeyAsync(ISyncStore store, string code)
     {
         var key = SyncKey.TryParseCode(code);
         if (key is null) return "That key isn't complete or has a typo. It's 54 letters and numbers.";
-        var root = Path.Combine(folder, SyncFolderLayout.RootName);
-        if (VerifyKeyAgainstFolder(root, key) is { } problem) return problem;
-        Activate(folder, key);
+        if (await Task.Run(() => VerifyKeyAgainstStore(store, key)) is { } problem) return problem;
+        Activate(store, key);
         return null;
     }
 
-    private void Activate(string folder, SyncKey key)
+    private void Activate(ISyncStore store, SyncKey key)
     {
         _secrets.Write(_config.DeviceId, key.Secret);
-        _key = key;
-        _config.Folder       = folder;
+        _key   = key;
+        _store = store;
+        store.SaveTo(_config);
         _config.Fingerprint  = key.FingerprintHex;
         _config.PausedReason = null;
         _config.LastDeviceHash = null;
         foreach (var link in _config.Workspaces.Values) link.LastWrittenHash = null;
         _config.Save();
         _readCache.Clear();
+        _listing.Clear();
         SetStatus(SyncStatus.UpToDate);
     }
 
     /// <summary>
-    /// Moves sync to another folder that has no sync files yet, keeping the key (other computers then
-    /// pick the same folder). For a folder that already has sync files, use <see cref="TurnOnWithKey"/>.
+    /// Moves sync to another store that has no sync files yet, keeping the key (other computers then
+    /// pick the same place). For a store that already has sync files, use <see cref="TurnOnWithKeyAsync"/>.
     /// </summary>
-    public void MoveToEmptyFolder(string folder)
+    public async Task MoveToEmptyStoreAsync(ISyncStore store)
     {
-        if (_key is null) throw new InvalidOperationException("Sync is off or paused.");
-        var root = Path.Combine(folder, SyncFolderLayout.RootName);
-        Directory.CreateDirectory(root);
-        SyncFolderLayout.WriteAtomically(SyncFolderLayout.KeyFile(root),
-            SyncCrypto.SealJson(_key, SyncFolderLayout.SpaceScope, SyncFileKind.KeyCheck, SyncFolderLayout.KeyContext,
-                                new KeyCheck { MadeBy = _config.DeviceName, At = DateTime.UtcNow }));
-        Activate(folder, _key);
+        if (_key is not { } key) throw new InvalidOperationException("Sync is off or paused.");
+        await Task.Run(() =>
+        {
+            store.Prepare();
+            store.Write(SyncFolderLayout.KeyName,
+                SyncCrypto.SealJson(key, SyncFolderLayout.SpaceScope, SyncFileKind.KeyCheck, SyncFolderLayout.KeyContext,
+                                    new KeyCheck { MadeBy = _config.DeviceName, At = DateTime.UtcNow }));
+        });
+        Activate(store, key);
     }
 
-    /// <summary>Stops syncing on this computer and forgets the key here. Nothing is deleted, here or in the folder.</summary>
+    /// <summary>Stops syncing on this computer and forgets the key here. Nothing is deleted, here or in the store.</summary>
     public void TurnOff()
     {
         try { _secrets.Delete(_config.DeviceId); }
         catch (Exception ex) { CrashLog.Write("The sync key couldn't be removed from the key store", ex); }
-        _key = null;
+        try { (_store as IDisposable)?.Dispose(); }
+        catch (Exception ex) { CrashLog.Write("Closing the sync store failed", ex); }
+        _key   = null;
+        _store = null;
         _config.Folder = null;
+        _config.Transport = null;
+        _config.DriveFolderId = null;
         _config.Fingerprint = null;
         _config.PausedReason = null;
         foreach (var link in _config.Workspaces.Values) { link.Enabled = false; link.LastWrittenHash = null; }
         _config.Save();
         _readCache.Clear();
+        _listing.Clear();
         SetStatus(SyncStatus.Off);
     }
 
     /// <summary>The key to type on another computer.</summary>
     public string? KeyCode => _key?.ToCode();
 
-    private static string? VerifyKeyAgainstFolder(string root, SyncKey key)
+    private static string? VerifyKeyAgainstStore(ISyncStore store, SyncKey key)
     {
-        var keyFile = SyncFolderLayout.KeyFile(root);
-        if (!File.Exists(keyFile)) return "There are no Sysslar sync files in this folder.";
         try
         {
-            var bytes = File.ReadAllBytes(keyFile);
+            store.Prepare();
+            if (store.Read(SyncFolderLayout.KeyName) is not { } bytes) return "There are no Sysslar sync files here.";
             if (SyncCrypto.ReadFingerprint(bytes) != key.FingerprintHex)
-                return "That key doesn't match the sync files in this folder. If the key was changed, use the newest one.";
+                return "That key doesn't match the sync files here. If the key was changed, use the newest one.";
             SyncCrypto.OpenJson<KeyCheck>(key, SyncFolderLayout.SpaceScope, SyncFileKind.KeyCheck, SyncFolderLayout.KeyContext, bytes);
             return null;
         }
         catch (SyncFileException ex) { return ex.Message; }
-        catch (IOException ex) { return "The sync folder couldn't be read: " + ex.Message; }
+        catch (IOException ex) { return "The sync files couldn't be read: " + ex.Message; }
     }
 
     // ── Changing the key ─────────────────────────────────────────────────
@@ -219,7 +249,7 @@ public sealed class SyncCoordinator
     /// </summary>
     public async Task<string> ChangeKeyAsync()
     {
-        if (_key is null || _config.SyncRoot is not { } root) throw new InvalidOperationException("Sync is off or paused.");
+        if (_key is null || _store is not { } store) throw new InvalidOperationException("Sync is off or paused.");
         while (_running) await Task.Delay(100);
         await RunCycleAsync();   // everything this computer knows goes out under the old key first
 
@@ -227,27 +257,27 @@ public sealed class SyncCoordinator
         var newKey = SyncKey.Generate();
         await Task.Run(() =>
         {
-            SyncFolderLayout.WriteAtomically(SyncFolderLayout.KeyChangeFile(root, oldKey.FingerprintHex),
+            store.Write(SyncFolderLayout.KeyChangeName(oldKey.FingerprintHex),
                 SyncCrypto.SealJson(oldKey, SyncFolderLayout.SpaceScope, SyncFileKind.KeyChange,
                                     SyncFolderLayout.KeyChangeContext(oldKey.FingerprintHex),
                                     new KeyChangeNotice { NewFingerprint = newKey.FingerprintHex, ChangedBy = _config.DeviceName, At = DateTime.UtcNow }));
-            SyncFolderLayout.WriteAtomically(SyncFolderLayout.KeyFile(root),
+            store.Write(SyncFolderLayout.KeyName,
                 SyncCrypto.SealJson(newKey, SyncFolderLayout.SpaceScope, SyncFileKind.KeyCheck, SyncFolderLayout.KeyContext,
                                     new KeyCheck { MadeBy = _config.DeviceName, At = DateTime.UtcNow }));
         });
-        Activate(_config.Folder!, newKey);
+        Activate(store, newKey);
         await RunCycleAsync();   // rewrite this computer's files with the new key
         return newKey.ToCode();
     }
 
     /// <summary>After the key was changed elsewhere: checks and stores the new key. Returns an error to show, or null.</summary>
-    public string? EnterNewKey(string code)
+    public async Task<string?> EnterNewKeyAsync(string code)
     {
-        if (_config.Folder is null) return "Sync is off.";
+        if (_store is not { } store) return "Sync is off.";
         var key = SyncKey.TryParseCode(code);
         if (key is null) return "That key isn't complete or has a typo. It's 54 letters and numbers.";
-        if (VerifyKeyAgainstFolder(_config.SyncRoot!, key) is { } problem) return problem;
-        Activate(_config.Folder, key);
+        if (await Task.Run(() => VerifyKeyAgainstStore(store, key)) is { } problem) return problem;
+        Activate(store, key);
         return null;
     }
 
@@ -284,25 +314,30 @@ public sealed class SyncCoordinator
         return id;
     }
 
-    /// <summary>The other computers that sync with this folder (readable with the current key).</summary>
+    /// <summary>The other computers that sync with this store (readable with the current key).</summary>
     public async Task<IReadOnlyList<DeviceInfo>> ReadDevicesAsync()
     {
-        if (_key is not { } key || _config.SyncRoot is not { } root) return [];
-        return await Task.Run(() => ReadDevices(root, key));
+        if (_key is not { } key || _store is not { } store) return [];
+        return await Task.Run(() =>
+        {
+            try { return ReadDevices(store, store.List(), key); }
+            catch (IOException ex)
+            {
+                CrashLog.Write("The other computers couldn't be listed", ex);
+                return [];
+            }
+        });
     }
 
-    private List<DeviceInfo> ReadDevices(string root, SyncKey key)
+    private List<DeviceInfo> ReadDevices(ISyncStore store, IReadOnlyList<SyncStoreFile> listing, SyncKey key)
     {
         var list = new List<DeviceInfo>();
-        var folder = SyncFolderLayout.DevicesFolder(root);
-        if (!Directory.Exists(folder)) return list;
-        foreach (var file in Directory.EnumerateFiles(folder, "*.sysslar"))
+        foreach (var file in listing)
         {
-            var id = Path.GetFileNameWithoutExtension(file);
-            if (id == _config.DeviceId) continue;
+            if (SyncFolderLayout.DeviceIdOf(file.Name) is not { } id || id == _config.DeviceId) continue;
             try
             {
-                var bytes = File.ReadAllBytes(file);
+                if (store.Read(file.Name) is not { } bytes) continue;
                 if (SyncCrypto.ReadFingerprint(bytes) != key.FingerprintHex) continue;
                 list.Add(SyncCrypto.OpenJson<DeviceInfo>(key, SyncFolderLayout.SpaceScope, SyncFileKind.Device,
                                                          SyncFolderLayout.DeviceContext(id), bytes));
@@ -339,15 +374,20 @@ public sealed class SyncCoordinator
         return rows;
     }
 
-    /// <summary>Removes another computer's files from the folder (a computer no longer used).</summary>
+    /// <summary>Removes another computer's files from the store (a computer no longer used).</summary>
     public async Task RemoveComputerAsync(string deviceId)
     {
-        if (_config.SyncRoot is not { } root || deviceId == _config.DeviceId) return;
+        if (_store is not { } store || deviceId == _config.DeviceId) return;
         await Task.Run(() =>
         {
-            TryDelete(SyncFolderLayout.DeviceFile(root, deviceId));
-            foreach (var dir in Directory.EnumerateDirectories(root, "ws-*"))
-                TryDelete(Path.Combine(dir, deviceId + SyncFolderLayout.SnapshotExtension));
+            try
+            {
+                store.Delete(SyncFolderLayout.DeviceName(deviceId));
+                foreach (var file in store.List())
+                    if (file.Name.EndsWith("/" + deviceId + SyncFolderLayout.SnapshotExtension, StringComparison.Ordinal))
+                        store.Delete(file.Name);
+            }
+            catch (IOException ex) { CrashLog.Write("A computer's sync files couldn't be removed", ex); }
         });
     }
 
@@ -382,12 +422,7 @@ public sealed class SyncCoordinator
 
     private async Task RunOnceAsync()
     {
-        if (!_config.IsOn || _config.SyncRoot is not { } root) { SetStatus(SyncStatus.Off); return; }
-        if (!Directory.Exists(_config.Folder))
-        {
-            SetStatus(SyncStatus.FolderMissing, $"Can't reach the sync folder ({_config.Folder}).");
-            return;
-        }
+        if (!_config.IsOn || _store is not { } store) { SetStatus(SyncStatus.Off); return; }
 
         var work = _host.Workspaces
             .Where(w => _config.Workspaces.TryGetValue(w.Id, out var l) && l.Enabled)
@@ -397,16 +432,29 @@ public sealed class SyncCoordinator
         foreach (var gone in _config.Workspaces.Keys.Where(id => _host.Workspaces.All(w => w.Id != id)).ToList())
             _config.Workspaces.Remove(gone);
 
-        // 1. Background: is the key still the folder's key? Read the other computers' files.
+        // 1. Background: list the store, check the key is still its key, read the other computers' files.
         string? pause;
         try
         {
-            pause = await Task.Run(() => CheckKey(root));
-            if (pause is null) await Task.Run(() => ReadRemotes(root, work));
+            pause = await Task.Run(() =>
+            {
+                store.Prepare();
+                _listing = store.List().ToDictionary(f => f.Name, StringComparer.Ordinal);
+                var reason = CheckKey(store);
+                if (reason is null) ReadRemotes(store, work);
+                return reason;
+            });
+        }
+        catch (SyncStoreSignedOutException ex)
+        {
+            SetStatus(SyncStatus.SignedOut, ex.Message);
+            return;
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            SetStatus(SyncStatus.FolderMissing, "The sync folder couldn't be read: " + ex.Message);
+            SetStatus(SyncStatus.FolderMissing, ex is SyncStoreUnreachableException
+                ? ex.Message
+                : "The sync files couldn't be read: " + ex.Message);
             return;
         }
         if (pause is not null)
@@ -449,12 +497,17 @@ public sealed class SyncCoordinator
         int fetched = 0;
         try
         {
-            fetched = await Task.Run(() => WriteAndMoveFiles(root, work));
+            fetched = await Task.Run(() => WriteAndMoveFiles(store, work));
+        }
+        catch (SyncStoreSignedOutException ex)
+        {
+            SetStatus(SyncStatus.SignedOut, ex.Message);
+            return;
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             CrashLog.Write("Writing sync files failed", ex);
-            problems.Add("The sync folder couldn't be written: " + ex.Message);
+            problems.Add("The sync files couldn't be written: " + ex.Message);
         }
         if (fetched > 0) _again = true;   // attachment files arrived: add them now
 
@@ -466,28 +519,27 @@ public sealed class SyncCoordinator
                   problems.Count == 0 ? null : string.Join("\n", problems));
     }
 
-    /// <summary>Null when the folder still uses this computer's key, otherwise why syncing has to pause.</summary>
-    private string? CheckKey(string root)
+    /// <summary>Null when the store still uses this computer's key, otherwise why syncing has to pause.</summary>
+    private string? CheckKey(ISyncStore store)
     {
         if (_key is null) return _config.PausedReason ?? PauseReasons.KeyMissing;
-        var keyFile = SyncFolderLayout.KeyFile(root);
-        if (!File.Exists(keyFile))
+        if (!_listing.ContainsKey(SyncFolderLayout.KeyName) || store.Read(SyncFolderLayout.KeyName) is not { } keyBytes)
         {
-            // The folder was emptied or is new on this computer: it uses our key from now on.
-            SyncFolderLayout.WriteAtomically(keyFile, SyncCrypto.SealJson(_key, SyncFolderLayout.SpaceScope, SyncFileKind.KeyCheck,
+            // The store was emptied or is new on this computer: it uses our key from now on.
+            store.Write(SyncFolderLayout.KeyName, SyncCrypto.SealJson(_key, SyncFolderLayout.SpaceScope, SyncFileKind.KeyCheck,
                 SyncFolderLayout.KeyContext, new KeyCheck { MadeBy = _config.DeviceName, At = DateTime.UtcNow }));
             return null;
         }
-        var fingerprint = SyncCrypto.ReadFingerprint(File.ReadAllBytes(keyFile));
+        var fingerprint = SyncCrypto.ReadFingerprint(keyBytes);
         if (fingerprint == _key.FingerprintHex) return null;
 
-        var notice = SyncFolderLayout.KeyChangeFile(root, _key.FingerprintHex);
-        if (File.Exists(notice))
+        var notice = SyncFolderLayout.KeyChangeName(_key.FingerprintHex);
+        if (_listing.ContainsKey(notice) && store.Read(notice) is { } noticeBytes)
         {
             try
             {
                 var change = SyncCrypto.OpenJson<KeyChangeNotice>(_key, SyncFolderLayout.SpaceScope, SyncFileKind.KeyChange,
-                    SyncFolderLayout.KeyChangeContext(_key.FingerprintHex), File.ReadAllBytes(notice));
+                    SyncFolderLayout.KeyChangeContext(_key.FingerprintHex), noticeBytes);
                 return PauseReasons.KeyChangedPrefix + change.ChangedBy;
             }
             catch (SyncFileException) { /* not genuine: treat as an unknown key */ }
@@ -495,31 +547,28 @@ public sealed class SyncCoordinator
         return PauseReasons.DifferentKey;
     }
 
-    private void ReadRemotes(string root, List<WorkspaceWork> work)
+    private void ReadRemotes(ISyncStore store, List<WorkspaceWork> work)
     {
         int onOldKey = 0;
         foreach (var w in work)
         {
-            var folder = SyncFolderLayout.WorkspaceFolder(root, w.Link.SyncId);
-            if (!Directory.Exists(folder)) continue;
-            foreach (var file in Directory.EnumerateFiles(folder, "*" + SyncFolderLayout.SnapshotExtension))
+            foreach (var file in _listing.Values)
             {
-                var deviceId = Path.GetFileNameWithoutExtension(file);
+                if (SyncFolderLayout.SnapshotDeviceIdOf(file.Name, w.Link.SyncId) is not { } deviceId) continue;
                 if (deviceId == _config.DeviceId) continue;
                 try
                 {
-                    var info = new FileInfo(file);
-                    if (_readCache.TryGetValue(file, out var cached) && cached.Written == info.LastWriteTimeUtc && cached.Length == info.Length)
+                    if (_readCache.TryGetValue(file.Name, out var cached) && cached.Tag == file.Tag)
                     {
                         w.Remotes.Add(cached.Snapshot);
                         continue;
                     }
-                    var bytes = File.ReadAllBytes(file);
+                    if (store.Read(file.Name) is not { } bytes) continue;
                     if (SyncCrypto.ReadFingerprint(bytes) != _key!.FingerprintHex) { onOldKey++; continue; }
                     var snapshot = SyncCrypto.OpenJson<SyncSnapshot>(_key, w.Link.SyncId, SyncFileKind.Snapshot,
                         SyncFolderLayout.SnapshotContext(w.Link.SyncId, deviceId), bytes);
                     if (snapshot.DeviceId != deviceId) continue;
-                    _readCache[file] = (info.LastWriteTimeUtc, info.Length, snapshot);
+                    _readCache[file.Name] = (file.Tag, snapshot);
                     w.Remotes.Add(snapshot);
                 }
                 catch (Exception ex) when (ex is SyncFileException or IOException)
@@ -531,7 +580,7 @@ public sealed class SyncCoordinator
         ComputersOnOldKey = onOldKey;
     }
 
-    private int WriteAndMoveFiles(string root, List<WorkspaceWork> work)
+    private int WriteAndMoveFiles(ISyncStore store, List<WorkspaceWork> work)
     {
         var key = _key!;
         int fetched = 0;
@@ -550,7 +599,7 @@ public sealed class SyncCoordinator
             if (hash != w.Link.LastWrittenHash)
             {
                 snapshot.Seq = _config.NextSeq();
-                SyncFolderLayout.WriteAtomically(SyncFolderLayout.SnapshotFile(root, syncId, _config.DeviceId),
+                store.Write(SyncFolderLayout.SnapshotName(syncId, _config.DeviceId),
                     SyncCrypto.SealJson(key, syncId, SyncFileKind.Snapshot, SyncFolderLayout.SnapshotContext(syncId, _config.DeviceId), snapshot));
                 w.Link.LastWrittenHash = hash;
             }
@@ -558,11 +607,11 @@ public sealed class SyncCoordinator
             // Attachment files this computer has
             foreach (var (blobHash, path) in w.Result.BlobsToShare)
             {
-                var blobFile = SyncFolderLayout.BlobFile(root, syncId, key, blobHash);
-                if (File.Exists(blobFile)) continue;
+                var blobName = SyncFolderLayout.BlobName(syncId, key, blobHash);
+                if (_listing.ContainsKey(blobName)) continue;
                 try
                 {
-                    SyncFolderLayout.WriteAtomically(blobFile,
+                    store.Write(blobName,
                         SyncCrypto.Seal(key, syncId, SyncFileKind.Blob, SyncFolderLayout.BlobContext(syncId, blobHash), File.ReadAllBytes(path)));
                 }
                 catch (IOException ex) { CrashLog.Write("An attachment couldn't be shared", ex); }
@@ -574,13 +623,17 @@ public sealed class SyncCoordinator
             {
                 var target = Path.Combine(cache, needed);
                 if (File.Exists(target)) continue;
-                var blobFile = SyncFolderLayout.BlobFile(root, syncId, key, needed);
-                if (!File.Exists(blobFile)) continue;
+                var blobName = SyncFolderLayout.BlobName(syncId, key, needed);
+                if (!_listing.ContainsKey(blobName)) continue;
                 try
                 {
-                    var plain = SyncCrypto.Open(key, syncId, SyncFileKind.Blob, SyncFolderLayout.BlobContext(syncId, needed), File.ReadAllBytes(blobFile));
+                    if (store.Read(blobName) is not { } sealedBytes) continue;
+                    var plain = SyncCrypto.Open(key, syncId, SyncFileKind.Blob, SyncFolderLayout.BlobContext(syncId, needed), sealedBytes);
                     if (Convert.ToHexStringLower(SHA256.HashData(plain)) != needed) continue;
-                    SyncFolderLayout.WriteAtomically(target, plain);
+                    Directory.CreateDirectory(cache);
+                    var tmp = target + ".tmp";
+                    File.WriteAllBytes(tmp, plain);
+                    File.Move(tmp, target, overwrite: true);
                     fetched++;
                 }
                 catch (Exception ex) when (ex is SyncFileException or IOException) { /* still arriving */ }
@@ -588,20 +641,20 @@ public sealed class SyncCoordinator
             // Files already added to the workspace aren't needed in the cache any more
             if (Directory.Exists(cache))
                 foreach (var file in Directory.EnumerateFiles(cache))
-                    if (!w.Result.BlobsNeeded.Contains(Path.GetFileName(file))) TryDelete(file);
+                    if (!w.Result.BlobsNeeded.Contains(Path.GetFileName(file))) TryDeleteLocal(file);
         }
 
-        WriteDeviceFile(root, key, work);
+        WriteDeviceFile(store, key, work);
         if (_config.LastCleanup is null || DateTime.UtcNow - _config.LastCleanup > TimeSpan.FromDays(1))
         {
-            CleanUpBlobs(root, key, work);
+            CleanUpBlobs(store, key, work);
             _config.LastCleanup = DateTime.UtcNow;
         }
         return fetched;
     }
 
     /// <summary>This computer's name and synced workspaces, rewritten when they change and once a day ("last seen").</summary>
-    private void WriteDeviceFile(string root, SyncKey key, List<WorkspaceWork> work)
+    private void WriteDeviceFile(ISyncStore store, SyncKey key, List<WorkspaceWork> work)
     {
         var info = new DeviceInfo
         {
@@ -612,37 +665,37 @@ public sealed class SyncCoordinator
         var hash = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(key.FingerprintHex + JsonSerializer.Serialize(info))));
         if (hash == _config.LastDeviceHash && _config.LastDeviceWrite is { } last && DateTime.UtcNow - last < TimeSpan.FromHours(12)) return;
         info.LastSeen = DateTime.UtcNow;
-        SyncFolderLayout.WriteAtomically(SyncFolderLayout.DeviceFile(root, _config.DeviceId),
+        store.Write(SyncFolderLayout.DeviceName(_config.DeviceId),
             SyncCrypto.SealJson(key, SyncFolderLayout.SpaceScope, SyncFileKind.Device, SyncFolderLayout.DeviceContext(_config.DeviceId), info));
         _config.LastDeviceHash  = hash;
         _config.LastDeviceWrite = DateTime.UtcNow;
     }
 
     /// <summary>Attachment files no computer refers to any more (or left from an old key) go after a week.</summary>
-    private void CleanUpBlobs(string root, SyncKey key, List<WorkspaceWork> work)
+    private void CleanUpBlobs(ISyncStore store, SyncKey key, List<WorkspaceWork> work)
     {
         foreach (var w in work.Where(w => w.Result is not null))
         {
-            var folder = SyncFolderLayout.BlobsFolder(root, w.Link.SyncId);
-            if (!Directory.Exists(folder)) continue;
-            var referenced = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var prefix = SyncFolderLayout.BlobsPrefix(w.Link.SyncId);
+            var referenced = new HashSet<string>(StringComparer.Ordinal);
             foreach (var state in w.Remotes.Select(r => r.State).Append(w.Result!.State))
                 foreach (var table in SyncSchema.Tables.Where(t => t.HasBlob))
                     if (state.Tables.TryGetValue(table.Name, out var t))
                         foreach (var r in t.Records.Values)
                             if (r.Get(SyncSchema.BlobField) is { Length: > 0 } h)
-                                referenced.Add(SyncFolderLayout.BlobFile(root, w.Link.SyncId, key, h));
-            foreach (var file in Directory.EnumerateFiles(folder))
+                                referenced.Add(SyncFolderLayout.BlobName(w.Link.SyncId, key, h));
+            foreach (var file in _listing.Values)
             {
-                if (referenced.Contains(file)) continue;
-                if (DateTime.UtcNow - File.GetLastWriteTimeUtc(file) > TimeSpan.FromDays(7)) TryDelete(file);
+                if (!file.Name.StartsWith(prefix, StringComparison.Ordinal)) continue;
+                if (referenced.Contains(file.Name)) continue;
+                if (DateTime.UtcNow - file.Modified > TimeSpan.FromDays(7)) store.Delete(file.Name);
             }
         }
     }
 
     private static string AppVersion => Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "unknown";
 
-    private static void TryDelete(string path)
+    private static void TryDeleteLocal(string path)
     {
         try { if (File.Exists(path)) File.Delete(path); }
         catch (Exception ex) { CrashLog.Write($"Couldn't delete '{path}'", ex); }

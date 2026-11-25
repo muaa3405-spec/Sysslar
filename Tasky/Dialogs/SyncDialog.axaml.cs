@@ -27,6 +27,7 @@ public partial class SyncDialog : Window
 
     private readonly SyncCoordinator? _sync = AppSync.Coordinator;
     private string? _pickedFolder;
+    private ISyncStore? _pickedStore;
     private bool _changingFolder;
     private KeyMode _keyMode;
     private bool _busy;
@@ -151,13 +152,23 @@ public partial class SyncDialog : Window
         NoCloudFolders.IsVisible = false;
     }
 
-    private void FolderContinue_Click(object? sender, RoutedEventArgs e)
+    private async void FolderContinue_Click(object? sender, RoutedEventArgs e)
     {
         if (_sync is null || _pickedFolder is not { } folder) return;
-        var check = SyncCoordinator.CheckFolder(folder);
-        if (check.Problem is { } problem) { ShowFolderError(problem); return; }
+        await ContinueWithStoreAsync(new FolderStore(folder));
+    }
+
+    /// <summary>Turns sync on (or moves it) with the store the user just picked: a folder, or Google Drive.</summary>
+    private async Task ContinueWithStoreAsync(ISyncStore store)
+    {
+        if (_sync is null || _busy) return;
+        _busy = true;
+        FolderContinue.IsEnabled = false;
         try
         {
+            var check = await SyncCoordinator.CheckAsync(store);
+            if (check.Problem is { } problem) { ShowFolderError(problem); return; }
+            _pickedStore = store;
             if (check.HasSyncData)
             {
                 ShowEnterKey(_changingFolder ? KeyMode.ChangeFolder : KeyMode.Join);
@@ -165,11 +176,11 @@ public partial class SyncDialog : Window
             }
             if (_changingFolder)
             {
-                _sync.MoveToEmptyFolder(folder);
+                await _sync.MoveToEmptyStoreAsync(store);
                 AfterSetupChange();
                 return;
             }
-            var code = _sync.TurnOnWithNewKey(folder);
+            var code = await _sync.TurnOnWithNewKeyAsync(store);
             ShowNewKey(code, "Your encryption key",
                 "Sync is on. Type this key on your other computers to sync with this one. Save it in a password manager: " +
                 "without it a new computer can't join, and nobody can recover it.");
@@ -178,7 +189,12 @@ public partial class SyncDialog : Window
         catch (Exception ex)
         {
             CrashLog.Write("Turning on sync failed", ex);
-            ShowFolderError("Sysslar couldn't write to this folder: " + ex.Message);
+            ShowFolderError($"Sysslar couldn't write to {store.Describe}: " + ex.Message);
+        }
+        finally
+        {
+            _busy = false;
+            FolderContinue.IsEnabled = _pickedFolder is not null;
         }
     }
 
@@ -225,7 +241,7 @@ public partial class SyncDialog : Window
         else
         {
             EnterKeyTitle.Text = "Enter your encryption key";
-            EnterKeyIntro.Text = "This folder already has Sysslar sync files. Find the key on any computer that syncs: Settings → Sync → Show key.";
+            EnterKeyIntro.Text = "There are already Sysslar sync files here. Find the key on any computer that syncs: Settings → Sync → Show key.";
         }
         ShowStep(EnterKeyStep);
         KeyInput.Focus();
@@ -239,8 +255,8 @@ public partial class SyncDialog : Window
         {
             error = _keyMode switch
             {
-                KeyMode.NewKeyAfterChange => _sync.EnterNewKey(KeyInput.Text ?? string.Empty),
-                _                         => _sync.TurnOnWithKey(_pickedFolder!, KeyInput.Text ?? string.Empty),
+                KeyMode.NewKeyAfterChange => await _sync.EnterNewKeyAsync(KeyInput.Text ?? string.Empty),
+                _                         => await _sync.TurnOnWithKeyAsync(_pickedStore!, KeyInput.Text ?? string.Empty),
             };
         }
         catch (Exception ex)
@@ -255,7 +271,6 @@ public partial class SyncDialog : Window
             return;
         }
         AfterSetupChange();
-        await Task.CompletedTask;
     }
 
     private async void CancelKey_Click(object? sender, RoutedEventArgs e)
@@ -311,7 +326,7 @@ public partial class SyncDialog : Window
             return $"The encryption key was changed on {reason[SyncCoordinator.PauseReasons.KeyChangedPrefix.Length..]}.";
         if (reason == SyncCoordinator.PauseReasons.KeyMissing)
             return "This computer's sync key is missing from its key store.";
-        return "The sync folder now uses a different encryption key.";
+        return "The sync files now use a different encryption key.";
     }
 
     // ── On ───────────────────────────────────────────────────────────────
@@ -330,9 +345,11 @@ public partial class SyncDialog : Window
         StatusText.Text = SyncStatusText.Short(_sync);
         PausedCard.IsVisible = _sync.Status == SyncStatus.Paused;
         PausedText.Text = PausedExplanation() + " Sync is paused here until you enter the new key. Your changes on this computer are kept.";
-        var folder = _sync.Folder ?? string.Empty;
-        FolderName.Text = CloudFolders.ServiceOf(folder) ?? System.IO.Path.GetFileName(folder.TrimEnd(System.IO.Path.DirectorySeparatorChar));
-        FolderPath.Text = folder;
+        var folder = _sync.Folder;
+        FolderName.Text = folder is null
+            ? _sync.StorageName
+            : CloudFolders.ServiceOf(folder) ?? System.IO.Path.GetFileName(folder.TrimEnd(System.IO.Path.DirectorySeparatorChar));
+        FolderPath.Text = folder ?? "Signed in — Sysslar keeps its own folder there";
     }
 
     private async Task RefreshListsAsync()
@@ -462,7 +479,7 @@ public partial class SyncDialog : Window
     {
         if (_sync is null) return;
         var ask = new ConfirmDialog("Turn off sync on this computer?",
-            "Nothing is deleted: your data stays here and on your other computers, and the sync files stay in the folder.\n\n" +
+            "Nothing is deleted: your data stays here and on your other computers, and the sync files stay where they are.\n\n" +
             "This computer forgets the key. To sync again later, turn it on and enter the key.",
             "Turn off", ConfirmType.Warning);
         if (await ask.ShowDialog<bool?>(this) != true) return;
@@ -481,7 +498,7 @@ public partial class SyncDialog : Window
         await snapshot("Sync-folder");
         if (_pickedFolder is null) return;   // no test folder: the steps above are all that can be shown
 
-        FolderContinue_Click(this, new RoutedEventArgs());
+        await ContinueWithStoreAsync(new FolderStore(_pickedFolder));
         if (!_sync.IsOn) throw new InvalidOperationException("Turning sync on failed: " + FolderError.Text);
         if (SyncKey.TryParseCode(NewKeyText.Text) is null) throw new InvalidOperationException("The key shown can't be read back");
         await snapshot("Sync-key");
@@ -501,7 +518,8 @@ public static class SyncStatusText
         SyncStatus.Off           => "Off",
         SyncStatus.Syncing       => "Syncing…",
         SyncStatus.Paused        => "Paused",
-        SyncStatus.FolderMissing => "Can't reach the folder",
+        SyncStatus.FolderMissing => sync.IsGoogleDrive ? "Can't reach Google Drive" : "Can't reach the folder",
+        SyncStatus.SignedOut     => "Needs you to sign in again",
         SyncStatus.Problem       => "Couldn't sync everything",
         _ => sync.LastSync is { } last ? $"Synced {Ago(last)}" : "On",
     };
